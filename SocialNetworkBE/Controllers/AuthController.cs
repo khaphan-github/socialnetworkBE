@@ -1,22 +1,24 @@
-﻿using SocialNetworkBE.Payload.Request;
+﻿using SocialNetworkBE.App_Start.Auth;
+using SocialNetworkBE.Payload.Request;
 using SocialNetworkBE.Payload.Response;
 using System.Web.Http;
+using System.Web.Http.Filters;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("auth")]
     public class AuthController : ApiController {
         [HttpPost]
+
         public ResponseBase SignIn([FromBody] Auth authenticateRequest) {
-            bool isEmptyRequestPagrams =
-                authenticateRequest.Username == null || authenticateRequest.Password == null;
 
-            if (isEmptyRequestPagrams) {
-                string[] pagrams = { "username", "password" };
+            if (authenticateRequest.Credential == null) {
+                string[] pagrams = { "Credential" };
 
-                return new ResponseBase().EmptyRequestBodyResponse(pagrams);
+                return new ResponseBase().EmptyRequestDataResponse(pagrams);
             }
 
             // TODO: Hanlde user sign in then get access token
+
 
             ResponseBase response = new ResponseBase() {
                 Status = Status.Success,
