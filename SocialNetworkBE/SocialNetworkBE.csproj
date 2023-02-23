@@ -170,6 +170,7 @@
     <Compile Include="Payloads\Data\TokenResponse.cs" />
     <Compile Include="Payloads\Data\UserResponse.cs" />
     <Compile Include="Payloads\Request\Auth.cs" />
+    <Compile Include="Payloads\Request\Token.cs" />
     <Compile Include="Payloads\Response\ResponseBase.cs" />
     <Compile Include="Payloads\Response\Status.cs" />
     <Compile Include="Repositorys\AccountRepository.cs" />
