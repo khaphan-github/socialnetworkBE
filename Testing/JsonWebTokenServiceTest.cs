@@ -11,13 +11,10 @@ namespace Testing {
             // Given
             JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
 
-            ClaimsIdentity claimsIdentity = new ClaimsIdentity();
-            claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, "ThisIsUsername"));
-            claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, "ThisIsEmail"));
+            ClaimsIdentity claimsIdentity =
+                jsonWebTokenService.CreateClaimsIdentity("ThisIsUsername", "ThisIsEmail", "user");
 
             string token = jsonWebTokenService.CreateTokenFromUserData(claimsIdentity, 120);
-
-            System.Diagnostics.Debug.WriteLine("Json Web Token: " + token);
 
             bool isValidToken = jsonWebTokenService.IsValidToken(token);
 
@@ -39,7 +36,7 @@ namespace Testing {
         }
 
         [TestMethod]
-        public void GivenUserDataWhenGenerateTokenKeyPairAndValidateThenRequrnTrue() {
+        public void GivenUserDataWhenGenerateTokenKeyPairAndValidateThenReturnTrue() {
             JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
             ClaimsIdentity claimsIdentity = jsonWebTokenService.CreateClaimsIdentity(
                 "thisisusername",
@@ -53,6 +50,21 @@ namespace Testing {
 
             Assert.IsTrue(isValidAccessToken);
             Assert.IsTrue(isValidRefreshToken);
+        }
+
+        [TestMethod]
+        public void GivenAccessTokenAndRefreshTokenWhenRefreshTokenBeforeAccessTokenExpriseThenInvalidToken () {
+            JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
+            ClaimsIdentity claimsIdentity = jsonWebTokenService.CreateClaimsIdentity(
+                "thisisusername",
+                "thisisemail",
+                "user");
+
+            List<string> tokenKeypair = jsonWebTokenService.GenerateKeyPairs(claimsIdentity);
+            List<string> tokenKeypairRefresh = jsonWebTokenService.RefreshToken(tokenKeypair[0], tokenKeypair[1]);
+
+            bool isEmptyWhenGetToken = tokenKeypairRefresh.Count == 0;
+            Assert.IsTrue(isEmptyWhenGetToken);            
         }
     }
 }

@@ -114,9 +114,14 @@ namespace SocialNetworkBE.Services.JsonWebToken {
         }
 
         public List<string> GenerateKeyPairs(ClaimsIdentity claimsIdentity) {
-            string accessToken = CreateTokenFromUserData(claimsIdentity, 5);
 
-            string refreshToken = CreateTokenFromUserData(claimsIdentity, 15);
+            int accessTokenExpriseTime = 5;
+            int refreshTokenExpriseTime = 15;
+            string accessToken =
+                CreateTokenFromUserData(claimsIdentity, accessTokenExpriseTime);
+
+            string refreshToken =
+                CreateTokenFromUserData(claimsIdentity, refreshTokenExpriseTime);
 
             List<string> keyPairs = new List<string>() {
                 accessToken, refreshToken
@@ -124,18 +129,21 @@ namespace SocialNetworkBE.Services.JsonWebToken {
             return keyPairs;
         }
 
+        /** 
+         Only access refresh token when accesstoken invalid 
+        */
         public List<string> RefreshToken(string accessToken, string refreshToken) {
-         /*   
-          *   if(IsValidToken(accessToken)) {
+
+            if (IsValidToken(accessToken)) {
                 return new List<string>();
             }
-         */
+
             bool isValidRefreshToken = IsValidToken(accessToken);
             List<string> keyPairs = new List<string>();
 
             if (isValidRefreshToken) {
                 ClaimsIdentity claimsIdentity = GetClaimsIdentityFromToken(refreshToken);
-                keyPairs =  GenerateKeyPairs(claimsIdentity);
+                keyPairs = GenerateKeyPairs(claimsIdentity);
             }
 
             return keyPairs;

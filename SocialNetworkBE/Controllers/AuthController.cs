@@ -55,7 +55,6 @@ namespace SocialNetworkBE.Controllers {
                 };
             }
 
-
             AuthService authService = new AuthService();
 
             TokenResponse tokenResponse = authService.HandleRefreshToken(tokenRequest);
