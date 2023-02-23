@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using SocialNetworkBE.App_Start.Auth;
 using System.Web.Http;
 
 namespace SocialNetworkBE {
@@ -17,6 +15,9 @@ namespace SocialNetworkBE {
                 routeTemplate: ApiEndpoint,
                 defaults: new { id = RouteParameter.Optional }
             );
+
+            // Web Api Add new Authentication
+            config.Filters.Add(new AuthorizationAttribute());
         }
     }
 }
