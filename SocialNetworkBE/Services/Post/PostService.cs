@@ -5,5 +5,6 @@ using System.Web;
 
 namespace SocialNetworkBE.Services.Post {
     public class PostService {
+
     }
 }

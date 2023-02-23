@@ -44,6 +44,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
+      <HintPath>..\packages\Portable.BouncyCastle.1.9.0\lib\net40\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.7.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
@@ -95,6 +98,11 @@
     </Reference>
     <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.1\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Csp, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Csp.4.3.0\lib\net46\System.Security.Cryptography.Csp.dll</HintPath>
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
@@ -155,19 +163,21 @@
     <Compile Include="App_Start\Auth\AuthorizationAttribute.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AuthController.cs" />
-    <Compile Include="Controllers\BaseAPIController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Payloads\Data\AuthResponse.cs" />
+    <Compile Include="Payloads\Data\TokenResponse.cs" />
+    <Compile Include="Payloads\Data\UserResponse.cs" />
     <Compile Include="Payloads\Request\Auth.cs" />
     <Compile Include="Payloads\Response\ResponseBase.cs" />
     <Compile Include="Payloads\Response\Status.cs" />
     <Compile Include="Repositorys\AccountRepository.cs" />
     <Compile Include="Repositorys\Configs\MongoDBConfiguration.cs" />
-    <Compile Include="Services\Authenticate\AuthService.cs" />
-    <Compile Include="Services\Comment\CommentService.cs" />
+    <Compile Include="EventHandlers\Authenticate\AuthService.cs" />
     <Compile Include="Services\JsonWebToken\JsonWebTokenService.cs" />
     <Compile Include="Services\Post\PostService.cs" />
+    <Compile Include="Services\RedisCache\RedisCacheService.cs" />
     <Compile Include="Services\RSA\RSAService.cs" />
     <Compile Include="Validates\RequestValidation.cs" />
   </ItemGroup>
@@ -182,7 +192,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Payloads\Data\" />
     <Folder Include="Properties\" />
     <Folder Include="Repositorys\DataModels\" />
   </ItemGroup>

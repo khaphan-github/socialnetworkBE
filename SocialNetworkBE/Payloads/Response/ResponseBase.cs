@@ -15,21 +15,5 @@ namespace SocialNetworkBE.Payload.Response {
             Message = message;
             Data = data;
         }
-
-        public ResponseBase EmptyRequestDataResponse(string[] paramater) {
-            string message = "This request require: ";
-
-            StringBuilder pagramsRequire = new StringBuilder();
-
-            foreach (var item in paramater) {
-                pagramsRequire.Append(item.ToString() + ", ");
-            }
-            string responseMessage = message + pagramsRequire.ToString();
-
-            return new ResponseBase() {
-                Status = Status.Failure,
-                Message = responseMessage
-            };
-        }
     }
 }

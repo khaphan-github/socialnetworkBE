@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -11,8 +12,23 @@ namespace SocialNetworkBE.Services.JsonWebToken {
     public class JsonWebTokenService {
         // https://gist.github.com/rafiulgits/b967c3f1716436b3c59d038d04a51009
 
-        // TODO: Handle Secure Secretkey
-        private const string SECRET_KEY = "Secretkey";
+        // TODO: Handle Secure Secretkey using OpenSSL of anything same;
+
+        private const string SECRET_KEY = "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh" +
+            "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh" +
+            "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh";
+
+
+        public ClaimsIdentity CreateClaimsIdentity(string username, string email, string role) {
+            ClaimsIdentity claimsIdentity = new ClaimsIdentity();
+
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, username));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, email));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role));
+
+            return claimsIdentity;
+        }
+
         public string CreateTokenFromUserData(ClaimsIdentity claimsIdentity, int exprisesTime) {
 
             byte[] secretKey = Encoding.UTF8.GetBytes(SECRET_KEY);
@@ -36,7 +52,7 @@ namespace SocialNetworkBE.Services.JsonWebToken {
             return handler.WriteToken(token);
         }
 
-        private static ClaimsPrincipal GetPrincipalFromToken(string token) {
+        private ClaimsPrincipal GetPrincipalFromToken(string token) {
             try {
                 JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
 
@@ -85,6 +101,18 @@ namespace SocialNetworkBE.Services.JsonWebToken {
             }
 
             return true;
+        }
+
+
+        public List<string> GenerateKeyPairs(ClaimsIdentity claimsIdentity) {
+
+            string accessToken = CreateTokenFromUserData(claimsIdentity, 5);
+            string refreshToken = CreateTokenFromUserData(claimsIdentity, 15);
+
+            List<string> keyPairs = new List<string>() {
+                accessToken, refreshToken
+            };
+            return keyPairs;
         }
     }
 }
