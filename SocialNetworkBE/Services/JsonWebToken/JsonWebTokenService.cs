@@ -115,8 +115,9 @@ namespace SocialNetworkBE.Services.JsonWebToken {
 
         public List<string> GenerateKeyPairs(ClaimsIdentity claimsIdentity) {
 
-            int accessTokenExpriseTime = 5;
-            int refreshTokenExpriseTime = 15;
+            int accessTokenExpriseTime = 10; // 10 Minutes
+            int refreshTokenExpriseTime = 5 * 24 * 60; // 5 Days
+
             string accessToken =
                 CreateTokenFromUserData(claimsIdentity, accessTokenExpriseTime);
 
@@ -126,6 +127,7 @@ namespace SocialNetworkBE.Services.JsonWebToken {
             List<string> keyPairs = new List<string>() {
                 accessToken, refreshToken
             };
+
             return keyPairs;
         }
 

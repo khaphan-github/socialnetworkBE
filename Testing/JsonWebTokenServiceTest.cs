@@ -20,6 +20,7 @@ namespace Testing {
 
             Assert.IsTrue(isValidToken);
         }
+        
 
         [TestMethod]
         public void GivenInvalidTokenWhenValidateTokenThenReturnFalse() {
