@@ -7,6 +7,7 @@ using System.Web.Http.Results;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repository;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace Testing
 {
@@ -14,30 +15,12 @@ namespace Testing
     public class UnitTest1
     {
         [TestMethod]
-        public void GetAllComments()
+        public void Getaccs()
         {
-            var testComment = GetTestComments();
-            var controller = new CommentController(testComment);
-
-            var result = controller.GetAllProducts() as List<Comment>;
-            Assert.AreEqual(testComment.Count, result.Count);
-        }
-        [TestMethod]
-        public async Task GetAllProductsAsync_ShouldReturnAllProducts()
-        {
-            var testComment = GetTestComments();
-            var controller = new CommentController(testComment);
-
-            var result = await controller.GetAllProductsAsync() as List<Comment>;
-            Assert.AreEqual(testComment.Count, result.Count);
-        }
-
-        private List<Comment> GetTestComments()
-        {
-            commentRepository comments = new commentRepository();
-            IEnumerable<Comment>testProducts = comments.GetComments();
-
-            return testProducts.ToList();
+            AccountResponsitory account = new AccountResponsitory();
+            IEnumerable<Account> accresult = account.GetAccByUsernamePwd("kimkhanh21", "0201hihi");
+            int isValidAccount = accresult.Count();
+            Assert.IsTrue(isValidAccount != 0);
         }
     }
 }

@@ -259,3 +259,7 @@ C:\Users\VITNHTHIENVU.COM\OneDrive\Desktop\SOCIAL\socialnetworkBE\Testing\obj\De
 C:\Users\VITNHTHIENVU.COM\OneDrive\Desktop\SOCIAL\socialnetworkBE\Testing\obj\Debug\Testing.csproj.CopyComplete
 C:\Users\VITNHTHIENVU.COM\OneDrive\Desktop\SOCIAL\socialnetworkBE\Testing\obj\Debug\Testing.dll
 C:\Users\VITNHTHIENVU.COM\OneDrive\Desktop\SOCIAL\socialnetworkBE\Testing\obj\Debug\Testing.pdb
+C:\Users\VITNHTHIENVU.COM\OneDrive\Desktop\SOCIAL\socialnetworkBE\Testing\bin\Debug\System.Configuration.ConfigurationManager.dll
+C:\Users\VITNHTHIENVU.COM\OneDrive\Desktop\SOCIAL\socialnetworkBE\Testing\bin\Debug\System.Security.Permissions.dll
+C:\Users\VITNHTHIENVU.COM\OneDrive\Desktop\SOCIAL\socialnetworkBE\Testing\bin\Debug\System.Configuration.ConfigurationManager.xml
+C:\Users\VITNHTHIENVU.COM\OneDrive\Desktop\SOCIAL\socialnetworkBE\Testing\bin\Debug\System.Security.Permissions.xml
