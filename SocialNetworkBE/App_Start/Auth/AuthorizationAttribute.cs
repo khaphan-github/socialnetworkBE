@@ -33,8 +33,8 @@ namespace SocialNetworkBE.App_Start.Auth {
                 if (isAuthRequestHeaderEmpty) {
 
                     ResponseBase responseEmptyRequest = new ResponseBase() {
-                        Message= "Missing Authorization in request's header",
-                        Status = Status.Unauthorize
+                        Message = "Missing Authorization in request's header",
+                        Status = Status.Unauthorized
                     };
 
                     actionContext.Response =
@@ -50,12 +50,12 @@ namespace SocialNetworkBE.App_Start.Auth {
 
                 if (!isValidAccessToken) {
                     ResponseBase responseBase = new ResponseBase() {
-                        Message = "Invalid Token",
+                        Message = "Invalid token",
                         Status = Status.Failure
                     };
 
-                    actionContext.Response = actionContext.Request
-                           .CreateResponse(HttpStatusCode.Unauthorized, responseBase);
+                    actionContext.Response =
+                        actionContext.Request.CreateResponse(HttpStatusCode.Unauthorized, responseBase);
                 }
             }
         }

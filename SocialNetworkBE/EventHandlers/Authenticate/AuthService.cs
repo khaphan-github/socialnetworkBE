@@ -3,12 +3,8 @@ using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Data;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Services.JsonWebToken;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Security.Claims;
-using System.Web;
 
 namespace SocialNetworkBE.Services.Authenticate {
     public class AuthService {
@@ -18,7 +14,7 @@ namespace SocialNetworkBE.Services.Authenticate {
 
             // create token
             JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
-            ClaimsIdentity claims = 
+            ClaimsIdentity claims =
                 jsonWebTokenService.CreateClaimsIdentity("username", "email", "role");
 
             List<string> tokenKeyPairs = jsonWebTokenService.GenerateKeyPairs(claims);
@@ -37,13 +33,12 @@ namespace SocialNetworkBE.Services.Authenticate {
             JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
             List<string> tokenKeyPair =
                 jsonWebTokenService.RefreshToken(tokenRequest.AccessToken, tokenRequest.RefreshToken);
-        
-            if (tokenKeyPair.Count != 0) {
-                TokenResponse tokenResponse = new TokenResponse();
-                
-                tokenResponse.AccessToken = tokenKeyPair[0];
-                tokenResponse.RefreshToken= tokenKeyPair[1];
 
+            if (tokenKeyPair.Count != 0) {
+                TokenResponse tokenResponse = new TokenResponse() {
+                    AccessToken = tokenKeyPair[0],
+                    RefreshToken = tokenKeyPair[1]
+                };
                 return tokenResponse;
             }
 
@@ -53,6 +48,5 @@ namespace SocialNetworkBE.Services.Authenticate {
         public object HandleUserSignup() {
             return null;
         }
-
     }
 }

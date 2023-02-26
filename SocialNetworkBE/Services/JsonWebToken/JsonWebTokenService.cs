@@ -75,12 +75,12 @@ namespace SocialNetworkBE.Services.JsonWebToken {
                     IssuerSigningKey = symmetricSecurityKey
                 };
 
-                ClaimsPrincipal principal = jwtSecurityTokenHandler.ValidateToken(token, parameters, out _);
+                ClaimsPrincipal principal = 
+                    jwtSecurityTokenHandler.ValidateToken(token, parameters, out _);
 
                 return principal;
 
             } catch (Exception) {
-
                 return null;
             }
         }
