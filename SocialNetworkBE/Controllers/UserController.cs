@@ -1,4 +1,5 @@
 ﻿using SocialNetworkBE.Payload.Response;
+using System;
 using System.Web.Http;
 
 namespace SocialNetworkBE.Controllers {
@@ -13,13 +14,13 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpGet]
         [Route(REFIX + "/friends")] // Endpoint: api/v1/user/friends?id=507f1f77bcf86cd799439011&page=1&size=15 [GET]
-        public ResponseBase GetFriendOfUserByUserId(string uid, int page, int size) { 
+        public ResponseBase GetFriendOfUserByUserId(string uid, Int32 page, Int32 size) { 
             return new ResponseBase(); 
         }
 
         [HttpGet]
         [Route(REFIX + "/posts")] // Endpoint: /api/v1/user/posts?uid=507f1f77bcf86cd799439011&page=1&size=7 [GET]
-        public ResponseBase GetPostByUserId(string uid,int page, int size) { 
+        public ResponseBase GetPostByUserId(string uid, Int32 page, Int32 size) { 
             return new ResponseBase(); 
         }
 

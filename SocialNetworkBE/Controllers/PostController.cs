@@ -11,7 +11,7 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpGet]
         [Route(REFIX + "/")] // Endpoint: /api/v1/posts?page=1&size=10 [GET]: 
-        public ResponseBase GetPostListWithPaging(int page, int size) {
+        public ResponseBase GetPostListWithPaging(Int32? page, Int32? size) {
             return new ResponseBase();
         }
         [HttpPost]
@@ -22,7 +22,7 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpGet]
         [Route(REFIX + "/comments")] // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=5&sort=desc [GET]:
-        public ResponseBase GetCommentOfPostById(string pid, int page, int size, string sort) {
+        public ResponseBase GetCommentOfPostById(string pid, Int32? page, Int32? size, string sort) {
             return new ResponseBase();
         }
 
@@ -40,7 +40,7 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpGet]
         [Route(REFIX + "/likes")] // Endpoint:/api/v1/post/likes?pid={postid}page=1&size=10&sort=desc [GET]:
-        public ResponseBase GetLikesOfPostById(string pid, int page, int size, string sort) {
+        public ResponseBase GetLikesOfPostById(string pid, Int32? page, Int32? size, string sort) {
             return new ResponseBase();
         }
 
