@@ -35,13 +35,7 @@ namespace SocialNetworkBE.Controllers {
 
             AuthService authService = new AuthService();
 
-            ResponseBase response = new ResponseBase() {
-                Status = Status.Success,
-                Message = "Success",
-                Data = authService.HandleUserAuthenticate(authRequest)
-            };
-
-            return response;
+            return authService.HandleUserAuthenticate(authRequest);
         }
 
         [HttpPost]

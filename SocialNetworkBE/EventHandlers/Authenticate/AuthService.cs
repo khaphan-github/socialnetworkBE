@@ -2,6 +2,8 @@
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Data;
 using SocialNetworkBE.Payloads.Request;
+using SocialNetworkBE.Repository;
+using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Services.JsonWebToken;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -9,23 +11,46 @@ using System.Security.Claims;
 namespace SocialNetworkBE.Services.Authenticate {
     public class AuthService {
 
-        public AuthResponse HandleUserAuthenticate(Auth auth) {
-            // Get user from db
-            
-            // create token
+        public ResponseBase HandleUserAuthenticate(Auth auth) {
+
+            AccountResponsitory accountResponsitory = new AccountResponsitory();
+
+            Account signInAccount =
+                accountResponsitory.GetAccByUsernamePwd(auth.Username, auth.Password);
+
+            if (signInAccount == null) {
+                return new ResponseBase() {
+                    Status = Status.Unauthorized,
+                    Message = "Usersername or password was wrong",
+                };
+            }
+
             JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
+
             ClaimsIdentity claims =
-                jsonWebTokenService.CreateClaimsIdentity("username", "email", "role");
+                jsonWebTokenService
+                .CreateClaimsIdentity(signInAccount.Username, signInAccount.Email, "user");
 
             List<string> tokenKeyPairs = jsonWebTokenService.GenerateKeyPairs(claims);
 
-            return new AuthResponse(
+            AuthResponse authResponse =
+                new AuthResponse(
                      tokenKeyPairs[0],
                      tokenKeyPairs[1],
-                     "User:id",
-                     "username",
-                     "userAvataURL"
+                     signInAccount.Id.ToString(),
+                     signInAccount.DisplayName,
+                     signInAccount.AvatarUrl,
+                     signInAccount.UserProfileUrl
                 );
+
+            ResponseBase response =
+                new ResponseBase() {
+                    Status = Status.Success,
+                    Message = "Authorized",
+                    Data = authResponse
+                };
+
+            return response;
         }
 
         public TokenResponse HandleRefreshToken(Token tokenRequest) {

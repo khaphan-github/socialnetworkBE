@@ -12,8 +12,9 @@ namespace SocialNetworkBE.Payloads.Data {
             string accessToken,
             string refreshToken,
             string userId,
-            string username,
-            string avatarURL) {
+            string displayName,
+            string avatarURL,
+            string userProfileUrl) {
 
             Token = new TokenResponse() {
                 AccessToken = accessToken,
@@ -22,8 +23,9 @@ namespace SocialNetworkBE.Payloads.Data {
 
             User = new UserResponse() {
                 Id = userId,
-                Username = username,
+                DisplayName = displayName,
                 AvatarURL = avatarURL,
+                UserProfileUrl= userProfileUrl
             };
 
         }
