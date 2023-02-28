@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Web;
 
 namespace SocialNetworkBE.Services.RedisCache {
@@ -20,6 +21,12 @@ namespace SocialNetworkBE.Services.RedisCache {
         public void SetObjectToCache(string key, string value) {
             var regisClient = new RedisClient(redisEndpoint);
             regisClient.SetValue(key, value);
+        }
+
+        public void SetObjectToCache(string key, object objectValue) {
+            var regisClient = new RedisClient(redisEndpoint);
+            string jsonObjectData = JsonSerializer.Serialize<object>(objectValue);
+            regisClient.SetValue(key, jsonObjectData);
         }
 
         public string GetObjectFromCache(string key) {
