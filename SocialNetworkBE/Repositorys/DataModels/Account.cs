@@ -17,8 +17,13 @@ namespace SocialNetworkBE.Repositorys.DataModels
         public string Username { get; set; }
         public string Password { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { set; get; }
-
+        public string DisplayName { set; get; }
         public string AvatarUrl { set; get; }
+
+
+        public string UserProfileUrl { set; get; }
+        public int NumofFriend { get; set; }
+        public Array ListFriend{get; set;}
+        public Array ListPost { get; set; }
     }
 }
