@@ -179,6 +179,7 @@
     <Compile Include="Repositorys\AccountRepository.cs" />
     <Compile Include="Repositorys\Configs\MongoDBConfiguration.cs" />
     <Compile Include="EventHandlers\Authenticate\AuthService.cs" />
+    <Compile Include="Repositorys\Interfaces\IPostRepository.cs" />
     <Compile Include="Services\JsonWebToken\JsonWebTokenService.cs" />
     <Compile Include="Services\Post\PostService.cs" />
     <Compile Include="Services\Post\IPostServiceInterface.cs" />
@@ -197,6 +198,8 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="EventHandlers\Post\" />
+    <Folder Include="EventHandlers\User\" />
     <Folder Include="Properties\" />
     <Folder Include="Repositorys\DataModels\" />
   </ItemGroup>

@@ -63,7 +63,7 @@ namespace SocialNetworkBE.Controllers {
 
             if (tokenResponse == null) {
                 return new ResponseBase() {
-                    Status = Status.Unauthorize,
+                    Status = Status.Unauthorized,
                     Message = "Token invalid"
                 };
             }
