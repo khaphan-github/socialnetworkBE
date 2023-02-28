@@ -310,7 +310,6 @@
     <Compile Include="Validates\RequestValidation.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\Site.css" />
     <Content Include="Global.asax" />
     <Content Include="mongocrypt.dll" />
     <Content Include="Web.config" />
