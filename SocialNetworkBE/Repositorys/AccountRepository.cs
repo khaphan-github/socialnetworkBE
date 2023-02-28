@@ -12,7 +12,7 @@ namespace SocialNetworkBE.Repository
 
         MongoClient Client = new MongoClient("mongodb+srv://kimkhanhneee0201hihi:KimKhanh0201@cluster0.oc1roht.mongodb.net/?retryWrites=true");
 
-        public IEnumerable<Account> GetAccByUsernamePwd(string username, string pwd)
+        public Account GetAccByUsernamePwd(string username, string pwd)
         {
             var DB = Client.GetDatabase("SocialNetwork");
 
@@ -28,10 +28,15 @@ namespace SocialNetworkBE.Repository
                     Email = account["email"].AsString,
                     Password = account["pwd"].AsString,
                     CreatedAt = account["create_at"].AsDateTime,
-                    UpdatedAt = account["update_at"].AsDateTime,
-                    AvatarUrl = account["avturl"].AsString
+                    DisplayName = account["displayname"].AsString,
+                    AvatarUrl = account["avturl"].AsString,
+                    NumofFriend = account["numOfFriends"].AsInt32,
+                    ListFriend = account["listFriends"].AsBsonArray.ToArray(),
+                    ListPost = account["listPosts"].AsBsonArray.ToArray(),
+                    UserProfileUrl = account["userProfileUrl"].AsString
+
                 });
-            IEnumerable<SocialNetworkBE.Repositorys.DataModels.Account> accResults = accs.Where(x => x.Username == username && x.Password == pwd);
+            Account accResults = accs.Where(x => x.Username == username && x.Password == pwd).FirstOrDefault();
             return accResults;
         }
     }

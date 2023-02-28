@@ -16,9 +16,9 @@ namespace Testing
         public void Getaccs()
         {
             AccountResponsitory account = new AccountResponsitory();
-            IEnumerable<Account> accresult = account.GetAccByUsernamePwd("kimkhanh21", "0201hihi");
-            int isValidAccount = accresult.Count();
-            Assert.IsTrue(isValidAccount != 0);
+            Account accresult = account.GetAccByUsernamePwd("kimkhanh21", "0201hihi");
+            string isValid = accresult.Username;
+            Assert.IsTrue(isValid.Equals("kimkhanh21"));
         }
     }
 }
