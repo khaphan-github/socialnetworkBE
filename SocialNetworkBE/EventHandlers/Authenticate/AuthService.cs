@@ -11,7 +11,7 @@ namespace SocialNetworkBE.Services.Authenticate {
 
         public AuthResponse HandleUserAuthenticate(Auth auth) {
             // Get user from db
-
+            
             // create token
             JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
             ClaimsIdentity claims =
