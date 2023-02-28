@@ -8,6 +8,7 @@ namespace SocialNetworkBE.Payloads.Data {
         public string Id { get; set; }
         public string Username { get; set; }   
         public string AvatarURL { get; set; }
+        
 
     }
 }
