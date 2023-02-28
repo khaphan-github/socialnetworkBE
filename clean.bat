@@ -7,5 +7,5 @@ rmdir /q /s  .\SocialNetworkBE\bin
 echo obj, bin in SocialNetworkBE folder clear successfully!
 rmdir /q /s  .\Testing\obj
 rmdir /q /s  .\Testing\bin
-echo obj, bin in SocialNetworkBE folder clear successfully!
+echo obj, bin in Testing folder clear successfully!
 pause
