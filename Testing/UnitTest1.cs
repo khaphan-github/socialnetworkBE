@@ -27,9 +27,9 @@ namespace Testing
         public void GetPosts()
         {
             PostRespository post = new PostRespository();
-            List<BsonDocument> postResult = post.GetPostByUserId("ObjectId('63f975f79e8d47050cfa8f19')");
-            System.Diagnostics.Debug.WriteLine("result " + postResult + "\n");
-            Assert.IsTrue(postResult.Count() != 0);
+                    List<Post> postResult = post.GetPostByUserId("ObjectId('63f975f79e8d47050cfa8f19')");
+                   System.Diagnostics.Debug.WriteLine("result " + postResult.Count() + "\n");
+                   Assert.IsTrue(postResult.Count() != 0);
         }
     }
 }
