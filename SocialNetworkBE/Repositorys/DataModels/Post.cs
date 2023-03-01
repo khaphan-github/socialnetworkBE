@@ -17,7 +17,7 @@ namespace SocialNetworkBE.Repositorys.DataModels
         public string Content { get; set; }
         public List<string> Media { get; set; }
         public int NumofComment { get; set; }
-        public Dictionary<Guid,Comment> Comments { get; set; }
-        public Dictionary<Guid, Like> Likes { get; set; }
+        public IDictionary<Guid,Comment> Comments { get; set; }
+        public IDictionary<Guid, Like> Likes { get; set; }
     }
 }
