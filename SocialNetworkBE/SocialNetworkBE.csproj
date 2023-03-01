@@ -267,7 +267,6 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AuthController.cs" />
-    <Compile Include="Controllers\CommentController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -278,11 +277,13 @@
     <Compile Include="Payloads\Response\ResponseBase.cs" />
     <Compile Include="Payloads\Response\Status.cs" />
     <Compile Include="Repositorys\AccountRepository.cs" />
-    <Compile Include="Repositorys\commentRepository.cs" />
     <Compile Include="Repositorys\Configs\MongoDBConfiguration.cs" />
     <Compile Include="EventHandlers\Authenticate\AuthService.cs" />
     <Compile Include="Repositorys\DataModels\Account.cs" />
     <Compile Include="Repositorys\DataModels\Comment.cs" />
+    <Compile Include="Repositorys\DataModels\Like.cs" />
+    <Compile Include="Repositorys\DataModels\Post.cs" />
+    <Compile Include="Repositorys\PostRespository.cs" />
     <Compile Include="Services\JsonWebToken\JsonWebTokenService.cs" />
     <Compile Include="Services\Post\PostService.cs" />
     <Compile Include="Services\RedisCache\RedisCacheService.cs" />
