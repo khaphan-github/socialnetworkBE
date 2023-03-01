@@ -20,7 +20,7 @@ namespace SocialNetworkBE.Repository
 
             var allAccs = collection.Find(new BsonDocument()).ToList();
             
-            IEnumerable<SocialNetworkBE.Repositorys.DataModels.Account> accs = allAccs
+            Account acc = allAccs
                 .Select(account => new SocialNetworkBE.Repositorys.DataModels.Account
                 {
                     Id = account["_id"].AsObjectId,
@@ -34,10 +34,8 @@ namespace SocialNetworkBE.Repository
                     ListFriend = account["listFriends"].AsBsonArray.ToArray(),
                     ListPost = account["listPosts"].AsBsonArray.ToArray(),
                     UserProfileUrl = account["userProfileUrl"].AsString
-
-                });
-            Account accResults = accs.Where(x => x.Username == username && x.Password == pwd).FirstOrDefault();
-            return accResults;
+                }).FirstOrDefault(x=> x.Username == username && x.Password == pwd);
+            return acc;
         }
     }
 }
