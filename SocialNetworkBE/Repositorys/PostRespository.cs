@@ -21,7 +21,7 @@ namespace SocialNetworkBE.Repository {
 
         public List<Post> GetPostByUserId(ObjectId userObjectId) {
             try {
-                var userOwnedPostFilter = Builders<Post>.Filter.Eq("OwnerId", userObjectId);
+                FilterDefinition<Post> userOwnedPostFilter = Builders<Post>.Filter.Eq("OwnerId", userObjectId);
             
                 return PostCollection.Find(userOwnedPostFilter).ToList();
             } catch (Exception ex) {
@@ -32,7 +32,7 @@ namespace SocialNetworkBE.Repository {
 
         public Post GetPostById(ObjectId postObjectId) {
             try {
-                var userOwnedPostFilter = Builders<Post>.Filter.Eq("_id", postObjectId);
+                FilterDefinition<Post> userOwnedPostFilter = Builders<Post>.Filter.Eq("_id", postObjectId);
 
                 return PostCollection.Find(userOwnedPostFilter).FirstOrDefault();
             } catch (Exception ex) {
@@ -49,18 +49,38 @@ namespace SocialNetworkBE.Repository {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 return null;
             }
-
         }
 
         public bool DetetePostById(ObjectId postObjectId) {
             try {
-                var postNeedDeleteFilter = Builders<Post>.Filter.Eq("_id", postObjectId);
+                FilterDefinition<Post> postNeedDeleteFilter = Builders<Post>.Filter.Eq("_id", postObjectId);
                 PostCollection.DeleteOne(postNeedDeleteFilter);
 
                 return true;
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return false;
+            }
+        }
+
+        public List<Post> GetPostByPageAndSizeAndSorted(int page, int size) {
+            try {
+                int paging = page * size;
+                
+                FilterDefinition < Post > justUpdatePostFilter = Builders<Post>.Filter.Empty;
+
+                var topLevelProjectionResults = PostCollection
+                    .Find(justUpdatePostFilter)
+                    .SortByDescending(post => post.CreateDate)
+                    .Skip(paging)
+                    .Limit(size)
+                    .ToList();
+
+                return topLevelProjectionResults;
+
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return new List<Post>();
             }
         }
     }
