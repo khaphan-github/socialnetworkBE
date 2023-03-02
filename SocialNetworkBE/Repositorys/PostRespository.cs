@@ -3,57 +3,65 @@ using MongoDB.Driver;
 using SocialNetworkBE.Repositorys.DataModels;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver.Linq;
-
+using SocialNetworkBE.Repository.Config;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
-        private const string PostDocumentName = "Post";
+        private IMongoCollection<Post> PostCollection { get; set; }
 
-        private readonly MongoClient Client = new MongoClient("mongodb+srv://kimkhanhneee0201hihi:KimKhanh0201@cluster0.oc1roht.mongodb.net/?retryWrites=true");
+        public PostRespository() {
+            const string PostDocumentName = "Post";
 
-        public List<Post> GetPostByUserId(string userId) {
+            MongoDBConfiguration MongoDatabase = new MongoDBConfiguration();
+            IMongoDatabase databaseConnected = MongoDatabase.GetMongoDBConnected();
 
-            var DB = Client.GetDatabase("SocialNetwork");
-
-            var collection = DB.GetCollection<BsonDocument>(PostDocumentName);
-
-            var filter = Builders<BsonDocument>.Filter.Eq("user_Id".ToString(), userId);
-
-
-            List<BsonDocument> results = collection.Find(filter).ToList();
-
-            List<Post> resultPost =
-                results.Select(post => new Post {
-                    Id = post["_id"].AsObjectId,
-                    Content = post["content"].AsString,
-                    UserId = post["user_Id"].AsString,
-                    Comments = (IDictionary<Guid, Comment>)post["comments"],
-                }).Where(x => x.UserId.ToString() == userId).ToList();
-            return resultPost;
+            PostCollection = databaseConnected.GetCollection<Post>(PostDocumentName);
         }
 
-        public bool CreateNewPost(Post NewPost) {
-
+        public List<Post> GetPostByUserId(ObjectId userObjectId) {
             try {
-                var DB = Client.GetDatabase("SocialNetwork");
+                var userOwnedPostFilter = Builders<Post>.Filter.Eq("OwnerId", userObjectId);
+            
+                return PostCollection.Find(userOwnedPostFilter).ToList();
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                throw;
+            }
+        }
 
-                IMongoCollection<Post> postDocument = DB.GetCollection<Post>(PostDocumentName);
+        public Post GetPostById(ObjectId postObjectId) {
+            try {
+                var userOwnedPostFilter = Builders<Post>.Filter.Eq("_id", postObjectId);
 
-                postDocument.InsertOne(NewPost);
+                return PostCollection.Find(userOwnedPostFilter).FirstOrDefault();
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                throw;
+            }
+        }
 
-                return true;
-
+        public Post CreateNewPost(Post NewPost) {
+            try {
+                PostCollection.InsertOne(NewPost);
+                return NewPost;
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return false;
+                return null;
             }
 
         }
+
+        public bool DetetePostById(ObjectId postObjectId) {
+            try {
+                var postNeedDeleteFilter = Builders<Post>.Filter.Eq("_id", postObjectId);
+                PostCollection.DeleteOne(postNeedDeleteFilter);
+
+                return true;
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return false;
+            }
+        }
     }
-
-
 }

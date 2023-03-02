@@ -8,8 +8,8 @@ namespace SocialNetworkBE.Repositorys.DataModels
 {
     public class Like
     {
-        public ObjectId Id { set; get; }
-        public string TypeofHeart { set; get; }
+        public ObjectId OwnerId { set; get; }
+        public string TypeofAction { set; get; }
         public DateTime CreateDate { set; get; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkBE.Repositorys.DataModels;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -27,13 +28,16 @@ namespace SocialNetworkBE.Repository
                     Username = account["username"].AsString,
                     Email = account["email"].AsString,
                     Password = account["pwd"].AsString,
-                    CreatedAt = account["create_at"].AsDateTime,
+
+                    UserProfileUrl = account["userProfileUrl"].AsString,
+                    CreatedAt = (DateTime)account["create_at"].AsBsonDateTime,
                     DisplayName = account["displayname"].AsString,
+
                     AvatarUrl = account["avturl"].AsString,
                     NumofFriend = account["numOfFriends"].AsInt32,
                     ListFriend = account["listFriends"].AsBsonArray.ToArray(),
                     ListPost = account["listPosts"].AsBsonArray.ToArray(),
-                    UserProfileUrl = account["userProfileUrl"].AsString
+
                 }).FirstOrDefault(x=> x.Username == username && x.Password == pwd);
             return acc;
         }
