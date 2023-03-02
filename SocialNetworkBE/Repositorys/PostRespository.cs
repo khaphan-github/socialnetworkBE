@@ -5,9 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SocialNetworkBE.Repository.Config;
+using SocialNetworkBE.Repositorys.Interfaces;
 
 namespace SocialNetworkBE.Repository {
-    public class PostRespository {
+    public class PostRespository : IPostRepository {
         private IMongoCollection<Post> PostCollection { get; set; }
 
         public PostRespository() {
@@ -82,6 +83,30 @@ namespace SocialNetworkBE.Repository {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return new List<Post>();
             }
+        }
+
+        public bool DeteteCommentByGuid(ObjectId postObjectId, Guid CommentGuid) {
+            throw new NotImplementedException();
+        }
+
+        public Comment MakeACommentToPost(ObjectId postObjectId, Comment comment) {
+            throw new NotImplementedException();
+        }
+
+        public Comment UpdateAcommentByGuid(ObjectId postObjectId, Guid commentGuid) {
+            throw new NotImplementedException();
+        }
+
+        public List<Comment> GetCommentsByPostIdWithPaging(ObjectId postObjectId, int page, int size) {
+            throw new NotImplementedException();
+        }
+
+        public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {
+            throw new NotImplementedException();
+        }
+
+        public bool RemoveAlikeOfPost(ObjectId postObjectId, Guid LikeGuid) {
+            throw new NotImplementedException();
         }
     }
 }
