@@ -10,7 +10,7 @@ namespace SocialNetworkBE.Repositorys.Interfaces {
         Post CreateNewPost(Post NewPost);
         bool DetetePostById(ObjectId postObjectId);
 
-        bool DeteteCommentByGuid(ObjectId postObjectId, Guid CommentGuid);
+        bool DeteteCommentOfPostByGuid(ObjectId postObjectId, Guid CommentGuid);
         Comment MakeACommentToPost(ObjectId postObjectId, Comment comment);
         Comment UpdateAcommentByGuid(ObjectId postObjectId, Guid commentGuid);
         List<Comment> GetCommentsByPostIdWithPaging(ObjectId postObjectId, int page, int size);
