@@ -9,7 +9,7 @@ namespace SocialNetworkBE.Repositorys.DataModels
     public class Like
     {
         public ObjectId OwnerId { set; get; }
-        public string TypeofAction { set; get; }
-        public DateTime CreateDate { set; get; }
+        public string TypeofAction { set; get; } = "like";
+        public DateTime CreateDate { set; get; } = DateTime.Now;
     }
 }
