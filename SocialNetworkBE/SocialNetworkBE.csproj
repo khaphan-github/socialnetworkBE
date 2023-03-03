@@ -262,9 +262,6 @@
   <ItemGroup>
     <Compile Include="App_Start\Auth\Authentication.cs" />
     <Compile Include="App_Start\Auth\AuthorizationAttribute.cs" />
-    <Compile Include="App_Start\BundleConfig.cs" />
-    <Compile Include="App_Start\FilterConfig.cs" />
-    <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Global.asax.cs">
@@ -293,7 +290,6 @@
     <Compile Include="Validates\RequestValidation.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\Site.css" />
     <Content Include="Global.asax" />
     <Content Include="mongocrypt.dll" />
     <Content Include="Web.config" />
