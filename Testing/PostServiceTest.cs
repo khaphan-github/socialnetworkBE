@@ -96,7 +96,7 @@ namespace Testing {
             bool isEmptyPost = createdPost == null;
             Assert.IsTrue(!isEmptyPost);
             // When
-            
+
             Post savedPost = PostRespository.GetPostById(post.Id);
             // Then
 

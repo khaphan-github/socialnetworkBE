@@ -85,7 +85,7 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public bool DeteteCommentByGuid(ObjectId postObjectId, Guid CommentGuid) {
+        public bool DeteteCommentOfPostByGuid(ObjectId postObjectId, Guid CommentGuid) {
             throw new NotImplementedException();
         }
 
