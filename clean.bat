@@ -12,4 +12,7 @@ echo obj, bin in Testing folder clear successfully!
 
 rmdir /q /s .\.vs\SocialNetworkBE\v17\
 echo .vs/SocialNetworkBE folder clear successfully!
+
+rmdir /q /s .\.vs\SocialNetworkBE\FileContentIndex\
+echo .vs/FileContentIndex folder clear successfully!
 pause
