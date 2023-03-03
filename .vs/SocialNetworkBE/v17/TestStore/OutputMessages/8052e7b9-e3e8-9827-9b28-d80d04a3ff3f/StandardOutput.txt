@@ -1,0 +1,49 @@
+
+
+Debug Trace:
+System.TimeoutException: A timeout occurred after 30000ms selecting a server using CompositeServerSelector{ Selectors = MongoDB.Driver.MongoClient+AreSessionsSupportedServerSelector, LatencyLimitingServerSelector{ AllowedLatencyRange = 00:00:00.0150000 }, OperationsCountServerSelector }. Client view of cluster state is { ClusterId : "1", ConnectionMode : "ReplicaSet", Type : "ReplicaSet", State : "Disconnected", Servers : [{ ServerId: "{ ClusterId : 1, EndPoint : "Unspecified/ac-f2pseim-shard-00-00.oc1roht.mongodb.net:27017" }", EndPoint: "Unspecified/ac-f2pseim-shard-00-00.oc1roht.mongodb.net:27017", ReasonChanged: "Heartbeat", State: "Disconnected", ServerVersion: , TopologyVersion: , Type: "Unknown", HeartbeatException: "MongoDB.Driver.MongoConnectionException: An exception occurred while opening a connection to the server. ---> System.Net.Sockets.SocketException: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond 54.87.63.107:27017
+   at System.Net.Sockets.Socket.Connect(IPAddress[] addresses, Int32 port)
+   at System.Net.Sockets.Socket.Connect(String host, Int32 port)
+   at MongoDB.Driver.Core.Connections.TcpStreamFactory.Connect(Socket socket, EndPoint endPoint, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.TcpStreamFactory.CreateStream(EndPoint endPoint, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.SslStreamFactory.CreateStream(EndPoint endPoint, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.BinaryConnection.OpenHelper(CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at MongoDB.Driver.Core.Connections.BinaryConnection.OpenHelper(CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.BinaryConnection.Open(CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Servers.ServerMonitor.InitializeConnection(CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Servers.ServerMonitor.Heartbeat(CancellationToken cancellationToken)", LastHeartbeatTimestamp: "2023-03-02T06:01:53.2160698Z", LastUpdateTimestamp: "2023-03-02T06:01:53.2160698Z" }, { ServerId: "{ ClusterId : 1, EndPoint : "Unspecified/ac-f2pseim-shard-00-01.oc1roht.mongodb.net:27017" }", EndPoint: "Unspecified/ac-f2pseim-shard-00-01.oc1roht.mongodb.net:27017", ReasonChanged: "Heartbeat", State: "Disconnected", ServerVersion: , TopologyVersion: , Type: "Unknown", HeartbeatException: "MongoDB.Driver.MongoConnectionException: An exception occurred while opening a connection to the server. ---> System.Net.Sockets.SocketException: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond 35.175.89.8:27017
+   at System.Net.Sockets.Socket.Connect(IPAddress[] addresses, Int32 port)
+   at System.Net.Sockets.Socket.Connect(String host, Int32 port)
+   at MongoDB.Driver.Core.Connections.TcpStreamFactory.Connect(Socket socket, EndPoint endPoint, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.TcpStreamFactory.CreateStream(EndPoint endPoint, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.SslStreamFactory.CreateStream(EndPoint endPoint, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.BinaryConnection.OpenHelper(CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at MongoDB.Driver.Core.Connections.BinaryConnection.OpenHelper(CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.BinaryConnection.Open(CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Servers.ServerMonitor.InitializeConnection(CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Servers.ServerMonitor.Heartbeat(CancellationToken cancellationToken)", LastHeartbeatTimestamp: "2023-03-02T06:02:00.7060245Z", LastUpdateTimestamp: "2023-03-02T06:02:00.7060245Z" }, { ServerId: "{ ClusterId : 1, EndPoint : "Unspecified/ac-f2pseim-shard-00-02.oc1roht.mongodb.net:27017" }", EndPoint: "Unspecified/ac-f2pseim-shard-00-02.oc1roht.mongodb.net:27017", ReasonChanged: "Heartbeat", State: "Disconnected", ServerVersion: , TopologyVersion: , Type: "Unknown", HeartbeatException: "MongoDB.Driver.MongoConnectionException: An exception occurred while opening a connection to the server. ---> System.Net.Sockets.SocketException: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond 52.3.116.144:27017
+   at System.Net.Sockets.Socket.Connect(IPAddress[] addresses, Int32 port)
+   at System.Net.Sockets.Socket.Connect(String host, Int32 port)
+   at MongoDB.Driver.Core.Connections.TcpStreamFactory.Connect(Socket socket, EndPoint endPoint, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.TcpStreamFactory.CreateStream(EndPoint endPoint, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.SslStreamFactory.CreateStream(EndPoint endPoint, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.BinaryConnection.OpenHelper(CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at MongoDB.Driver.Core.Connections.BinaryConnection.OpenHelper(CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Connections.BinaryConnection.Open(CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Servers.ServerMonitor.InitializeConnection(CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Servers.ServerMonitor.Heartbeat(CancellationToken cancellationToken)", LastHeartbeatTimestamp: "2023-03-02T06:01:53.2160698Z", LastUpdateTimestamp: "2023-03-02T06:01:53.2160698Z" }] }.
+   at MongoDB.Driver.Core.Clusters.Cluster.ThrowTimeoutException(IServerSelector selector, ClusterDescription description)
+   at MongoDB.Driver.Core.Clusters.Cluster.WaitForDescriptionChangedHelper.HandleCompletedTask(Task completedTask)
+   at MongoDB.Driver.Core.Clusters.Cluster.WaitForDescriptionChanged(IServerSelector selector, ClusterDescription description, Task descriptionChangedTask, TimeSpan timeout, CancellationToken cancellationToken)
+   at MongoDB.Driver.Core.Clusters.Cluster.SelectServer(IServerSelector selector, CancellationToken cancellationToken)
+   at MongoDB.Driver.MongoClient.AreSessionsSupportedAfterServerSelection(CancellationToken cancellationToken)
+   at MongoDB.Driver.MongoClient.AreSessionsSupported(CancellationToken cancellationToken)
+   at MongoDB.Driver.OperationExecutor.StartImplicitSession(CancellationToken cancellationToken)
+   at MongoDB.Driver.MongoCollectionImpl`1.UsingImplicitSession[TResult](Func`2 func, CancellationToken cancellationToken)
+   at MongoDB.Driver.MongoCollectionImpl`1.BulkWrite(IEnumerable`1 requests, BulkWriteOptions options, CancellationToken cancellationToken)
+   at MongoDB.Driver.MongoCollectionBase`1.InsertOne(TDocument document, InsertOneOptions options, Action`2 bulkWrite)
+   at MongoDB.Driver.MongoCollectionBase`1.InsertOne(TDocument document, InsertOneOptions options, CancellationToken cancellationToken)
+   at SocialNetworkBE.Repository.PostRespository.CreateNewPost(Post NewPost) in E:\SCHOOL\web\socialnetworkBE\SocialNetworkBE\Repositorys\PostRespository.cs:line 52
