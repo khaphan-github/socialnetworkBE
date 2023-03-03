@@ -1,13 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SocialNetworkBE.Controllers;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Web.Http.Results;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repository;
-using System.Linq;
-using Newtonsoft.Json.Linq;
 using MongoDB.Bson;
 
 namespace Testing {

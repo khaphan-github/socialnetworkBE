@@ -281,8 +281,6 @@
     <Compile Include="Controllers\ChatController.cs" />
     <Compile Include="Controllers\PostController.cs" />
     <Compile Include="Controllers\UserController.cs" />
-    <Compile Include="Controllers\CommentController.cs" />
-
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -302,7 +300,6 @@
     <Compile Include="Repositorys\DataModels\Like.cs" />
     <Compile Include="Repositorys\DataModels\Post.cs" />
     <Compile Include="Repositorys\Interfaces\IAccountRepository.cs" />
-    <Compile Include="Repositorys\Interfaces\IPostRepository.cs" />
     <Compile Include="Repositorys\PostRespository.cs" />
     <Compile Include="Services\JsonWebToken\JsonWebTokenService.cs" />
     <Compile Include="Services\Post\PostService.cs" />
