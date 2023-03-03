@@ -16,12 +16,12 @@ namespace SocialNetworkBE.Services.Authenticate {
             AccountResponsitory accountResponsitory = new AccountResponsitory();
 
             Account signInAccount =
-                accountResponsitory.GetAccByUsernamePwd(auth.Username, auth.Password);
+                accountResponsitory.GetAccountByUsernameAndPassword(auth.Username, auth.Password);
 
             if (signInAccount == null) {
                 return new ResponseBase() {
                     Status = Status.Unauthorized,
-                    Message = "Usersername or password was wrong",
+                    Message = "Username or password was wrong",
                 };
             }
 

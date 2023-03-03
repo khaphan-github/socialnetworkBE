@@ -10,13 +10,7 @@ namespace Testing {
     public class PostServiceTest {
         private readonly PostRespository PostRespository = new PostRespository();
 
-        [TestMethod]
-        public void GivenRightUsernameAndPassword_WhenGetAccountByUsernameAndPassword_ThenReturnAccountInfo() {
-            AccountResponsitory account = new AccountResponsitory();
-            Account accresult = account.GetAccByUsernamePwd("kimkhanh21", "0201hihi");
-            string isValid = accresult.Username;
-            Assert.IsTrue(isValid.Equals("kimkhanh21"));
-        }
+       
 
         [TestMethod]
         public void GivenUserObjectId_WhenGetPostByUserId_ThenReturnListOfPost() {

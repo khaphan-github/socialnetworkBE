@@ -14,10 +14,10 @@ namespace SocialNetworkBE.Repositorys.DataModels
     {
         public ObjectId OwnerId { get; set; }
         public string Content { get; set; }
-        public DateTime CreateDate { get; set; }
+        public DateTime CreateDate { get; set; } = DateTime.Now;
         public List<Comment> Comments { get; set; }
 
-        public int NumofLike { get; set; }
-        public List<ObjectId> Likes { set; get; }
+        public int NumofLike { get; set; } = 0;
+        public List<Like> Likes { set; get; }
     }
 }
