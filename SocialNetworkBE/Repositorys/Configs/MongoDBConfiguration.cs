@@ -10,16 +10,18 @@ namespace SocialNetworkBE.Repository.Config {
             IMongoDatabase = GetMongoDatabase();
         }
 
-        public IMongoDatabase GetMongoDB()
+        public IMongoDatabase GetMongoDBConnected()
         {
             return IMongoDatabase;
         }
 
         private IMongoDatabase GetMongoDatabase()
         {
-            string connectionString = ConfigurationManager.AppSettings["connectionString"];
+            //  ConfigurationManager.AppSettings["connectionString"]
+            //  ConfigurationManager.AppSettings["databaseName"]
+            string connectionString =  "mongodb+srv://kimkhanhneee0201hihi:KimKhanh0201@cluster0.oc1roht.mongodb.net/?retryWrites=true";
 
-            string databaseName = ConfigurationManager.AppSettings["databaseName"];
+            string databaseName = "SocialNetwork";
 
             MongoClient mongoClient = new MongoClient(connectionString);
 
