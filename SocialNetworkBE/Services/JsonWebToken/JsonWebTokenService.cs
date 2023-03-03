@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Management.Instrumentation;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 using System.Web;
 
@@ -73,45 +75,79 @@ namespace SocialNetworkBE.Services.JsonWebToken {
                     IssuerSigningKey = symmetricSecurityKey
                 };
 
-                ClaimsPrincipal principal = jwtSecurityTokenHandler.ValidateToken(token, parameters, out _);
+                ClaimsPrincipal principal = 
+                    jwtSecurityTokenHandler.ValidateToken(token, parameters, out _);
 
                 return principal;
 
             } catch (Exception) {
-
                 return null;
             }
         }
 
 
         public bool IsValidToken(string token) {
-
-            ClaimsPrincipal principal = GetPrincipalFromToken(token);
-            if (principal == null) {
+            ClaimsIdentity claimsIdentity = GetClaimsIdentityFromToken(token);
+            if (claimsIdentity == null) {
                 return false;
             }
-
-            try {
-                ClaimsIdentity identity = (ClaimsIdentity)principal.Identity;
-                if (identity == null) {
-                    return false;
-                }
-            } catch (NullReferenceException) {
-                return false;
-            }
-
             return true;
         }
 
+        private ClaimsIdentity GetClaimsIdentityFromToken(string token) {
+            ClaimsPrincipal claimsPrinclipal = GetPrincipalFromToken(token);
+
+            if (claimsPrinclipal == null) {
+                return null;
+            }
+
+            try {
+                ClaimsIdentity identity = (ClaimsIdentity)claimsPrinclipal.Identity;
+                if (identity == null) {
+                    return null;
+                }
+                return identity;
+            } catch (NullReferenceException) {
+                return null;
+            }
+
+        }
 
         public List<string> GenerateKeyPairs(ClaimsIdentity claimsIdentity) {
 
-            string accessToken = CreateTokenFromUserData(claimsIdentity, 5);
-            string refreshToken = CreateTokenFromUserData(claimsIdentity, 15);
+            int accessTokenExpriseTime = 10; // 10 Minutes
+            int refreshTokenExpriseTime = 5 * 24 * 60; // 5 Days
+
+            string accessToken =
+                CreateTokenFromUserData(claimsIdentity, accessTokenExpriseTime);
+
+            string refreshToken =
+                CreateTokenFromUserData(claimsIdentity, refreshTokenExpriseTime);
 
             List<string> keyPairs = new List<string>() {
                 accessToken, refreshToken
             };
+
+            return keyPairs;
+        }
+
+        /** 
+         Only access refresh token when accesstoken invalid 
+        */
+        public List<string> RefreshToken(string accessToken, string refreshToken) {
+
+            if (IsValidToken(accessToken)) {
+                return new List<string>();
+            }
+
+            bool isValidRefreshToken = IsValidToken(accessToken);
+            List<string> keyPairs = new List<string>();
+
+            if (isValidRefreshToken) {
+                ClaimsIdentity claimsIdentity = GetClaimsIdentityFromToken(refreshToken);
+                keyPairs = GenerateKeyPairs(claimsIdentity);
+            }
+
             return keyPairs;
         }
     }
