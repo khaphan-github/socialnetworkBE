@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using SocialNetworkBE.ServerConfiguration;
 using System.Configuration;
 
 namespace SocialNetworkBE.Repository.Config {
@@ -17,11 +18,9 @@ namespace SocialNetworkBE.Repository.Config {
 
         private IMongoDatabase GetMongoDatabase()
         {
-            //  ConfigurationManager.AppSettings["connectionString"]
-            //  ConfigurationManager.AppSettings["databaseName"]
-            string connectionString =  "mongodb+srv://kimkhanhneee0201hihi:KimKhanh0201@cluster0.oc1roht.mongodb.net/?retryWrites=true";
+            string connectionString = Environment.GetMongoDatabaseConnectionString();
 
-            string databaseName = "SocialNetwork";
+            string databaseName = Environment.GetMongoDatabaseName();
 
             MongoClient mongoClient = new MongoClient(connectionString);
 
