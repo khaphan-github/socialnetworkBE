@@ -11,23 +11,21 @@ namespace SocialNetworkBE.Payloads.Data {
         public AuthResponse(
             string accessToken,
             string refreshToken,
-            int exprise,
-            string refreshTokenURL,
             string userId,
-            string username,
-            string avatarURL) {
+            string displayName,
+            string avatarURL,
+            string userProfileUrl) {
 
             Token = new TokenResponse() {
                 AccessToken = accessToken,
-                RefeshToken = refreshToken,
-                Exprise = exprise,
-                RefreshTokenURL = refreshTokenURL,
+                RefreshToken = refreshToken,
             };
 
             User = new UserResponse() {
                 Id = userId,
-                Username = username,
+                DisplayName = displayName,
                 AvatarURL = avatarURL,
+                UserProfileUrl= userProfileUrl
             };
 
         }

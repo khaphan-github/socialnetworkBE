@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 
 namespace SocialNetworkBE.Services.Post {
-    public class PostService {
+    public class PostService : IPostServiceInterface {
 
     }
 }

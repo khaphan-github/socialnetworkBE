@@ -5,6 +5,11 @@ using System.Web;
 
 namespace SocialNetworkBE.Payload.Response {
     public enum Status {
-        Success, Failure, Error, WrongFormat, Fobident, Unauthorize
+        Success, 
+        Failure, 
+        WrongFormat,
+        Forbiddent,
+        Unauthorized,
+        Error
     }
 }
