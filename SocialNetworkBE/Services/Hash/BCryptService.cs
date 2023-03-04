@@ -1,5 +1,4 @@
 ﻿using BCrypt.Net;
-using SocialNetworkBE.ServerConfiguration;
 
 namespace SocialNetworkBE.Services.Hash {
     public class BCryptService {

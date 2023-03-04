@@ -4,6 +4,8 @@ using SocialNetworkBE.Payloads.Data;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys.DataModels;
+using SocialNetworkBE.ServerConfiguration;
+using SocialNetworkBE.Services.Hash;
 using SocialNetworkBE.Services.JsonWebToken;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -15,10 +17,27 @@ namespace SocialNetworkBE.Services.Authenticate {
 
             AccountResponsitory accountResponsitory = new AccountResponsitory();
 
-            Account signInAccount =
-                accountResponsitory.GetAccountByUsernameAndPassword(auth.Username, auth.Password);
+            Account savedAccount =
+                accountResponsitory.GetAccountByUsername(auth.Username);
 
-            if (signInAccount == null) {
+            if (savedAccount == null) {
+                return new ResponseBase() {
+                    Status = Status.Unauthorized,
+                    Message = "User: " + auth.Username +" is not exist",
+                };
+            }
+
+            BCryptService bCryptService = new BCryptService();
+
+            string secretKey = ServerEnvironment.GetServerSecretKey();
+
+            string verifyText = 
+                bCryptService.GetHashCode(savedAccount.HashSalt, auth.Password, secretKey);
+
+            bool isValidated =
+                bCryptService.ValidateStringAndHashBySHA512(verifyText, savedAccount.Password);
+           
+            if (!isValidated) {
                 return new ResponseBase() {
                     Status = Status.Unauthorized,
                     Message = "Username or password was wrong",
@@ -29,7 +48,7 @@ namespace SocialNetworkBE.Services.Authenticate {
 
             ClaimsIdentity claims =
                 jsonWebTokenService
-                .CreateClaimsIdentity(signInAccount.Username, signInAccount.Email, "user");
+                .CreateClaimsIdentity(savedAccount.Username, savedAccount.Email, "user");
 
             List<string> tokenKeyPairs = jsonWebTokenService.GenerateKeyPairs(claims);
 
@@ -37,10 +56,10 @@ namespace SocialNetworkBE.Services.Authenticate {
                 new AuthResponse(
                      tokenKeyPairs[0],
                      tokenKeyPairs[1],
-                     signInAccount.Id.ToString(),
-                     signInAccount.DisplayName,
-                     signInAccount.AvatarUrl,
-                     signInAccount.UserProfileUrl
+                     savedAccount.Id.ToString(),
+                     savedAccount.DisplayName,
+                     savedAccount.AvatarUrl,
+                     savedAccount.UserProfileUrl
                 );
 
             ResponseBase response =

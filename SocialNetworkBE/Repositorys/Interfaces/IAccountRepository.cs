@@ -3,7 +3,7 @@ using SocialNetworkBE.Repositorys.DataModels;
 
 namespace SocialNetworkBE.Repositorys.Interfaces {
     public interface IAccountRepository {
-        Account GetAccountByUsernameAndPassword(string username, string password);
+        Account GetAccountByUsername(string username);
         Account CreateNewAccount(Account newAccount);
         bool DeleteAccount(ObjectId accountId);
         bool AddNewFriendForAccount(ObjectId accountId, ObjectId friendId);

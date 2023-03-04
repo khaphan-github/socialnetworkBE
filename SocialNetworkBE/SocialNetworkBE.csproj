@@ -325,6 +325,7 @@
     <Folder Include="EventHandlers\Post\" />
     <Folder Include="EventHandlers\User\" />
     <Folder Include="Properties\" />
+    <Folder Include="Services\OpenSSL\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="libmongocrypt.so" />

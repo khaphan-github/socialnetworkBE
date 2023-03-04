@@ -19,19 +19,15 @@ namespace SocialNetworkBE.Repository {
             AccountCollection = databaseConnected.GetCollection<Account>(AccountDocumentName);
         }
 
-        public Account GetAccountByUsernameAndPassword(string username, string password) {
+        public Account GetAccountByUsername(string username) {
             if (username == null) throw new ArgumentNullException("username");
-            if (password == null) throw new ArgumentNullException("password");
 
             try {
                 FilterDefinition<Account> usernameFilter =
                     Builders<Account>.Filter.Where(account => account.Username == username);
 
-                FilterDefinition<Account> passwordFilter =
-                    Builders<Account>.Filter.Where(account => account.Password == password);
-
                 FilterDefinition<Account> usernameAndPasswordFilter =
-                    Builders<Account>.Filter.And(usernameFilter, passwordFilter);
+                    Builders<Account>.Filter.And(usernameFilter);
 
                 return AccountCollection.Find(usernameAndPasswordFilter).FirstOrDefault();
             } catch (Exception ex) {
