@@ -18,9 +18,9 @@ namespace SocialNetworkBE.Repository.Config {
 
         private IMongoDatabase GetMongoDatabase()
         {
-            string connectionString = Environment.GetMongoDatabaseConnectionString();
+            string connectionString = ServerEnvironment.GetMongoDatabaseConnectionString();
 
-            string databaseName = Environment.GetMongoDatabaseName();
+            string databaseName = ServerEnvironment.GetMongoDatabaseName();
 
             MongoClient mongoClient = new MongoClient(connectionString);
 

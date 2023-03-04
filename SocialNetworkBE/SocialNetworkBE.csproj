@@ -319,7 +319,7 @@
     <Compile Include="Repositorys\DataModels\Post.cs" />
     <Compile Include="Repositorys\Interfaces\IAccountRepository.cs" />
     <Compile Include="Repositorys\PostRespository.cs" />
-    <Compile Include="ServerConfiguration\Environment.cs" />
+    <Compile Include="ServerConfiguration\ServerEnvironment.cs" />
     <Compile Include="Services\JsonWebToken\JsonWebTokenService.cs" />
     <Compile Include="Services\Post\PostService.cs" />
     <Compile Include="Services\Post\IPostServiceInterface.cs" />

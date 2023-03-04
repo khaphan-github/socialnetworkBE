@@ -2,9 +2,6 @@
 using MongoDB.Bson;
 using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys.DataModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Testing {
     /// <summary>
