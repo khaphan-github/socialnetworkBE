@@ -7,7 +7,7 @@ using MongoDB.Bson;
 
 namespace Testing {
     [TestClass]
-    public class PostServiceTest {
+    public class PostRepositoryTest {
         private readonly PostRespository PostRespository = new PostRespository();
 
        
