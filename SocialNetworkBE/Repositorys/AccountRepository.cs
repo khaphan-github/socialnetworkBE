@@ -4,12 +4,7 @@ using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Drawing.Text;
 using System.Linq;
-using System.Net.PeerToPeer;
-using System.Security.Principal;
 
 namespace SocialNetworkBE.Repository {
     public class AccountResponsitory : IAccountRepository {

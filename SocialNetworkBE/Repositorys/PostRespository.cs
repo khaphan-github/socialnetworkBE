@@ -54,7 +54,9 @@ namespace SocialNetworkBE.Repository {
 
         public bool DetetePostById(ObjectId postObjectId) {
             try {
-                FilterDefinition<Post> postNeedDeleteFilter = Builders<Post>.Filter.Eq("_id", postObjectId);
+                FilterDefinition<Post> postNeedDeleteFilter = 
+                    Builders<Post>.Filter.Eq("_id", postObjectId);
+
                 PostCollection.DeleteOne(postNeedDeleteFilter);
 
                 return true;

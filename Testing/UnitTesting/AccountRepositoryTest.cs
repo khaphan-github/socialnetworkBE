@@ -76,6 +76,7 @@ namespace Testing {
 
             Account accountInserted =
                 accountResponsitory.GetAccountByUsernameAndPassword(username, password);
+
             Assert.IsNull(accountInserted);
         }
 

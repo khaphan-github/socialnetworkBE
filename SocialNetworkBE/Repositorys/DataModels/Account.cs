@@ -18,6 +18,7 @@ namespace SocialNetworkBE.Repositorys.DataModels
         [Unique]
         public string Username { get; set; }
         public string Password { get; set; }
+        public string HashSalt { get; set; }    
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string DisplayName { set; get; }
         public string AvatarUrl { set; get; }

@@ -1,4 +1,5 @@
 ﻿using ServiceStack.Redis;
+using SocialNetworkBE.ServerConfiguration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,13 @@ using System.Web;
 
 namespace SocialNetworkBE.Services.RedisCache {
     public class RedisCacheService {
-        private readonly string Host = "localhost";
-        private readonly int Port = 8080;
+    
         private readonly RedisEndpoint redisEndpoint;
 
         public RedisCacheService() {
-            redisEndpoint = new RedisEndpoint(Host, Port);
+            string host = ServerEnvironment.GetRedisCacheHost();
+            int port = int.Parse(ServerEnvironment.GetRedisCachePort());
+            redisEndpoint = new RedisEndpoint(host, port);
         }
 
         public void SetObjectToCache(string key, object objectValue) {

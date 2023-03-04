@@ -53,13 +53,9 @@ namespace Testing.UnitTesting {
 
         [TestMethod]
         public void GivenRedisPort_WhenGetEnvironmentVariableByKey_ThenReturnRightRedisPortValue() {
-            string redisPortValue = ServerEnvironment.GetRedisCachePort();
-            string expectString = "localhost";
-
-            bool isEmpty = redisPortValue == null;
-            bool isRightRedisHostValue = redisPortValue == expectString;
-
-            Assert.IsTrue(!isEmpty);
+            int redisPortValue = int.Parse(ServerEnvironment.GetRedisCachePort());
+            int expectInt = 8080;
+            bool isRightRedisHostValue = redisPortValue == expectInt;
             Assert.IsTrue(isRightRedisHostValue);
         }
     }
