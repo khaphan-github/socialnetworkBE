@@ -20,8 +20,11 @@ namespace SocialNetworkBE.Repositorys.DataModels
         public string Content { get; set; }
         public List<string> Media { get; set; }
         public int NumOfComment { get; set; } = 0;
+        public string CommentsURL { get; set; }
+
         public IDictionary<string,Comment> Comments { get; set; }
         public int NumOfLike { get; set; } = 0;
+        public string LikesURL { get; set; }
         public IDictionary<string, Like> Likes { get; set; }
     }
 }

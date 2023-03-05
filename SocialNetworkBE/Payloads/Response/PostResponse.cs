@@ -14,8 +14,8 @@ namespace SocialNetworkBE.Payloads.Response {
         public string Content { get; set; }
         public List<string> Media { get; set; }
         public int NumOfComment { get; set; } = 0;
-        public string CommentsURL { get; set; }
+        public string CommentsURL { get; set; } 
         public int NumOfLike { get; set; } = 0;
-        public string LikeURL { get; set;}
+        public string LikesURL { get; set;}
     }
 }
