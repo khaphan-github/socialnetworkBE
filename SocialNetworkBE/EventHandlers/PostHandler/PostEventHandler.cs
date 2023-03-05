@@ -96,6 +96,22 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Data = PostResponse.ConvertPostToPostResponse(savedPost)
             };
         }
+        public ResponseBase DeletePostById(ObjectId id) {
+            
+            bool isDeleted = postRespository.DetetePostById(id);
+
+            if(!isDeleted) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Delete failure"
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Detete Success"
+            };
+        }
 
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
             return new ResponseBase();

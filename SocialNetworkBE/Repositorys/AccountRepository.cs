@@ -32,7 +32,7 @@ namespace SocialNetworkBE.Repository {
                 return AccountCollection.Find(usernameAndPasswordFilter).FirstOrDefault();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                throw;
+                return null;
             }
         }
 

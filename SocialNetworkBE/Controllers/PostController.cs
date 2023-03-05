@@ -28,6 +28,7 @@ namespace SocialNetworkBE.Controllers {
                     Message = "Content required"
                 };
             }
+
             var OwnerId = FormData.GetValueByKey("OwnerId");
             if (OwnerId == null) {
                 return new ResponseBase() {
@@ -35,6 +36,7 @@ namespace SocialNetworkBE.Controllers {
                     Message = "OwnerId required"
                 };
             }
+
             var OwnerAvatarURL = FormData.GetValueByKey("OwnerAvatarURL");
             if (OwnerAvatarURL == null) {
                 return new ResponseBase() {
@@ -42,6 +44,7 @@ namespace SocialNetworkBE.Controllers {
                     Message = "OwnerAvatarURL required"
                 };
             }
+
             var OwnerDisplayName = FormData.GetValueByKey("OwnerDisplayName");
             if (OwnerDisplayName == null) {
                 return new ResponseBase() {
@@ -49,6 +52,7 @@ namespace SocialNetworkBE.Controllers {
                     Message = "OwnerDisplayName required"
                 };
             }
+
             var OwnerProfileURL = FormData.GetValueByKey("OwnerProfileURL");
             if (OwnerProfileURL == null) {
                 return new ResponseBase() {
@@ -60,7 +64,20 @@ namespace SocialNetworkBE.Controllers {
             return postEventHandler
                 .HandleUserCreateNewPost(Media, Content, OwnerId, OwnerAvatarURL, OwnerDisplayName, OwnerProfileURL);
         }
+        [HttpDelete]
+        [Route("")]
+        public ResponseBase DetetePostById(string pid) {
 
+            bool isRightObjectId = ObjectId.TryParse(pid, out var id);
+            if(!isRightObjectId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "ObjectId Wrong Format"
+                };
+            }
+
+            return postEventHandler.DeletePostById(id);
+        }
         [HttpPost]
         [Route("current")] // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
         public ResponseBase GetPostListWithPaging(int page, int size) {
