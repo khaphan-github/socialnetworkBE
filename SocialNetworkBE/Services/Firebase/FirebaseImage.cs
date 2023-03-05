@@ -20,7 +20,6 @@ namespace SocialNetworkBE.Services.Firebase
 {
     public class FirebaseImage
     {
-
         public static string ApiKey = "AIzaSyCBeCehqqIvzNRMP1eGYOcu5rYrWpA7xDQ";
         public static string Bucket = "socialnetwork-4c654.appspot.com";
         public static string AuthEmail = "kkneee0201hihi@gmail.com";
@@ -59,8 +58,6 @@ namespace SocialNetworkBE.Services.Firebase
                 System.Diagnostics.Debug.WriteLine("Exception was thrown: {0}", ex);
             }
         }
-
-        
 
         public static async Task getUrl()
         {
@@ -110,6 +107,11 @@ namespace SocialNetworkBE.Services.Firebase
                 return img;
             }
 
+        }
+
+        public string urlimage (File stream) {
+            /// 
+            return urlimage();
         }
 
     }
