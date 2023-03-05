@@ -42,15 +42,5 @@ namespace Testing
             Assert.IsTrue(1 > 0);
         }
 
-        [TestMethod]
-        public void resize()
-        {
-            Image test = FirebaseImage.Resize2Max50Kbytes();
-            if (test == null)
-            {
-                System.Diagnostics.Debug.WriteLine("no image");
-            }
-            Assert.IsTrue(1 > 0);
-        }
     }
 }

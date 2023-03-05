@@ -27,7 +27,10 @@ namespace SocialNetworkBE.Services.Firebase
         public static string AuthPassword = "kimkhanh21";
         public static async Task UploadImage(string img)
         {
-            var stream = File.Open(img, FileMode.Open);
+            var imgInput = Resize2Max50Kbytes(File.Open(img, FileMode.Open));
+            
+            var stream = new MemoryStream();
+            imgInput.Save(stream, ImageFormat.Jpeg);
 
             //authentication
             var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
@@ -67,41 +70,8 @@ namespace SocialNetworkBE.Services.Firebase
             System.Diagnostics.Debug.WriteLine(link);
         }
 
-        
-
-        public static void UploadFoto()
+        public static Image Resize2Max50Kbytes(FileStream fileStream)
         {
-            FileStream streamObj = System.IO.File.OpenRead(@"C:\anh\kk.jpg");
-            Byte[] imgByte = null;
-            imgByte = lnkUpload(streamObj);
-            System.Diagnostics.Debug.WriteLine(imgByte);
-        }
-
-
-        private static Byte[] lnkUpload(FileStream img)
-        {
-            byte[] resizedImage;
-            using (Image orginalImage = Image.FromStream(img))
-            {
-                ImageFormat orginalImageFormat = orginalImage.RawFormat;
-                int orginalImageWidth = orginalImage.Width;
-                int orginalImageHeight = orginalImage.Height;
-                int resizedImageWidth = 60; // Type here the width you want
-                int resizedImageHeight = Convert.ToInt32(resizedImageWidth * orginalImageHeight / orginalImageWidth);
-                using (Bitmap bitmapResized = new Bitmap(orginalImage, resizedImageWidth, resizedImageHeight))
-                {
-                    using (MemoryStream streamResized = new MemoryStream())
-                    {
-                        bitmapResized.Save(streamResized, orginalImageFormat);
-                        resizedImage = streamResized.ToArray();
-                    }
-                }
-            }
-            return resizedImage;
-        }
-        public static Image Resize2Max50Kbytes()
-        {
-            var fileStream = File.Open("C:/anh/kk.jpg", FileMode.Open);
             System.Diagnostics.Debug.WriteLine(fileStream.GetType());  
 
             var memoryStream = new MemoryStream();
