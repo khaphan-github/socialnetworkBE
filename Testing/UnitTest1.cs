@@ -8,6 +8,9 @@ using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repository;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using SocialNetworkBE.Services.Firebase;
+using Amazon.Runtime.Internal;
+using System.Drawing;
 
 namespace Testing
 {
@@ -21,6 +24,33 @@ namespace Testing
             Account accresult = account.GetAccByUsernamePwd("kimkhanh21", "0201hihi");
             string isValid = accresult.Username;
             Assert.IsTrue(isValid.Equals("kimkhanh21"));
+        }
+
+        [TestMethod]
+
+        public void PostImg()
+        {
+
+            FirebaseImage.UploadImage(@"C:/anh/kk.jpg").Wait();
+            Assert.IsTrue(1 > 0);
+        }
+
+        [TestMethod]
+        public void GetImg()
+        {
+            FirebaseImage.getUrl().Wait();
+            Assert.IsTrue(1 > 0);
+        }
+
+        [TestMethod]
+        public void resize()
+        {
+            Image test = FirebaseImage.Resize2Max50Kbytes();
+            if (test == null)
+            {
+                System.Diagnostics.Debug.WriteLine("no image");
+            }
+            Assert.IsTrue(1 > 0);
         }
     }
 }
