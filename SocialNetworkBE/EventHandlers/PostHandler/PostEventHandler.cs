@@ -3,8 +3,11 @@ using MongoDB.Bson.Serialization;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
+using SocialNetworkBE.Repositorys.DataModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 
 namespace SocialNetworkBE.EventHandlers.PostHandler {
     public class PostEventHandler {
@@ -51,6 +54,47 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
 
             return response;
+        }
+
+        public ResponseBase HandleUserCreateNewPost(
+            HttpFileCollection Media,
+            string Content,
+            string OwnerId,
+            string OwnerAvatarURL,
+            string OwnerDisplayName,
+            string OwnerProfileURL) {
+
+            if (Media != null) {
+                // TODO: Handle Upload image;
+            }
+
+            Post newPost = new Post() {
+                Id = ObjectId.GenerateNewId(),
+                CreateDate = DateTime.Now,
+                UpdateAt = DateTime.Now,
+                OwnerAvatarURL = OwnerAvatarURL,
+                OwnerId = ObjectId.Parse(OwnerId),
+                OwnerDisplayName = OwnerDisplayName,
+                OwnerProfileURL = OwnerProfileURL,
+                Content = Content,
+            };
+
+            newPost.CommentsURL = "/api/v1/post/comments?pid=" + newPost.Id.ToString();
+            newPost.LikesURL = "/api/v1/post/likes?pid=" + newPost.Id.ToString();
+
+            Post savedPost = postRespository.CreateNewPost(newPost);
+            if (savedPost == null) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Create post failure"
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Create post success",
+                Data = PostResponse.ConvertPostToPostResponse(savedPost)
+            };
         }
 
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {

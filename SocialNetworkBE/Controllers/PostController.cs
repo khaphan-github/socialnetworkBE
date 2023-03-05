@@ -3,7 +3,12 @@ using Org.BouncyCastle.Asn1.X509.Qualified;
 using SocialNetworkBE.EventHandlers.PostHandler;
 using SocialNetworkBE.Payload.Response;
 using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net;
+using System.Web;
 using System.Web.Http;
+using SocialNetworkBE.Payloads.Request;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -14,53 +19,81 @@ namespace SocialNetworkBE.Controllers {
         [HttpPost]
         [Route("")] // Endpoint: /api/v1/posts/ [POST]
         public ResponseBase CreateAPostFromUser() {
-            return new ResponseBase();
+            HttpFileCollection Media = HttpContext.Current.Request.Files;
+
+            var Content = FormData.GetValueByKey("Content");
+            if (Content == null) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "Content required"
+                };
+            }
+            var OwnerId = FormData.GetValueByKey("OwnerId");
+            if (OwnerId == null) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "OwnerId required"
+                };
+            }
+            var OwnerAvatarURL = FormData.GetValueByKey("OwnerAvatarURL");
+            if (OwnerAvatarURL == null) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "OwnerAvatarURL required"
+                };
+            }
+            var OwnerDisplayName = FormData.GetValueByKey("OwnerDisplayName");
+            if (OwnerDisplayName == null) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "OwnerDisplayName required"
+                };
+            }
+            var OwnerProfileURL = FormData.GetValueByKey("OwnerProfileURL");
+            if (OwnerProfileURL == null) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "OwnerProfileURL required"
+                };
+            }
+
+            return postEventHandler
+                .HandleUserCreateNewPost(Media, Content, OwnerId, OwnerAvatarURL, OwnerDisplayName, OwnerProfileURL);
         }
 
         [HttpPost]
-        [Route("current")] // Endpoint: /api/v1/posts?page=1&size=10 [GET]: 
+        [Route("current")] // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
         public ResponseBase GetPostListWithPaging(int page, int size) {
-            if (page < 0) {
-                page = 0;
-            }
-            if (size < 0) {
-                size = 1;
-            }
-             if(size > 20) {
-                size = 20;
-            }
+
+            if (page < 0) page = 0;
+            if (size < 0) size = 1;
+            if (size > 20) size = 20;
+
             return postEventHandler.GetPostsWithPaging(page, size);
         }
-        
+
         [HttpGet]
         [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [GET]:
         public ResponseBase GetCommentOfPostById(string pid, int page, int size) {
-
-            if(pid == "") {
+            if (pid == "") {
                 return new ResponseBase() {
-                       Status = Status.WrongFormat,
-                       Message = "This request require pid but you missing"
+                    Status = Status.WrongFormat,
+                    Message = "This request require pid but you missing"
                 };
             }
 
             ObjectId postId;
 
-            if(!ObjectId.TryParse(pid, out postId)) {
+            if (!ObjectId.TryParse(pid, out postId)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
                     Message = "Value of param pid is wrong format objectId"
                 };
             }
 
-            if (page < 0) {
-                page = 0;
-            }
-            if (size < 0) {
-                size = 1;
-            }
-            if (size > 20) {
-                size = 20;
-            }
+            if (page < 0) page = 0;
+            if (size < 0) size = 1;
+            if (size > 20) size = 20;
 
             return postEventHandler.GetCommentOfPostByPostId(postId, page, size);
         }
