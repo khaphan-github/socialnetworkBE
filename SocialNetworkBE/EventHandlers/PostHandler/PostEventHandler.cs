@@ -114,6 +114,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         }
 
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
+
             return new ResponseBase();
         }
     }

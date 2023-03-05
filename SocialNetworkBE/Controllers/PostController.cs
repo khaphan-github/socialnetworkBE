@@ -1,11 +1,7 @@
 ﻿using MongoDB.Bson;
-using Org.BouncyCastle.Asn1.X509.Qualified;
 using SocialNetworkBE.EventHandlers.PostHandler;
 using SocialNetworkBE.Payload.Response;
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net;
 using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
@@ -89,22 +85,22 @@ namespace SocialNetworkBE.Controllers {
             return postEventHandler.GetPostsWithPaging(page, size);
         }
 
-        [HttpGet]
-        [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [GET]:
+        [HttpPost]
+        [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
         public ResponseBase GetCommentOfPostById(string pid, int page, int size) {
+
             if (pid == "") {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "This request require pid but you missing"
+                    Message = "This request require pid, page , size"
                 };
             }
 
-            ObjectId postId;
-
-            if (!ObjectId.TryParse(pid, out postId)) {
+            bool isRightObjectId = ObjectId.TryParse(pid, out var id);
+            if (!isRightObjectId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "Value of param pid is wrong format objectId"
+                    Message = "ObjectId Wrong Format"
                 };
             }
 
@@ -112,7 +108,7 @@ namespace SocialNetworkBE.Controllers {
             if (size < 0) size = 1;
             if (size > 20) size = 20;
 
-            return postEventHandler.GetCommentOfPostByPostId(postId, page, size);
+            return postEventHandler.GetCommentOfPostByPostId(id, page, size);
         }
 
         [HttpPost]
