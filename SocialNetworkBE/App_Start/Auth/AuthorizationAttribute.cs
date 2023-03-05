@@ -43,7 +43,7 @@ namespace SocialNetworkBE.App_Start.Auth {
                     return;
                 }
 
-                string accessToken = authHeaderValue.Parameter;
+                string accessToken = authHeaderValue.ToString();
 
                 JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
                 bool isValidAccessToken = jsonWebTokenService.IsValidToken(accessToken);

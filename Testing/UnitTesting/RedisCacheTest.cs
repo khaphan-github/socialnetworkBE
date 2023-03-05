@@ -30,7 +30,7 @@ namespace Testing {
                 },
                 CreateDate = DateTime.Now,
                 UpdateAt = DateTime.Now,
-                NumofComment = 0,
+                NumOfComment = 0,
                 Scope = "public",
                 OwnerId = ownerId,
                 Content = content,
@@ -43,7 +43,7 @@ namespace Testing {
                     new Comment() {
                         Content = "Nice",
                         CreateDate = DateTime.Now,
-                        NumofLike = 0,
+                        NumOfLike = 0,
                         OwnerId = ownerId,
 
                     }

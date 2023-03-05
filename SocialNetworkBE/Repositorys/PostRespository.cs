@@ -70,7 +70,7 @@ namespace SocialNetworkBE.Repository {
             try {
                 int paging = page * size;
                 
-                FilterDefinition < Post > justUpdatePostFilter = Builders<Post>.Filter.Empty;
+                FilterDefinition <Post> justUpdatePostFilter = Builders<Post>.Filter.Empty;
 
                 var topLevelProjectionResults = PostCollection
                     .Find(justUpdatePostFilter)
@@ -100,6 +100,7 @@ namespace SocialNetworkBE.Repository {
         }
 
         public List<Comment> GetCommentsByPostIdWithPaging(ObjectId postObjectId, int page, int size) {
+            // TODO: Get Comment Of post by Id
             throw new NotImplementedException();
         }
 

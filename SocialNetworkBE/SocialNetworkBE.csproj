@@ -281,6 +281,7 @@
     <Compile Include="Controllers\ChatController.cs" />
     <Compile Include="Controllers\PostController.cs" />
     <Compile Include="Controllers\UserController.cs" />
+    <Compile Include="EventHandlers\PostHandler\PostEventHandler.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -289,6 +290,7 @@
     <Compile Include="Payloads\Data\UserResponse.cs" />
     <Compile Include="Payloads\Request\Auth.cs" />
     <Compile Include="Payloads\Request\Token.cs" />
+    <Compile Include="Payloads\Response\PostResponse.cs" />
     <Compile Include="Payloads\Response\ResponseBase.cs" />
     <Compile Include="Payloads\Response\Status.cs" />
     <Compile Include="Repositorys\AccountRepository.cs" />
@@ -322,7 +324,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="EventHandlers\Post\" />
     <Folder Include="EventHandlers\User\" />
     <Folder Include="Properties\" />
     <Folder Include="Services\OpenSSL\" />

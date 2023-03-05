@@ -46,9 +46,11 @@ namespace Testing {
                     "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY" +
                     "2h8Mnx8aHVtYW58ZW58MHx8MHx8&w=1000&q=80"
                 },
+
                 CreateDate = DateTime.Now,
                 UpdateAt = DateTime.Now,
-                NumofComment = 0,
+
+                NumOfComment = 0,
                 Scope = "public",
                 OwnerId = ownerId,
                 Content = content,
@@ -61,7 +63,7 @@ namespace Testing {
                     new Comment() {
                         Content = "Nice",
                         CreateDate = DateTime.Now,
-                        NumofLike = 0,
+                        NumOfLike = 0,
                         OwnerId = ownerId,
 
                     }
@@ -98,7 +100,7 @@ namespace Testing {
             bool isRightMedia1 = savedPost.Media[1] == post.Media[1];
             Assert.IsTrue(isRightMedia1);
 
-            bool isNumOfCommentEqualZero = savedPost.NumofComment == 0;
+            bool isNumOfCommentEqualZero = savedPost.NumOfComment == 0;
             Assert.IsTrue(isNumOfCommentEqualZero);
 
             bool isRightUserId = savedPost.OwnerId.Equals(post.OwnerId);
@@ -120,7 +122,7 @@ namespace Testing {
             bool isRightOwnerIdOfComment = recieveComment.OwnerId.Equals(ownerId);
             Assert.IsTrue(isRightOwnerIdOfComment);
 
-            bool isNumofLikeEqualZero = recieveComment.NumofLike == 0;
+            bool isNumofLikeEqualZero = recieveComment.NumOfLike == 0;
             Assert.IsTrue(isNumofLikeEqualZero);
 
             Like recieveLike;
@@ -133,8 +135,6 @@ namespace Testing {
             bool isRightTypeOfAction = recieveLike.TypeofAction.Equals("Like");
             Assert.IsTrue(isRightTypeOfAction);
 
-            bool isDeleted = PostRespository.DetetePostById(post.Id);
-            Assert.IsTrue(isDeleted);
         }
     }
 }

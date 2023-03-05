@@ -8,7 +8,7 @@ namespace Testing.UnitTesting {
         [TestMethod]
         public void GivenMongoDBConnectionString_WhenGetEnvironmentVariableByKey_ThenReturnRightConnectionString() {
             string mongoDBConnectionString = ServerEnvironment.GetMongoDatabaseConnectionString();
-            string expectString = "mongodb+srv://kimkhanhneee0201hihi:KimKhanh0201@cluster0.oc1roht.mongodb.net/?retryWrites=true";
+            string expectString = "mongodb+srv://kkneee0201hihi:socialnetwork123@cluster0.idnnc8t.mongodb.net/?retryWrites=true";
             bool isEmpty = mongoDBConnectionString == null;
             bool isRightConnectionString = mongoDBConnectionString == expectString;
 
