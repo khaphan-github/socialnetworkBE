@@ -3,12 +3,13 @@
 namespace SocialNetworkBE.ServerConfiguration {
     public static class ServerEnvironment {
         public static string GetMongoDatabaseConnectionString () {
-            string key = "MongoDBConnectionString-KimKhanhCluster";
+            string key = "MongoDBConnectionString-SocialCluster";
+            System.Diagnostics.Debug.WriteLine (ConfigurationManager.AppSettings[key]);
             return ConfigurationManager.AppSettings[key];
         }
 
         public static string GetMongoDatabaseName () {
-            string key = "MongoDBConnectionString-KimKhanhCluster-DatabaseName";
+            string key = "MongoDBConnectionString-SocialCluster-DatabaseName";
             return ConfigurationManager.AppSettings[key];
         }
 
@@ -23,6 +24,27 @@ namespace SocialNetworkBE.ServerConfiguration {
         }
         public static string GetRedisCachePort () {
             string key = "Redis-Cache-Docker-Port";
+            return ConfigurationManager.AppSettings[key];
+        }
+
+        public static string GetFirebaseApiKey()
+        {
+            string key = "FirebaseApiKey";
+            return ConfigurationManager.AppSettings[key];
+        }
+        public static string GetFirebaseBucket()
+        {
+            string key = "FirebaseBucket";
+            return ConfigurationManager.AppSettings[key];
+        }
+        public static string GetFirebaseAuthEmail()
+        {
+            string key = "FirebaseAuthEmail";
+            return ConfigurationManager.AppSettings[key];
+        }
+        public static string GetFirebaseAuthPwd()
+        {
+            string key = "FirebaseAuthPwd";
             return ConfigurationManager.AppSettings[key];
         }
     }
