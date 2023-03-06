@@ -89,7 +89,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     Message = "Create post failure"
                 };
             }
-
+            
             return new ResponseBase() {
                 Status = Status.Success,
                 Message = "Create post success",
