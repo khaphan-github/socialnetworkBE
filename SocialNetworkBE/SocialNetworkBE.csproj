@@ -439,6 +439,14 @@
     <Compile Include="Services\Firebase\FirebaseImage.cs" />
     <Compile Include="Services\RSA\RSAService.cs" />
     <Compile Include="Validates\RequestValidation.cs" />
+    
+    <Compile Include="Services\OpenSSL\ServerSecretKey.cs" />
+    <Compile Include="Services\OpenSSL\private-2048.key" />
+    <Compile Include="Services\OpenSSL\GenerateRSAKeyPair.bat" />    
+    <Compile Include="Services\OpenSSL\public-2048.key" />
+
+
+
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
