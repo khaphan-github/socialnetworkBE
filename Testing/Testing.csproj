@@ -126,6 +126,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="UnitTesting\OpenSSLServiceTest.cs" />
     <Compile Include="UnitTesting\RedisCacheTest.cs" />
     <Compile Include="UnitTesting\AccountRepositoryTest.cs" />
     <Compile Include="UnitTesting\BCryptServiceTest.cs" />

@@ -13,7 +13,7 @@ namespace Testing {
 
         [TestMethod]
         public void GivenRightUsername_WhenGetAccountByUsername_ThenReturnAccountInfo() {
-            string username = "user-test-1";
+            string username = "kimkhanhne";
 
             Account accountInserted =
                 accountResponsitory.GetAccountByUsername(username);
@@ -29,11 +29,11 @@ namespace Testing {
 
             string randomSalt = bCryptService.GetRandomSalt();
             string secretKey = ServerEnvironment.GetServerSecretKey();
-            string password = "thanhdatnepass";
-            string username = "thanhdatne";
-            string displayName = "Thành Đạt";
-            string email = "thanhdatne@gmail.com";
-            string profile = "/thanhdatne";
+            string password = "khaphannepass";
+            string username = "khaphanne";
+            string displayName = "Kha Phan";
+            string email = "khaphanne@gmail.com";
+            string profile = "/khaphanne";
             string passwordHash =
                 bCryptService
                 .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
@@ -63,7 +63,7 @@ namespace Testing {
             bool isRightPassword = bCryptService.ValidateStringAndHashBySHA512(randomSalt + password + secretKey, accountSaved.Password);
             Assert.IsTrue(isRightPassword);
 
-         //   Assert.IsTrue(accountResponsitory.DeleteAccount(accountSaved.Id));
+            Assert.IsTrue(accountResponsitory.DeleteAccount(accountSaved.Id));
         }
     }
 }
