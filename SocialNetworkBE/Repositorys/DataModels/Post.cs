@@ -11,13 +11,20 @@ namespace SocialNetworkBE.Repositorys.DataModels
     {
         public ObjectId Id { get; set; }
         public ObjectId OwnerId { get; set; }
+        public string OwnerAvatarURL { get; set; }
+        public string OwnerDisplayName { get; set; }    
+        public string OwnerProfileURL { get; set; }
         public DateTime CreateDate { get; set; } = DateTime.Now;
         public DateTime UpdateAt { get; set; } = DateTime.Now;
         public string Scope { get; set; } = "public";
         public string Content { get; set; }
         public List<string> Media { get; set; }
-        public int NumofComment { get; set; } = 0;
-        public IDictionary<string,Comment> Comments { get; set; }
-        public IDictionary<string, Like> Likes { get; set; }
+        public int NumOfComment { get; set; } = 0;
+        public string CommentsURL { get; set; }
+
+        public List<Comment> Comments { get; set; }
+        public int NumOfLike { get; set; } = 0;
+        public string LikesURL { get; set; }
+        public List<Like> Likes { get; set; }
     }
 }

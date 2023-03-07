@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
+using SocialNetworkBE.ServerConfiguration;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,13 +14,7 @@ using System.Web;
 namespace SocialNetworkBE.Services.JsonWebToken {
     public class JsonWebTokenService {
         // https://gist.github.com/rafiulgits/b967c3f1716436b3c59d038d04a51009
-
-        // TODO: Handle Secure Secretkey using OpenSSL of anything same;
-
-        private const string SECRET_KEY = "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh" +
-            "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh" +
-            "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh";
-
+        private readonly string SECRET_KEY = ServerEnvironment.GetServerSecretKey();
 
         public ClaimsIdentity CreateClaimsIdentity(string username, string email, string role) {
             ClaimsIdentity claimsIdentity = new ClaimsIdentity();
@@ -84,7 +79,6 @@ namespace SocialNetworkBE.Services.JsonWebToken {
                 return null;
             }
         }
-
 
         public bool IsValidToken(string token) {
             ClaimsIdentity claimsIdentity = GetClaimsIdentityFromToken(token);

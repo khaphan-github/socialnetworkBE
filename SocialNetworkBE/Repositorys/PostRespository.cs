@@ -6,16 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys.Interfaces;
+using MongoDB.Bson.Serialization;
+using SocialNetworkBE.Payloads.Response;
+using ServiceStack;
 
 namespace SocialNetworkBE.Repository {
-    public class PostRespository : IPostRepository {
+    public class PostRespository {
         private IMongoCollection<Post> PostCollection { get; set; }
+        private IMongoDatabase databaseConnected { get; set; }
+        private const string PostDocumentName = "Post";
 
         public PostRespository() {
-            const string PostDocumentName = "Post";
-
             MongoDBConfiguration MongoDatabase = new MongoDBConfiguration();
-            IMongoDatabase databaseConnected = MongoDatabase.GetMongoDBConnected();
+            databaseConnected = MongoDatabase.GetMongoDBConnected();
 
             PostCollection = databaseConnected.GetCollection<Post>(PostDocumentName);
         }
@@ -23,7 +26,7 @@ namespace SocialNetworkBE.Repository {
         public List<Post> GetPostByUserId(ObjectId userObjectId) {
             try {
                 FilterDefinition<Post> userOwnedPostFilter = Builders<Post>.Filter.Eq("OwnerId", userObjectId);
-            
+
                 return PostCollection.Find(userOwnedPostFilter).ToList();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
@@ -54,7 +57,9 @@ namespace SocialNetworkBE.Repository {
 
         public bool DetetePostById(ObjectId postObjectId) {
             try {
-                FilterDefinition<Post> postNeedDeleteFilter = Builders<Post>.Filter.Eq("_id", postObjectId);
+                FilterDefinition<Post> postNeedDeleteFilter =
+                    Builders<Post>.Filter.Eq("_id", postObjectId);
+
                 PostCollection.DeleteOne(postNeedDeleteFilter);
 
                 return true;
@@ -64,15 +69,32 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public List<Post> GetPostByPageAndSizeAndSorted(int page, int size) {
+        public List<BsonDocument> GetPostByPageAndSizeAndSorted(int page, int size) {
             try {
                 int paging = page * size;
-                
-                FilterDefinition < Post > justUpdatePostFilter = Builders<Post>.Filter.Empty;
 
-                var topLevelProjectionResults = PostCollection
+                IMongoCollection<BsonDocument> PostCollectionBsonDocument =
+                    databaseConnected.GetCollection<BsonDocument>(PostDocumentName);
+
+                FilterDefinition<BsonDocument> justUpdatePostFilter = Builders<BsonDocument>.Filter.Empty;
+
+                var projection = Builders<BsonDocument>.Projection
+                    .Include("OwnerId")
+                    .Include("OwnerAvatarURL")
+                    .Include("OwnerDisplayName")
+                    .Include("OwnerProfileURL")
+                    .Include("UpdateAt")
+                    .Include("Scope")
+                    .Include("Content")
+                    .Include("Media")
+                    .Include("NumOfComment")
+                    .Include("CommentsURL")
+                    .Include("NumOfLike")
+                    .Include("LikesURL");
+
+                var topLevelProjectionResults = PostCollectionBsonDocument
                     .Find(justUpdatePostFilter)
-                    .SortByDescending(post => post.CreateDate)
+                    .Project(projection)
                     .Skip(paging)
                     .Limit(size)
                     .ToList();
@@ -81,7 +103,7 @@ namespace SocialNetworkBE.Repository {
 
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                return new List<Post>();
+                return new List<BsonDocument>();
             }
         }
 
@@ -98,7 +120,43 @@ namespace SocialNetworkBE.Repository {
         }
 
         public List<Comment> GetCommentsByPostIdWithPaging(ObjectId postObjectId, int page, int size) {
-            throw new NotImplementedException();
+            try {
+
+                int paging = page * size;
+
+                IMongoCollection<BsonDocument> postCollectionBsonDocument =
+                    databaseConnected.GetCollection<BsonDocument>(PostDocumentName);
+
+                FilterDefinition<BsonDocument> postFilter =
+                    Builders<BsonDocument>.Filter.Eq("_id", postObjectId);
+
+                // TODO: Need to optimize performance query comment - not get all comment then paging
+                
+                var commentProject = Builders<BsonDocument>.Projection.Include("Comments");
+
+                var commentOfPost = postCollectionBsonDocument
+                    .Find(postFilter)
+                    .Project(commentProject)
+                    .FirstOrDefault();
+
+                if (commentOfPost == null) {
+                    return new List<Comment>();
+                }
+
+                Post savedPost = BsonSerializer.Deserialize<Post>(commentOfPost);
+
+                if (savedPost != null) {
+                    return savedPost.Comments
+                        .OrderBy(comment => comment.CreateDate)
+                        .Skip(paging)
+                        .ToList();
+                }
+
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
+
+            return new List<Comment>();
         }
 
         public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {

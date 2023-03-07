@@ -3,6 +3,7 @@ using SocialNetworkBE.Services.JsonWebToken;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Web;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 
@@ -43,7 +44,7 @@ namespace SocialNetworkBE.App_Start.Auth {
                     return;
                 }
 
-                string accessToken = authHeaderValue.Parameter;
+                string accessToken = authHeaderValue.ToString();
 
                 JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
                 bool isValidAccessToken = jsonWebTokenService.IsValidToken(accessToken);

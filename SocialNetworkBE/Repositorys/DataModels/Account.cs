@@ -14,10 +14,11 @@ namespace SocialNetworkBE.Repositorys.DataModels
     public class Account
     {
         public ObjectId Id { get; set; }
-        public string Email { get; set; }
         [Unique]
         public string Username { get; set; }
         public string Password { get; set; }
+        public string Email { get; set; }
+        public string HashSalt { get; set; }    
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string DisplayName { set; get; }
         public string AvatarUrl { set; get; }

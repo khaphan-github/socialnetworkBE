@@ -12,12 +12,16 @@ namespace SocialNetworkBE.Repositorys.DataModels
 {
     public class Comment
     {
+
         public ObjectId OwnerId { get; set; }
+        public string OwnerAvatarURL { get; set; }
+        public string OwnerDisplayName { get; set; }
+        public string OwnerProfileURL { get; set; }
         public string Content { get; set; }
         public DateTime CreateDate { get; set; } = DateTime.Now;
+        public int NumOfComment { get; set; } = 0;
         public List<Comment> Comments { get; set; }
-
-        public int NumofLike { get; set; } = 0;
+        public int NumOfLike { get; set; } = 0;
         public List<Like> Likes { set; get; }
     }
 }
