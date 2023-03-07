@@ -20,23 +20,19 @@ namespace SocialNetworkBE.Services.Firebase
 {
     public class FirebaseImage
     {
-        public static string ApiKey = "AIzaSyCBeCehqqIvzNRMP1eGYOcu5rYrWpA7xDQ";
-        public static string Bucket = "socialnetwork-4c654.appspot.com";
-        public static string AuthEmail = "kkneee0201hihi@gmail.com";
-        public static string AuthPassword = "kimkhanh21";
-        public static async Task UploadImage(string img)
+
+        public static async Task UploadImage(FileStream fileStream)
         {
-            var imgInput = Resize2Max50Kbytes(File.Open(img, FileMode.Open));
+            var imgInput = Resize2Max50Kbytes(fileStream);
             
             var stream = new MemoryStream();
             imgInput.Save(stream, ImageFormat.Jpeg);
 
-            //authentication
-            var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
-            var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
+            var auth = new FirebaseAuthProvider(new FirebaseConfig(ServerEnvironment.GetFirebaseApiKey());
+            var a = await auth.SignInWithEmailAndPasswordAsync(ServerEnvironment.GetFirebaseAuthEmail(), ServerEnvironment.GetFirebaseAuthPwd());
 
             var task = new FirebaseStorage(
-                Bucket,
+                ServerEnvironment.GetFirebaseBucket(),
 
                  new FirebaseStorageOptions
                  {
@@ -44,25 +40,26 @@ namespace SocialNetworkBE.Services.Firebase
                      ThrowOnCancel = true,
                  })
                 .Child("AvatarUrl")
-                .Child("kk.jpg")
+                .Child("nameAcc.jpg")
                 .PutAsync(stream);
             task.Progress.ProgressChanged += (s, e) => System.Diagnostics.Debug.WriteLine($"Progress: {e.Percentage} %");
 
             try
             {
-                // error during upload will be thrown when you await the task
-                System.Diagnostics.Debug.WriteLine("Download link:\n" + await task);
+                System.Diagnostics.Debug.WriteLine("Link ảnh:\n" + await task);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Exception was thrown: {0}", ex);
+                System.Diagnostics.Debug.WriteLine("Lỗi: {0}", ex);
             }
         }
 
-        public static async Task getUrl()
+        
+
+        public static async Task getUrl(string namePic)
         {
             FirebaseStorage storage = new FirebaseStorage("socialnetwork-4c654.appspot.com");
-            var starsRef = storage.Child("AvatarUrl").Child("kk.jpg");
+            var starsRef = storage.Child("AvatarUrl").Child(namePic);
             string link = await starsRef.GetDownloadUrlAsync();
             System.Diagnostics.Debug.WriteLine(link);
         }
