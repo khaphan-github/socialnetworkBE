@@ -64,6 +64,7 @@ namespace SocialNetworkBE.Services.Authenticate {
                     AccessToken = tokenKeyPair[0],
                     RefreshToken = tokenKeyPair[1]
                 };
+
                 return tokenResponse;
             }
 

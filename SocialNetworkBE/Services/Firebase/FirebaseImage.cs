@@ -1,20 +1,11 @@
 ﻿using Firebase.Auth;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
-using Firebase.Storage;
-using MongoDB.Driver.Core.Misc;
-using System.Collections.Generic;
-using FireSharp;
-using Firebase.Database;
 using System.Drawing;
-using Firebase;
-using FirebaseClient = Firebase.Database.FirebaseClient;
-using System.Windows.Forms;
-using System.Web;
 using System.Drawing.Imaging;
+using SocialNetworkBE.ServerConfiguration;
+using Firebase.Storage;
 
 namespace SocialNetworkBE.Services.Firebase
 {
@@ -28,7 +19,7 @@ namespace SocialNetworkBE.Services.Firebase
             var stream = new MemoryStream();
             imgInput.Save(stream, ImageFormat.Jpeg);
 
-            var auth = new FirebaseAuthProvider(new FirebaseConfig(ServerEnvironment.GetFirebaseApiKey());
+            var auth = new FirebaseAuthProvider(new FirebaseConfig(ServerEnvironment.GetFirebaseApiKey()));
             var a = await auth.SignInWithEmailAndPasswordAsync(ServerEnvironment.GetFirebaseAuthEmail(), ServerEnvironment.GetFirebaseAuthPwd());
 
             var task = new FirebaseStorage(
@@ -105,12 +96,6 @@ namespace SocialNetworkBE.Services.Firebase
             }
 
         }
-
-        public string urlimage (File stream) {
-            /// 
-            return urlimage();
-        }
-
     }
 
 }
