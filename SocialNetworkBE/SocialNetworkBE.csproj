@@ -439,7 +439,6 @@
     <Compile Include="Services\Firebase\FirebaseImage.cs" />
     <Compile Include="Services\RSA\RSAService.cs" />
     <Compile Include="Validates\RequestValidation.cs" />
-    <Compile Include="Services\OpenSSL\ServerSecretKey.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
@@ -456,6 +455,7 @@
     <Folder Include="App_Data\" />
     <Folder Include="EventHandlers\User\" />
     <Folder Include="Properties\" />
+    <Folder Include="Services\OpenSSL\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="libmongocrypt.so" />

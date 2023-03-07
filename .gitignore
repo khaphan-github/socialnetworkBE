@@ -1,9 +1,7 @@
-TestResults
-.vs/SocialNetworkBE/FileContentIndex
-.vs/SocialNetworkBE/v17/TestStore
+/TestResults
 
-SocialNetworkBE/bin
-SocialNetworkBE/obj
+/SocialNetworkBE/bin
+/SocialNetworkBE/obj
 
-Testing/bin
-Testing/obj
+/Testing/bin
+/Testing/obj
