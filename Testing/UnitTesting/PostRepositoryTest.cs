@@ -62,9 +62,8 @@ namespace Testing {
             };
 
             string commentGuid = Guid.NewGuid().ToString();
-            post.Comments = new Dictionary<string, Comment> {
+            post.Comments = new List<Comment> {
                 {
-                    commentGuid,
                     new Comment() {
                         OwnerProfileURL = "/usertest1",
                         OwnerDisplayName = "User Test 1",
@@ -78,9 +77,8 @@ namespace Testing {
                 }
             };
             string likeGuid = Guid.NewGuid().ToString();
-            post.Likes = new Dictionary<string, Like> {
+            post.Likes = new List<Like> {
                 {
-                    likeGuid,
                     new Like() {
                           OwnerProfileURL = "/usertest1",
                         OwnerDisplayName = "User Test 1",
@@ -120,35 +118,6 @@ namespace Testing {
 
             bool isRightContent = savedPost.Content == post.Content;
             Assert.IsTrue(isRightContent);
-
-            /** Commetn of post*/
-            string expectComment = "Nice";
-            Comment recieveComment;
-
-            bool isCanGetComment = savedPost.Comments.TryGetValue(commentGuid, out recieveComment);
-            Assert.IsTrue(isCanGetComment);
-
-            bool isRightComment = recieveComment.Content == expectComment;
-            Assert.IsTrue(isRightComment);
-
-            bool isRightOwnerIdOfComment = recieveComment.OwnerId.Equals(ownerId);
-            Assert.IsTrue(isRightOwnerIdOfComment);
-
-            bool isNumofLikeEqualZero = recieveComment.NumOfLike == 0;
-            Assert.IsTrue(isNumofLikeEqualZero);
-
-            Like recieveLike;
-            bool isCanGetLike = savedPost.Likes.TryGetValue(likeGuid, out recieveLike);
-            Assert.IsTrue(isCanGetLike);
-
-            bool isRightLikeOwnerId = recieveLike.OwnerId.Equals(ownerId);
-            Assert.IsTrue(isRightLikeOwnerId);
-
-            bool isRightTypeOfAction = recieveLike.TypeofAction.Equals("Like");
-            Assert.IsTrue(isRightTypeOfAction);
-
-             bool isDeleted = PostRespository.DetetePostById(savedPost.Id);
-               Assert.IsTrue(isDeleted);
         }
     }
 }

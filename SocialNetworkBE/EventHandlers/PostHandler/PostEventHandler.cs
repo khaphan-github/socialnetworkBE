@@ -89,7 +89,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     Message = "Create post failure"
                 };
             }
-            
+
             return new ResponseBase() {
                 Status = Status.Success,
                 Message = "Create post success",
@@ -97,10 +97,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
         }
         public ResponseBase DeletePostById(ObjectId id) {
-            
+
             bool isDeleted = postRespository.DetetePostById(id);
 
-            if(!isDeleted) {
+            if (!isDeleted) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "Delete failure"
@@ -114,8 +114,18 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         }
 
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
-
-            return new ResponseBase();
+            var bsonDocumentComment = postRespository.GetCommentsByPostIdWithPaging(postObjectId, page, size);
+            if (bsonDocumentComment == null) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "This post have no comment"
+                };
+            }
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Get comment success",
+                Data = bsonDocumentComment
+            };
         }
     }
 }

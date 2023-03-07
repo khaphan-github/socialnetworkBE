@@ -12,6 +12,7 @@ namespace SocialNetworkBE.Repositorys.DataModels
 {
     public class Comment
     {
+
         public ObjectId OwnerId { get; set; }
         public string OwnerAvatarURL { get; set; }
         public string OwnerDisplayName { get; set; }

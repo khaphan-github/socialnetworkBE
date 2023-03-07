@@ -8,6 +8,7 @@ using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys.Interfaces;
 using MongoDB.Bson.Serialization;
 using SocialNetworkBE.Payloads.Response;
+using ServiceStack;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
@@ -72,7 +73,7 @@ namespace SocialNetworkBE.Repository {
             try {
                 int paging = page * size;
 
-                IMongoCollection<BsonDocument> PostCollectionBsonDocument = 
+                IMongoCollection<BsonDocument> PostCollectionBsonDocument =
                     databaseConnected.GetCollection<BsonDocument>(PostDocumentName);
 
                 FilterDefinition<BsonDocument> justUpdatePostFilter = Builders<BsonDocument>.Filter.Empty;
@@ -119,8 +120,43 @@ namespace SocialNetworkBE.Repository {
         }
 
         public List<Comment> GetCommentsByPostIdWithPaging(ObjectId postObjectId, int page, int size) {
-            // TODO: Get Comment Of post by Id
-            throw new NotImplementedException();
+            try {
+
+                int paging = page * size;
+
+                IMongoCollection<BsonDocument> postCollectionBsonDocument =
+                    databaseConnected.GetCollection<BsonDocument>(PostDocumentName);
+
+                FilterDefinition<BsonDocument> postFilter =
+                    Builders<BsonDocument>.Filter.Eq("_id", postObjectId);
+
+                // TODO: Need to optimize performance query comment - not get all comment then paging
+                
+                var commentProject = Builders<BsonDocument>.Projection.Include("Comments");
+
+                var commentOfPost = postCollectionBsonDocument
+                    .Find(postFilter)
+                    .Project(commentProject)
+                    .FirstOrDefault();
+
+                if (commentOfPost == null) {
+                    return new List<Comment>();
+                }
+
+                Post savedPost = BsonSerializer.Deserialize<Post>(commentOfPost);
+
+                if (savedPost != null) {
+                    return savedPost.Comments
+                        .OrderBy(comment => comment.CreateDate)
+                        .Skip(paging)
+                        .ToList();
+                }
+
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
+
+            return new List<Comment>();
         }
 
         public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {

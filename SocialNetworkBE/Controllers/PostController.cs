@@ -5,6 +5,7 @@ using System;
 using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
+using MongoDB.Driver;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -85,7 +86,7 @@ namespace SocialNetworkBE.Controllers {
             return postEventHandler.GetPostsWithPaging(page, size);
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
         public ResponseBase GetCommentOfPostById(string pid, int page, int size) {
 
@@ -113,7 +114,26 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpPost]
         [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid} [POST]:
-        public ResponseBase CommentAPostById(string pid) {
+        public ResponseBase CommentAPostById(string pid, int page, int size) {
+            if (pid == "") {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "This request require pid, page , size"
+                };
+            }
+
+            bool isRightObjectId = ObjectId.TryParse(pid, out var id);
+            if (!isRightObjectId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "ObjectId Wrong Format"
+                };
+            }
+
+            if (page < 0) page = 0;
+            if (size < 0) size = 1;
+            if (size > 20) size = 20;
+
             return new ResponseBase();
         }
 

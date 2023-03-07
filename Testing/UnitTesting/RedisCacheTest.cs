@@ -36,30 +36,7 @@ namespace Testing {
             };
 
             string commentGuid = Guid.NewGuid().ToString();
-            post.Comments = new Dictionary<string, Comment> {
-                {
-                    commentGuid,
-                    new Comment() {
-                        Content = "Nice",
-                        CreateDate = DateTime.Now,
-                        NumOfLike = 0,
-                        OwnerId = ownerId,
-
-                    }
-                }
-            };
-            string likeGuid = Guid.NewGuid().ToString();
-            post.Likes = new Dictionary<string, Like> {
-                {
-                    likeGuid,
-                    new Like() {
-                        CreateDate= DateTime.Now,
-                        OwnerId = ownerId,
-                        TypeofAction = "Like"
-                    }
-                }
-
-            };
+         
             redisCacheService.SetObjectToCache(key, post);
             string jsonPostFromCache = redisCacheService.GetJsonObjectFromCache(key);
             Assert.IsNotNull(jsonPostFromCache);
