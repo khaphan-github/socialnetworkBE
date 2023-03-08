@@ -22,7 +22,7 @@ namespace SocialNetworkBE.Services.Firebase
             var auth = new FirebaseAuthProvider(new FirebaseConfig(ServerEnvironment.GetFirebaseApiKey()));
             var a = await auth.SignInWithEmailAndPasswordAsync(ServerEnvironment.GetFirebaseAuthEmail(), ServerEnvironment.GetFirebaseAuthPwd());
 
-            var task = new FirebaseStorage(
+            var  task =  new FirebaseStorage(
                 ServerEnvironment.GetFirebaseBucket(),
 
                  new FirebaseStorageOptions
@@ -50,7 +50,7 @@ namespace SocialNetworkBE.Services.Firebase
         public static async Task getUrl(string namePic)
         {
             FirebaseStorage storage = new FirebaseStorage("socialnetwork-4c654.appspot.com");
-            var starsRef = storage.Child("AvatarUrl").Child(namePic);
+            var starsRef = storage.Child("AvatarUrl").Child(namePic);       
             string link = await starsRef.GetDownloadUrlAsync();
             System.Diagnostics.Debug.WriteLine(link);
         }
