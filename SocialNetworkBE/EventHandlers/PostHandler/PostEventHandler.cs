@@ -4,6 +4,7 @@ using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys.DataModels;
+using SocialNetworkBE.Services.Firebase;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,8 +65,14 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             string OwnerDisplayName,
             string OwnerProfileURL) {
 
+            FirebaseImage firebaseService = new FirebaseImage();
+            List<string> mediaURLList = new List<string>();
+
             if (Media != null) {
+                foreach(var media in Media) {
+                }
                 // TODO: Handle Upload image;
+
             }
 
             Post newPost = new Post() {
@@ -77,6 +84,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 OwnerDisplayName = OwnerDisplayName,
                 OwnerProfileURL = OwnerProfileURL,
                 Content = Content,
+                Media = mediaURLList,
             };
 
             newPost.CommentsURL = "/api/v1/post/comments?pid=" + newPost.Id.ToString();

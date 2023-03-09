@@ -7,57 +7,49 @@ using System.Drawing.Imaging;
 using SocialNetworkBE.ServerConfiguration;
 using Firebase.Storage;
 
-namespace SocialNetworkBE.Services.Firebase
-{
-    public class FirebaseImage
-    {
+namespace SocialNetworkBE.Services.Firebase {
+    public class FirebaseImage {
+        public async Task UploadImage(FileStream fileStream) {
+            Image imageResize = Resize2Max50Kbytes(fileStream);
+            MemoryStream stream = new MemoryStream();
 
-        public static async Task UploadImage(FileStream fileStream)
-        {
-            var imgInput = Resize2Max50Kbytes(fileStream);
-            
-            var stream = new MemoryStream();
-            imgInput.Save(stream, ImageFormat.Jpeg);
+            imageResize.Save(stream, ImageFormat.Jpeg);
 
             var auth = new FirebaseAuthProvider(new FirebaseConfig(ServerEnvironment.GetFirebaseApiKey()));
-            var a = await auth.SignInWithEmailAndPasswordAsync(ServerEnvironment.GetFirebaseAuthEmail(), ServerEnvironment.GetFirebaseAuthPwd());
+            var a = await auth
+                .SignInWithEmailAndPasswordAsync(
+                    ServerEnvironment.GetFirebaseAuthEmail(),
+                    ServerEnvironment.GetFirebaseAuthPwd()
+                );
 
             var task = new FirebaseStorage(
-                ServerEnvironment.GetFirebaseBucket(),
-
-                 new FirebaseStorageOptions
-                 {
+                 ServerEnvironment.GetFirebaseBucket(),
+                 new FirebaseStorageOptions {
                      AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
                      ThrowOnCancel = true,
                  })
                 .Child("AvatarUrl")
                 .Child("nameAcc.jpg")
                 .PutAsync(stream);
-            task.Progress.ProgressChanged += (s, e) => System.Diagnostics.Debug.WriteLine($"Progress: {e.Percentage} %");
 
-            try
-            {
+            try {
                 System.Diagnostics.Debug.WriteLine("Link ảnh:\n" + await task);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("Lỗi: {0}", ex);
             }
         }
 
-        
 
-        public static async Task getUrl(string namePic)
-        {
+
+        public async Task getUrl(string namePic) {
             FirebaseStorage storage = new FirebaseStorage("socialnetwork-4c654.appspot.com");
             var starsRef = storage.Child("AvatarUrl").Child(namePic);
             string link = await starsRef.GetDownloadUrlAsync();
             System.Diagnostics.Debug.WriteLine(link);
         }
 
-        public static Image Resize2Max50Kbytes(FileStream fileStream)
-        {
-            System.Diagnostics.Debug.WriteLine(fileStream.GetType());  
+        public Image Resize2Max50Kbytes(FileStream fileStream) {
+            System.Diagnostics.Debug.WriteLine(fileStream.GetType());
 
             var memoryStream = new MemoryStream();
 
@@ -72,8 +64,7 @@ namespace SocialNetworkBE.Services.Firebase
             Image img = Image.FromStream(inputMemoryStream);
             Image fullsizeImage = Image.FromStream(inputMemoryStream);
 
-            while (currentByteImageArray.Length > 40000)
-            {
+            while (currentByteImageArray.Length > 40000) {
                 Bitmap fullSizeBitmap = new Bitmap(fullsizeImage, new Size((int)(fullsizeImage.Width * scale), (int)(fullsizeImage.Height * scale)));
                 MemoryStream resultStream = new MemoryStream();
 
@@ -86,12 +77,11 @@ namespace SocialNetworkBE.Services.Firebase
                 scale -= 0.05f;
             }
 
-            System.Diagnostics.Debug.WriteLine("after: "+ currentByteImageArray.Length);
-            using (var ms = new MemoryStream(currentByteImageArray))
-            { 
-                var imgResult =  Image.FromStream(ms);
+            System.Diagnostics.Debug.WriteLine("after: " + currentByteImageArray.Length);
+            using (var ms = new MemoryStream(currentByteImageArray)) {
+                var imgResult = Image.FromStream(ms);
                 imgResult.Save("C:/anh/kkne.jpg");
-               
+
                 return img;
             }
 
