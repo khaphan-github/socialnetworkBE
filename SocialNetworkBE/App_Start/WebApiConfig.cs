@@ -9,7 +9,8 @@ namespace SocialNetworkBE {
         public static void Register(HttpConfiguration config) {
 
             // Web API configuration and services
-            var cors = new EnableCorsAttribute(ServerEnvironment.GetClientCORSDomain(), "*", "*");
+            string corsDomain = ServerEnvironment.GetClientCORSDomain();
+            var cors = new EnableCorsAttribute(corsDomain, "*", "*");
             config.EnableCors(cors);
 
             // Web API routes

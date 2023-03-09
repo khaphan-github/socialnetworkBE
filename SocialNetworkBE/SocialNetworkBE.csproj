@@ -25,8 +25,6 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerLaunchUrl>http://{ServiceIPAddress}</DockerLaunchUrl>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -469,10 +467,6 @@
   <ItemGroup>
     <Content Include="libmongocrypt.so" />
     <Content Include="libmongocrypt.dylib" />
-    <None Include="Dockerfile" />
-    <None Include=".dockerignore">
-      <DependentUpon>Dockerfile</DependentUpon>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
