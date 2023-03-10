@@ -17,6 +17,10 @@ namespace SocialNetworkBE.Services.JsonWebToken {
         private readonly string SECRET_KEY = ServerEnvironment.GetServerSecretKey();
 
         public ClaimsIdentity CreateClaimsIdentity(string username, string email, string role) {
+            if (username== null) throw new ArgumentNullException("username");
+            if (email== null) throw new ArgumentNullException("email");
+            if (role== null) throw new ArgumentNullException("role");
+
             ClaimsIdentity claimsIdentity = new ClaimsIdentity();
 
             claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, username));
