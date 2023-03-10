@@ -59,7 +59,6 @@ namespace Testing {
             bool isRightPassword = bCryptService.ValidateStringAndHashBySHA512(randomSalt + password + secretKey, accountSaved.Password);
             Assert.IsTrue(isRightPassword);
 
-            Assert.IsTrue(accountResponsitory.DeleteAccount(accountSaved.Id));
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using SocialNetworkBE.Payload.Request;
+﻿using MongoDB.Bson;
+using SocialNetworkBE.Payload.Request;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Data;
 using SocialNetworkBE.Payloads.Request;
@@ -7,12 +8,13 @@ using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Hash;
 using SocialNetworkBE.Services.JsonWebToken;
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 
 namespace SocialNetworkBE.Services.Authenticate {
     public class AuthService {
-
+        private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
         public ResponseBase HandleUserAuthenticate(Auth auth) {
 
             AccountResponsitory accountResponsitory = new AccountResponsitory();
@@ -90,8 +92,58 @@ namespace SocialNetworkBE.Services.Authenticate {
             return null;
         }
 
-        public object HandleUserSignup() {
-            return null;
+        public ResponseBase HandleUserSignUp(
+             string userName,
+             string pwd,
+             string email,
+              string DisplayName,
+              string AvatarUrl,
+              string UserProfileUrl
+             )
+        {
+
+            BCryptService bCryptService = new BCryptService();
+
+            string randomSalt = bCryptService.GetRandomSalt();
+            string secretKey = ServerEnvironment.GetServerSecretKey();
+            string password = pwd;
+            string passwordHash =
+                bCryptService
+                .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
+
+            Account newAccount = new Account()
+            {
+                Id = ObjectId.GenerateNewId(),
+                DisplayName = DisplayName,
+                Email = email,
+                AvatarUrl = AvatarUrl,
+                UserProfileUrl = UserProfileUrl,
+                Username = userName,
+                Password = passwordHash,
+                HashSalt = randomSalt,
+                CreatedAt = DateTime.Now,
+                NumberOfFriend = 0,
+                ListFriendsObjectId = new List<ObjectId>(),
+                NumberOfFriendPost = 0,
+                ListPostsObjectId = new List<ObjectId>()
+            };
+
+            Account savedAccount = accountResponsitory.CreateNewAccount(newAccount);
+            if (savedAccount == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Create account failure"
+                };
+            }
+
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Create account success",
+                Data = accountResponsitory.GetAccountByObjectId(newAccount.Id)
+            };
         }
     }
 }

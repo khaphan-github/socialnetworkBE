@@ -406,6 +406,7 @@
     <Compile Include="Controllers\PostController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="EventHandlers\PostHandler\PostEventHandler.cs" />
+    <Compile Include="EventHandlers\User\UserEventHandler.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -453,7 +454,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="EventHandlers\User\" />
     <Folder Include="Properties\" />
     <Folder Include="Services\OpenSSL\" />
   </ItemGroup>
