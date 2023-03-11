@@ -129,6 +129,7 @@
   <ItemGroup>
     <Compile Include="InterationTesting\AuthEndpointTesting.cs" />
     <Compile Include="InterationTesting\PostEndpointTesting.cs" />
+    <Compile Include="UnitTesting\CommentRepostioryTest.cs" />
     <Compile Include="UnitTesting\RedisCacheTest.cs" />
     <Compile Include="UnitTesting\AccountRepositoryTest.cs" />
     <Compile Include="UnitTesting\BCryptServiceTest.cs" />

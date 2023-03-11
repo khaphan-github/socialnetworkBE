@@ -64,7 +64,6 @@ namespace SocialNetworkBE.Controllers {
         [HttpDelete]
         [Route("")]
         public ResponseBase DetetePostById(string pid) {
-
             bool isRightObjectId = ObjectId.TryParse(pid, out var id);
             if(!isRightObjectId) {
                 return new ResponseBase() {
@@ -115,21 +114,8 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpPost]
         [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid} [POST]:
-        public ResponseBase CommentAPostById(string pid) {
-            if (pid == "") {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "This request require pid, page , size"
-                };
-            }
-
-            bool isRightObjectId = ObjectId.TryParse(pid, out var id);
-            if (!isRightObjectId) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "ObjectId Wrong Format"
-                };
-            }
+        public ResponseBase CommentAPostById([FromBody] CommentRequest commentRequest) {
+            
 
             return new ResponseBase();
         }

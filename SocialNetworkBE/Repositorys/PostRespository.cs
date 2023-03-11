@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SocialNetworkBE.Repository.Config;
-using SocialNetworkBE.Repositorys.Interfaces;
 using MongoDB.Bson.Serialization;
-using SocialNetworkBE.Payloads.Response;
 using ServiceStack;
 
 namespace SocialNetworkBE.Repository {
@@ -30,7 +28,7 @@ namespace SocialNetworkBE.Repository {
                 return PostCollection.Find(userOwnedPostFilter).ToList();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                throw;
+                return new List<Post> { null };
             }
         }
 
@@ -41,7 +39,7 @@ namespace SocialNetworkBE.Repository {
                 return PostCollection.Find(userOwnedPostFilter).FirstOrDefault();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                throw;
+                return null;
             }
         }
 
@@ -59,12 +57,11 @@ namespace SocialNetworkBE.Repository {
             try {
                 FilterDefinition<Post> postNeedDeleteFilter =
                     Builders<Post>.Filter.Eq("_id", postObjectId);
-                // TODO: Check delete in unit test
+
                 Post deletePost = PostCollection.FindOneAndDelete(postNeedDeleteFilter);
-                if (deletePost != null) {
+                if (deletePost != null) 
                     return true;
 
-                }
                 return false;
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
@@ -149,7 +146,6 @@ namespace SocialNetworkBE.Repository {
 
                 Post savedPost = BsonSerializer.Deserialize<Post>(commentOfPost);
 
-                return savedPost.Comments;
 
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);

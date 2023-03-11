@@ -8,11 +8,6 @@ using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Hash;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Testing.InterationTesting {
     [TestClass]
@@ -144,7 +139,7 @@ namespace Testing.InterationTesting {
         }
 
         [TestMethod]
-        [DataRow("kimkhanhne", "password-wrong")]
+        [DataRow("KhaThiPhan", "password-wrong")]
         [DataRow("thanhdatne", "password-wrong")]
         public void GivenRightUsernameAuth_WhenAuthenticate_ThenReceiveUnauthorize(string username, string password) {
             AuthController authController = new AuthController();
