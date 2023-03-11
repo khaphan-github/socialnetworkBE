@@ -121,9 +121,8 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Message = "Detete success"
             };
         }
-
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
-            var bsonDocumentComment = 
+            List<Comment> bsonDocumentComment = 
                 postRespository.GetCommentsByPostIdWithPaging(postObjectId, page, size);
             
             if (bsonDocumentComment.Count == 0) {
@@ -139,5 +138,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Data = bsonDocumentComment
             };
         }
+
+        public ResponseBase HandleCommentAPostById() {
+            return new ResponseBase() { };
+        }
+
     }
 }

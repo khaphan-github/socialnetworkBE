@@ -35,8 +35,6 @@ namespace Testing {
                 Content = content,
             };
 
-            string commentGuid = Guid.NewGuid().ToString();
-         
             redisCacheService.SetObjectToCache(key, post);
             string jsonPostFromCache = redisCacheService.GetJsonObjectFromCache(key);
             Assert.IsNotNull(jsonPostFromCache);

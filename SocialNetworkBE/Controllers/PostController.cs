@@ -60,6 +60,7 @@ namespace SocialNetworkBE.Controllers {
             return postEventHandler
                 .HandleUserCreateNewPost(Media, Content, OwnerId, OwnerAvatarURL, OwnerDisplayName, OwnerProfileURL);
         }
+        
         [HttpDelete]
         [Route("")]
         public ResponseBase DetetePostById(string pid) {
@@ -74,12 +75,13 @@ namespace SocialNetworkBE.Controllers {
 
             return postEventHandler.DeletePostById(id);
         }
+        
         [HttpPost]
         [Route("current")] // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
         public ResponseBase GetPostListWithPaging(int page, int size) {
 
-            if (page < 0) page = 0;
-            if (size < 0) size = 1;
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
             return postEventHandler.GetPostsWithPaging(page, size);
@@ -113,7 +115,7 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpPost]
         [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid} [POST]:
-        public ResponseBase CommentAPostById(string pid, int page, int size) {
+        public ResponseBase CommentAPostById(string pid) {
             if (pid == "") {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
@@ -128,10 +130,6 @@ namespace SocialNetworkBE.Controllers {
                     Message = "ObjectId Wrong Format"
                 };
             }
-
-            if (page < 0) page = 0;
-            if (size < 0) size = 1;
-            if (size > 20) size = 20;
 
             return new ResponseBase();
         }

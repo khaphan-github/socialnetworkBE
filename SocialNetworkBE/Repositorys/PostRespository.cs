@@ -59,10 +59,13 @@ namespace SocialNetworkBE.Repository {
             try {
                 FilterDefinition<Post> postNeedDeleteFilter =
                     Builders<Post>.Filter.Eq("_id", postObjectId);
+                // TODO: Check delete in unit test
+                Post deletePost = PostCollection.FindOneAndDelete(postNeedDeleteFilter);
+                if (deletePost != null) {
+                    return true;
 
-                PostCollection.DeleteOne(postNeedDeleteFilter);
-
-                return true;
+                }
+                return false;
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return false;
@@ -131,8 +134,9 @@ namespace SocialNetworkBE.Repository {
                     Builders<BsonDocument>.Filter.Eq("_id", postObjectId);
 
                 // TODO: Need to optimize performance query comment - not get all comment then paging
-                
-                var commentProject = Builders<BsonDocument>.Projection.Include("Comments");
+
+                var commentProject =
+                    Builders<BsonDocument>.Projection.Slice("Comments", paging, size);
 
                 var commentOfPost = postCollectionBsonDocument
                     .Find(postFilter)
@@ -145,12 +149,7 @@ namespace SocialNetworkBE.Repository {
 
                 Post savedPost = BsonSerializer.Deserialize<Post>(commentOfPost);
 
-                if (savedPost != null) {
-                    return savedPost.Comments
-                        .OrderBy(comment => comment.CreateDate)
-                        .Skip(paging)
-                        .ToList();
-                }
+                return savedPost.Comments;
 
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
