@@ -87,7 +87,6 @@ namespace SocialNetworkBE.EventHandlers.User
             Task.WhenAll(tasks).Wait();
             if (task1.IsCompleted && task2.IsCompleted)
             {
-                if()
 
                 return new ResponseBase()
                 {
