@@ -413,6 +413,7 @@
     <Compile Include="Controllers\PostController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="EventHandlers\PostHandler\PostEventHandler.cs" />
+    <Compile Include="EventHandlers\User\UserEventHandler.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -423,6 +424,7 @@
     <Compile Include="Payloads\Request\FormData.cs" />
     <Compile Include="Payloads\Request\Token.cs" />
     <Compile Include="Payloads\Response\CommentResponse.cs" />
+    <Compile Include="Payloads\Response\FriendRespone.cs" />
     <Compile Include="Payloads\Response\LikeResponse.cs" />
     <Compile Include="Payloads\Response\PagingResponse.cs" />
     <Compile Include="Payloads\Response\PostResponse.cs" />
@@ -460,7 +462,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="EventHandlers\User\" />
     <Folder Include="Properties\" />
     <Folder Include="Services\OpenSSL\" />
   </ItemGroup>
