@@ -109,7 +109,6 @@ namespace Testing.InterationTesting {
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
             "aaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-
         public void GivenTooLongRequest_WhenAuthenticate_ThenReceiveWrongFormatResponse(string username, string password) {
             AuthController authController = new AuthController();
             Auth authRequest = new Auth() {
@@ -129,7 +128,6 @@ namespace Testing.InterationTesting {
         [TestMethod]
         [DataRow("username-wrong", "password-wrong")]
         [DataRow("username-wrong", "right-password")]
-
         public void GivenWrongAccountAuth_WhenAuthenticate_ThenReceiveUnauthorize(string username, string password) {
             AuthController authController = new AuthController();
             Auth authRequest = new Auth() {
@@ -148,7 +146,6 @@ namespace Testing.InterationTesting {
         [TestMethod]
         [DataRow("kimkhanhne", "password-wrong")]
         [DataRow("thanhdatne", "password-wrong")]
-
         public void GivenRightUsernameAuth_WhenAuthenticate_ThenReceiveUnauthorize(string username, string password) {
             AuthController authController = new AuthController();
             Auth authRequest = new Auth() {

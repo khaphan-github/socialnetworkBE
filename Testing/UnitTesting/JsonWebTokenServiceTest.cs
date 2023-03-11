@@ -7,12 +7,14 @@ namespace Testing {
     [TestClass]
     public class JsonWebTokenServiceTest {
         [TestMethod]
-        public void TestGenerateTokenWhenValidateThenIsValidToken() {
+        [DataRow(null)]
+
+        public void TestGenerateTokenWhenValidateThenIsValidToken(string username, string email, string role) {
             // Given
             JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
 
             ClaimsIdentity claimsIdentity =
-                jsonWebTokenService.CreateClaimsIdentity("ThisIsUsername", "ThisIsEmail", "user");
+                jsonWebTokenService.CreateClaimsIdentity(username, email, role);
 
             string token = jsonWebTokenService.CreateTokenFromUserData(claimsIdentity, 120);
 

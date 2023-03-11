@@ -5,7 +5,6 @@ using System;
 using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
-using MongoDB.Driver;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]

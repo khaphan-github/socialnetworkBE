@@ -9,7 +9,7 @@ using Firebase.Storage;
 
 namespace SocialNetworkBE.Services.Firebase {
     public class FirebaseImage {
-        public async Task UploadImage(FileStream fileStream) {
+        public async Task<string> UploadImage(FileStream fileStream, string folder, string name, string fileFormat) {
             Image imageResize = Resize2Max50Kbytes(fileStream);
             MemoryStream stream = new MemoryStream();
 
@@ -28,15 +28,11 @@ namespace SocialNetworkBE.Services.Firebase {
                      AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
                      ThrowOnCancel = true,
                  })
-                .Child("AvatarUrl")
-                .Child("nameAcc.jpg")
+                .Child(folder)
+                .Child(name + fileFormat)
                 .PutAsync(stream);
 
-            try {
-                System.Diagnostics.Debug.WriteLine("Link ảnh:\n" + await task);
-            } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine("Lỗi: {0}", ex);
-            }
+            return await task;
         }
 
 
@@ -57,6 +53,7 @@ namespace SocialNetworkBE.Services.Firebase {
 
             byte[] byteArray = memoryStream.ToArray();
             System.Diagnostics.Debug.WriteLine("before: " + byteArray.Length);
+
             byte[] currentByteImageArray = byteArray;
             double scale = 1f;
 
@@ -73,17 +70,10 @@ namespace SocialNetworkBE.Services.Firebase {
                 currentByteImageArray = resultStream.ToArray();
                 resultStream.Dispose();
                 resultStream.Close();
-
                 scale -= 0.05f;
             }
 
-            System.Diagnostics.Debug.WriteLine("after: " + currentByteImageArray.Length);
-            using (var ms = new MemoryStream(currentByteImageArray)) {
-                var imgResult = Image.FromStream(ms);
-                imgResult.Save("C:/anh/kkne.jpg");
-
-                return img;
-            }
+            return img;
 
         }
     }

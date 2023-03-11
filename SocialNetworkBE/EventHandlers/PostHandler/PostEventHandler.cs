@@ -70,6 +70,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             if (Media != null) {
                 foreach(var media in Media) {
+                    
                 }
                 // TODO: Handle Upload image;
 
@@ -117,18 +118,21 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             return new ResponseBase() {
                 Status = Status.Success,
-                Message = "Detete Success"
+                Message = "Detete success"
             };
         }
 
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
-            var bsonDocumentComment = postRespository.GetCommentsByPostIdWithPaging(postObjectId, page, size);
-            if (bsonDocumentComment == null) {
+            var bsonDocumentComment = 
+                postRespository.GetCommentsByPostIdWithPaging(postObjectId, page, size);
+            
+            if (bsonDocumentComment.Count == 0) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "This post have no comment"
                 };
             }
+            
             return new ResponseBase() {
                 Status = Status.Success,
                 Message = "Get comment success",
