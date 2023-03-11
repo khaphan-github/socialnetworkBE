@@ -1,10 +1,12 @@
-﻿using Microsoft.Ajax.Utilities;
+﻿using SocialNetworkBE.EventHandlers.PostHandler;
 using SocialNetworkBE.Payload.Request;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Data;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Services.Authenticate;
+using System.Web;
 using System.Web.Http;
+using System.Web.Http.Cors;
 
 namespace SocialNetworkBE.Controllers {
     public class AuthController : ApiController {
@@ -39,6 +41,75 @@ namespace SocialNetworkBE.Controllers {
             AuthService authService = new AuthService();
 
             return authService.HandleUserAuthenticate(authRequest);
+        }
+
+        [HttpPost]
+        [Route(REFIX + "/signup")]
+        public ResponseBase SignUp()
+        {
+            
+            var pwd = FormData.GetValueByKey("pwd");
+            if (pwd == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Password required"
+                };
+            }
+
+            var email = FormData.GetValueByKey("email");
+            if (email == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Email required"
+                };
+            }
+
+            var userName = FormData.GetValueByKey("userName");
+            if (userName == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Username required"
+                };
+            }
+
+
+            var DisplayName = FormData.GetValueByKey("DisplayName");
+            if (DisplayName == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "DisplayName required"
+                };
+            }
+
+            var AvatarUrl = FormData.GetValueByKey("AvatarUrl");
+            if (AvatarUrl == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "AvatarUrl required"
+                };
+            }
+
+            var UserProfileUrl = FormData.GetValueByKey("UserProfileUrl");
+            if (UserProfileUrl == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "AvatarUrl required"
+                };
+            }
+            AuthService authService = new AuthService();
+            return authService.HandleUserSignUp(userName, pwd, email, DisplayName, AvatarUrl, UserProfileUrl);
         }
 
         [HttpPost]
