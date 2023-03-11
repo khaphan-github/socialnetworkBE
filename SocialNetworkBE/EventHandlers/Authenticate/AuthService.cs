@@ -124,8 +124,9 @@ namespace SocialNetworkBE.Services.Authenticate {
                 CreatedAt = DateTime.Now,
                 NumberOfFriend = 0,
                 ListFriendsObjectId = new List<ObjectId>(),
-                NumberOfFriendPost = 0,
-                ListPostsObjectId = new List<ObjectId>()
+                ListPostsObjectId = new List<ObjectId>(),
+                ListObjectId_GiveUserInvitation = new List<ObjectId>(),
+                ListObjectId_UserSendInvite = new List<ObjectId>()
             };
 
             Account savedAccount = accountResponsitory.CreateNewAccount(newAccount);
