@@ -45,7 +45,6 @@ namespace SocialNetworkBE.EventHandlers.User
             {
                 Status = Status.Failure,
                 Message = "Add failure",
-                Data = accountResponsitory.GetAccountByObjectId(accountId),
             };
 
         }
@@ -71,10 +70,75 @@ namespace SocialNetworkBE.EventHandlers.User
             return new ResponseBase()
             {
                 Status = Status.Failure,
-                Message = "Remove failure",
-                Data = accountResponsitory.GetAccountByObjectId(accountId),
+                Message = "Remove failure"
             };
 
+        }
+
+        public ResponseBase SendInvitationToOtherUser(ObjectId accountId, ObjectId friendId)
+        {
+            Task task1 = accountResponsitory.SendInvitationToOtherUser(accountId, friendId);
+            Task task2 = accountResponsitory.UpdateListInvitationOfFriendId_SendInvitationToOtherUser(accountId, friendId);
+            var tasks = new Task[] {
+                task1,
+                task2
+            };
+            Task.WaitAll(tasks);
+            Task.WhenAll(tasks).Wait();
+            if (task1.IsCompleted && task2.IsCompleted)
+            {
+                if()
+
+                return new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Send success",
+                    Data = accountResponsitory.GetAccountByObjectId(accountId),
+                };
+            }
+            return new ResponseBase()
+            {
+                Status = Status.Failure,
+                Message = "Send failure"
+            };
+        }
+
+        public ResponseBase GetUserProfileById(ObjectId uid)
+        {
+            var userGet = accountResponsitory.GetAccountByObjectId(uid);
+            if(userGet == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Get user failure"
+                };
+            }
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Get user success",
+                Data = accountResponsitory.GetAccountByObjectId(uid),
+            };
+        }
+
+        public ResponseBase GetFriendOfUserByUserId(ObjectId uid)
+        {
+            var listFriendGet = accountResponsitory.GetFriendsOfUserByUserId(uid,1 ,1);
+            if (listFriendGet == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Get user's friends failure"
+                };
+            }
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Get user's friends success",
+                Data = listFriendGet,
+            };
         }
     }
 }

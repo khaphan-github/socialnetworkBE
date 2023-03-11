@@ -417,6 +417,7 @@
     <Compile Include="Payloads\Request\FormData.cs" />
     <Compile Include="Payloads\Request\Token.cs" />
     <Compile Include="Payloads\Response\CommentResponse.cs" />
+    <Compile Include="Payloads\Response\FriendRespone.cs" />
     <Compile Include="Payloads\Response\LikeResponse.cs" />
     <Compile Include="Payloads\Response\PagingResponse.cs" />
     <Compile Include="Payloads\Response\PostResponse.cs" />

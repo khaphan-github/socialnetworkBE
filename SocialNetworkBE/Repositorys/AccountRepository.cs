@@ -2,6 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 using ServiceStack;
+using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.Interfaces;
@@ -12,12 +13,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Threading.Tasks;
+using BsonDocument = MongoDB.Bson.BsonDocument;
 using ObjectId = MongoDB.Bson.ObjectId;
 
 namespace SocialNetworkBE.Repository {
     public class AccountResponsitory : IAccountRepository {
         private IMongoCollection<Account> AccountCollection { get; set; }
-
         public AccountResponsitory() {
             const string AccountDocumentName = "Account";
 
@@ -160,6 +161,78 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
+        public async Task<List<ObjectId>> UpdateListInvitationOfFriendId_SendInvitationToOtherUser(ObjectId uid, ObjectId fid)
+        {
+            try
+            {
+                FilterDefinition<Account> accountIdFilter = Builders<Account>.Filter.Eq("_id", fid);
+                Account accountUpdate = AccountCollection.Find(accountIdFilter).FirstOrDefault();
+
+
+                if (accountUpdate.ListObjectId_GiveUserInvitation == null)
+                {
+                    accountUpdate.ListObjectId_GiveUserInvitation = new System.Collections.Generic.List<ObjectId>();
+                    accountUpdate.ListObjectId_GiveUserInvitation.Add(uid);
+                }
+                else
+                {
+                    bool friendExist = accountUpdate.ListObjectId_GiveUserInvitation.Any(x => x == uid);
+                    if (friendExist)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        accountUpdate.ListObjectId_GiveUserInvitation.Add(uid);
+                    }
+                }
+                await AccountCollection.ReplaceOneAsync(b => b.Id == fid, accountUpdate);
+                return accountUpdate.ListObjectId_GiveUserInvitation;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return null;
+            }
+        }
+
+
+        public async Task<List<ObjectId>> SendInvitationToOtherUser(ObjectId uid, ObjectId fid)
+        {
+            try
+            {
+                FilterDefinition<Account> accountIdFilter = Builders<Account>.Filter.Eq("_id", uid);
+                Account accountUpdate = AccountCollection.Find(accountIdFilter).FirstOrDefault();
+
+
+
+                if (accountUpdate.ListObjectId_UserSendInvite == null)
+                {
+                    accountUpdate.ListObjectId_UserSendInvite = new System.Collections.Generic.List<ObjectId>();
+                    accountUpdate.ListObjectId_UserSendInvite.Add(fid);
+                }
+                else
+                {
+                    bool friendExist = accountUpdate.ListObjectId_UserSendInvite.Any(x => x == fid);
+                    if (friendExist)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        accountUpdate.ListObjectId_UserSendInvite.Add(fid);
+                    }
+                }
+                await AccountCollection.ReplaceOneAsync(b => b.Id == uid, accountUpdate);
+                return accountUpdate.ListObjectId_UserSendInvite;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return null;
+            }
+        }
+
 
         public async Task UpdateFriendWhen_RemoveAFriendFromAccount(ObjectId accountId, ObjectId friendId)
         {
@@ -206,6 +279,33 @@ namespace SocialNetworkBE.Repository {
                 }
             }
             await AccountCollection.ReplaceOneAsync(b => b.Id == accountId, accountDeleteFriend);
+        }
+
+        public List<FriendRespone> GetFriendsOfUserByUserId(ObjectId uid, int page, int size)
+        {
+            int paging = size * page;
+
+            FilterDefinition<Account> accountFilter = Builders<Account>.Filter.Eq("_id", uid);
+            List<ObjectId> accountGet = AccountCollection.Find(accountFilter).FirstOrDefault().ListFriendsObjectId;
+            if (accountGet == null)
+            {
+                return null;
+            }
+
+            List<FriendRespone> friends = new List<FriendRespone>();
+            foreach (ObjectId item in accountGet)
+            {
+                FriendRespone accountGetFriend = new FriendRespone();
+                FilterDefinition<Account> accountFriendFilter = Builders<Account>.Filter.Eq("_id", item);
+                Account accountFriendGet = AccountCollection.Find(accountFilter).FirstOrDefault();
+                accountGetFriend.Id = item;
+                accountGetFriend.DisplayName = accountFriendGet.DisplayName;
+                accountGetFriend.Avatar = accountFriendGet.AvatarUrl;
+                accountGetFriend.ProfileUrl = accountFriendGet.UserProfileUrl;
+                friends.Add(accountGetFriend);
+            }
+           
+            return friends;
         }
     }
 }

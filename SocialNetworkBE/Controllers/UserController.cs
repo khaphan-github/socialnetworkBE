@@ -15,13 +15,31 @@ namespace SocialNetworkBE.Controllers {
         [HttpGet]
         [Route(REFIX + "/")] // Endpoint: /api/v1/user?id=507f1f77bcf86cd799439011 [GET]
         public ResponseBase GetUserProfileById(string uid) {
-            return new ResponseBase();
+            bool isRightId = ObjectId.TryParse(uid, out var userId);
+            if(!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+            return userEventHandler.GetUserProfileById(userId);
         }
 
         [HttpGet]
-        [Route(REFIX + "/friends")] // Endpoint: api/v1/user/friends?id=507f1f77bcf86cd799439011&page=1&size=15 [GET]
-        public ResponseBase GetFriendOfUserByUserId(string uid, Int32 page, Int32 size) { 
-            return new ResponseBase(); 
+        [Route(REFIX + "/friends")] // Endpoint: api/v1/user/friends?id=507f1f77bcf86cd799439011&page=1&size=15 [GET] RETURN LIST(ID, DISPLAYNAME, AVATAR, PROFILEURL)
+        public ResponseBase GetFriendOfUserByUserId(string uid) {
+            bool isRightId = ObjectId.TryParse(uid, out var userId);
+            if (!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+            return userEventHandler.GetFriendOfUserByUserId(userId);
         }
 
         [HttpGet]
@@ -30,7 +48,7 @@ namespace SocialNetworkBE.Controllers {
             return new ResponseBase(); 
         }
 
-        [HttpPost]
+        [HttpPost] // hyypput
         [Route(REFIX + "/profile")] // Endpoint: /api/v1/user/profile?uid=507f1f77bcf86cd799439011
         public ResponseBase UpdateUserProfile(string uid) { 
             return new ResponseBase(); 

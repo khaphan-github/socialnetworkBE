@@ -26,7 +26,8 @@ namespace SocialNetworkBE.Repositorys.DataModels
         public string UserProfileUrl { set; get; }
         public int NumberOfFriend { get; set; } = 0;
         public List<ObjectId> ListFriendsObjectId{get; set;}
-        public int NumberOfFriendPost { get; set; } = 0;
         public List<ObjectId> ListPostsObjectId { get; set; }
+        public List<ObjectId> ListObjectId_UserSendInvite { get; set; }
+        public List<ObjectId> ListObjectId_GiveUserInvitation { get; set; }
     }
 }
