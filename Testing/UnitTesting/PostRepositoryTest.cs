@@ -103,10 +103,7 @@ namespace Testing {
 
             bool isRightContent = savedPost.Content == post.Content;
             Assert.IsTrue(isRightContent);
-        }
-
-
-      
+        }      
     }
 }
 

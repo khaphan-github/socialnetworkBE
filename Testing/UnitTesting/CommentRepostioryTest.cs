@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 namespace Testing.UnitTesting {
     [TestClass]
     public class CommentRepostioryTest {
+        private readonly CommentRepository commentRepository = new CommentRepository();
+
         private Comment CreateTestComment() {
             return new Comment() {
                 Id = ObjectId.GenerateNewId(),
@@ -45,17 +47,62 @@ namespace Testing.UnitTesting {
         [TestMethod]
         public void GivenCommentNoParent_WhenCreateComment_ThenReturnCommentCreated() {
             Comment comment = CreateTestComment();
-            CommentRepository commentRepository = new CommentRepository();
             Comment createdComment = commentRepository.CreateCommentAPost(comment);
+
             Assert.IsNotNull(createdComment);
+
         }
 
         [TestMethod]
         public void GivenCommentWithParent_WhenCreateComment_ThenReturnCommentCreated() {
-            Comment comment = CreateTestComment("640ca1d672055cf98c39b291");
-            CommentRepository commentRepository = new CommentRepository();
-            Comment createdComment = commentRepository.CreateCommentAPost(comment);
+            Comment parentComment = CreateTestComment();
+            Comment childComment = CreateTestComment(parentComment.Id.ToString());
+
+            Comment createdComment = commentRepository.CreateCommentAPost(childComment);
+
             Assert.IsNotNull(createdComment);
+
+            commentRepository.DeteteCommentById(childComment.Id);
+            commentRepository.DeteteCommentById(parentComment.Id);
+        }
+
+        [TestMethod]
+        public void GivenCommentId_WhenDeteteCommentById_ThenReturnSuccess() {
+            Comment comment = CreateTestComment();
+            commentRepository.CreateCommentAPost(comment);
+
+            DeleteResult deleteResult =  commentRepository.DeteteCommentById(comment.Id);
+
+            Assert.IsNotNull(deleteResult);
+            Assert.IsTrue(deleteResult.IsAcknowledged);
+        }
+
+        [TestMethod]
+        public void GivenCommentContent_WhenUpdateComment_ThenReturnSuccess() {
+            Comment comment = CreateTestComment();
+            commentRepository.CreateCommentAPost(comment);
+            string contentToUpdate = "Vì ngày hôm nay em cưới rồi, mai sau anh sống thế nào...";
+
+            UpdateResult updateResult = commentRepository.UpdateCommentByComentId(comment.Id, contentToUpdate);
+
+            Assert.IsNotNull(updateResult);
+            Assert.IsTrue(updateResult.IsAcknowledged);
+
+            commentRepository.DeteteCommentById(comment.Id);
+        }
+
+        [TestMethod]
+        [DataRow(0, 1)]
+        [DataRow(1, 1)]
+
+        [DataRow(0, 10)]
+        [DataRow(1, 5)]
+
+        public void GivenPostId_WhenGetCommentByPostId_ThenReturnListComments(int page, int size) {
+            ObjectId postId = ObjectId.Parse("640c9c91ff4bb9be2af7a88f");
+            List<Comment> comments = commentRepository.GetCommentOfPostWithPaging(postId, page, size);
+            Assert.IsNotNull(comments);
+            Assert.IsTrue(comments.Count == size);
         }
     }
 }

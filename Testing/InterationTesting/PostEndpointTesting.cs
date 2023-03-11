@@ -137,38 +137,6 @@ namespace Testing.InterationTesting {
             Assert.IsTrue(response.Message == "ObjectId Wrong Format");
         }
 
-        /** 
-            Test get comment of post by id
-         */
-        [TestMethod]
-        [DataRow(0, 1)]
-        [DataRow(0, 10)]
-
-        [DataRow(0, 5)]
-        [DataRow(1, 5)]
-
-        [DataRow(0, 2)]
-        [DataRow(1, 2)]
-        [DataRow(2, 2)]
-        [DataRow(3, 2)]
-        [DataRow(4, 2)]
-        public void GivenPostId_WhenGetCommentOfPostByPostId_ThenRecieveComments(int page, int size) {
-            Post postToTest = CreatePostToTest();
-            PostController postController = new PostController();
-
-            ResponseBase response = postController.GetCommentOfPostById(postToTest.Id.ToString(), page, size);
-            Assert.IsNotNull(response);
-
-            Assert.IsTrue(response.Status == Status.Success);
-            Assert.IsTrue(response.Message == "Get comment success");
-
-            List<Comment> comments = response.Data as List<Comment>;
-            Assert.IsNotNull(comments);
-            Assert.IsTrue(comments.Count == size);
-                        
-            bool isDeleted = PostRespository.DetetePostById(postToTest.Id);
-            Assert.IsTrue(isDeleted);
-        }
 
         [TestMethod]
         public void GivenPostIdWithEmptyComment_WhenGetCommentOfPostByPostId_ThenRecieveNoComment() {

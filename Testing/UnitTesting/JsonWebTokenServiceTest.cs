@@ -7,8 +7,7 @@ namespace Testing {
     [TestClass]
     public class JsonWebTokenServiceTest {
         [TestMethod]
-        [DataRow(null)]
-
+        [DataRow("user-test", "emailtest@gmail.com", "user")]
         public void TestGenerateTokenWhenValidateThenIsValidToken(string username, string email, string role) {
             // Given
             JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
