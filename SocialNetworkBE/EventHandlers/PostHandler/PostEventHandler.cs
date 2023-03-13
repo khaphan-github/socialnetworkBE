@@ -140,9 +140,23 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
         }
 
-        public ResponseBase HandleCommentAPostById() {
-            return new ResponseBase() { };
-        }
+        public ResponseBase GetCommentOfPostByParentId(ObjectId postId, ObjectId commentId, int page, int size) {
 
+            List<Comment> commentOfPostWithPaging =
+                CommentRepository.GetChildrenCommentsByParentId(postId, commentId, page, size);
+
+            if (commentOfPostWithPaging.Count == 0) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Get comment failure - comment of post is empty",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Get comment success",
+                Data = commentOfPostWithPaging
+            };
+        }
     }
 }
