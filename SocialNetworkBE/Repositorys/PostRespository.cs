@@ -119,41 +119,6 @@ namespace SocialNetworkBE.Repository {
             throw new NotImplementedException();
         }
 
-        public List<Comment> GetCommentsByPostIdWithPaging(ObjectId postObjectId, int page, int size) {
-            try {
-
-                int paging = page * size;
-
-                IMongoCollection<BsonDocument> postCollectionBsonDocument =
-                    databaseConnected.GetCollection<BsonDocument>(PostDocumentName);
-
-                FilterDefinition<BsonDocument> postFilter =
-                    Builders<BsonDocument>.Filter.Eq("_id", postObjectId);
-
-                // TODO: Need to optimize performance query comment - not get all comment then paging
-
-                var commentProject =
-                    Builders<BsonDocument>.Projection.Slice("Comments", paging, size);
-
-                var commentOfPost = postCollectionBsonDocument
-                    .Find(postFilter)
-                    .Project(commentProject)
-                    .FirstOrDefault();
-
-                if (commentOfPost == null) {
-                    return new List<Comment>();
-                }
-
-                Post savedPost = BsonSerializer.Deserialize<Post>(commentOfPost);
-
-
-            } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-            }
-
-            return new List<Comment>();
-        }
-
         public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {
             throw new NotImplementedException();
         }

@@ -205,8 +205,19 @@ namespace Testing.InterationTesting {
 
             ResponseBase response = postController.CommentAPostById(commentRequest);
             Assert.IsNotNull(response);
+        }
 
+        [TestMethod]
+        public void GivenPostIdAndPage_WhenGetCommentOfPostById_ThenReturnCommentList() {
+            PostController postController = new PostController();
+            ResponseBase response = postController.GetCommentOfPostById("640c9c91ff4bb9be2af7a88f", 0, 10);
+            Assert.IsNotNull(response);
+            Assert.IsTrue(response.Status == Status.Success);
+            Assert.IsTrue(response.Message == "Get comment success");
 
+            List<Comment> comments = response.Data as List<Comment>;
+            Assert.IsNotNull(comments);
+            Assert.AreEqual(10, comments.Count);
         }
     }
 }

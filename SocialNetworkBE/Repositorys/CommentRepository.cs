@@ -1,23 +1,21 @@
-﻿
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys.DataModels;
 using System;
 using System.Collections.Generic;
-using System.Web.UI.WebControls;
 
 namespace SocialNetworkBE.Repositorys {
 
     public class CommentRepository {
         private IMongoCollection<Comment> CommentCollection { get; set; }
-        private IMongoDatabase databaseConnected { get; set; }
+        private IMongoDatabase DatabaseConnected { get; set; }
         private const string PostDocumentName = "Comment";
 
         public CommentRepository() {
             MongoDBConfiguration MongoDatabase = new MongoDBConfiguration();
-            databaseConnected = MongoDatabase.GetMongoDBConnected();
-            CommentCollection = databaseConnected.GetCollection<Comment>(PostDocumentName);
+            DatabaseConnected = MongoDatabase.GetMongoDBConnected();
+            CommentCollection = DatabaseConnected.GetCollection<Comment>(PostDocumentName);
         }
 
         public Comment CreateCommentAPost(Comment comment) {

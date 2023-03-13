@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
+using SocialNetworkBE.Repositorys;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Services.Firebase;
 using System;
@@ -13,14 +14,14 @@ using System.Web;
 namespace SocialNetworkBE.EventHandlers.PostHandler {
     public class PostEventHandler {
 
-        private readonly PostRespository postRespository = new PostRespository();
+        private readonly PostRespository PostRespository = new PostRespository();
+        private readonly CommentRepository CommentRepository = new CommentRepository();
         public ResponseBase GetPostsWithPaging(int page, int size) {
 
-            List<PostResponse> postResponses = postRespository
+            List<PostResponse> postResponses = PostRespository
              .GetPostByPageAndSizeAndSorted(page, size)
              .Select(bsonPost => BsonSerializer.Deserialize<PostResponse>(bsonPost))
              .ToList();
-
 
             if (postResponses.Count == 0) {
                 return new ResponseBase() {
@@ -70,9 +71,8 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             if (Media != null) {
                 foreach(var media in Media) {
-                    
+                    // TODO: Handle Upload image;
                 }
-                // TODO: Handle Upload image;
 
             }
 
@@ -91,7 +91,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             newPost.CommentsURL = "/api/v1/post/comments?pid=" + newPost.Id.ToString();
             newPost.LikesURL = "/api/v1/post/likes?pid=" + newPost.Id.ToString();
 
-            Post savedPost = postRespository.CreateNewPost(newPost);
+            Post savedPost = PostRespository.CreateNewPost(newPost);
             if (savedPost == null) {
                 return new ResponseBase() {
                     Status = Status.Failure,
@@ -107,7 +107,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         }
         public ResponseBase DeletePostById(ObjectId id) {
 
-            bool isDeleted = postRespository.DetetePostById(id);
+            bool isDeleted = PostRespository.DetetePostById(id);
 
             if (!isDeleted) {
                 return new ResponseBase() {
@@ -122,20 +122,21 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
         }
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
-            List<Comment> bsonDocumentComment = 
-                postRespository.GetCommentsByPostIdWithPaging(postObjectId, page, size);
             
-            if (bsonDocumentComment.Count == 0) {
+            List<Comment> commentOfPostWithPaging = 
+                CommentRepository.GetCommentOfPostWithPaging(postObjectId, page, size);
+            
+            if(commentOfPostWithPaging.Count == 0) {
                 return new ResponseBase() {
                     Status = Status.Failure,
-                    Message = "This post have no comment"
+                    Message = "Get comment failure - comment of post is empty",
                 };
             }
-            
+
             return new ResponseBase() {
                 Status = Status.Success,
                 Message = "Get comment success",
-                Data = bsonDocumentComment
+                Data = commentOfPostWithPaging
             };
         }
 
