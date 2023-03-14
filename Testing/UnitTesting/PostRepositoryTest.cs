@@ -61,22 +61,7 @@ namespace Testing {
                 LikesURL = "/api/v1/post/likes/?pid=" + postId.ToString() + "&page=0&size=3",
             };
 
-            string commentGuid = Guid.NewGuid().ToString();
-            post.Comments = new List<Comment> {
-                {
-                    new Comment() {
-                        OwnerProfileURL = "/usertest1",
-                        OwnerDisplayName = "User Test 1",
-                        OwnerAvatarURL = "https://s120-ava-talk.zadn.vn/d/9/d/5/17/120/4123221a970ff46aff6e24ef54e0fa1f.jpg",
-                        Content = "Nice",
-                        CreateDate = DateTime.Now,
-                        NumOfLike = 0,
-                        OwnerId = ownerId,
-
-                    }
-                }
-            };
-            string likeGuid = Guid.NewGuid().ToString();
+            
             post.Likes = new List<Like> {
                 {
                     new Like() {
@@ -118,7 +103,7 @@ namespace Testing {
 
             bool isRightContent = savedPost.Content == post.Content;
             Assert.IsTrue(isRightContent);
-        }
+        }      
     }
 }
 

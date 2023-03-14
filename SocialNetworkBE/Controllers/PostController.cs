@@ -5,7 +5,6 @@ using System;
 using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
-using MongoDB.Driver;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -14,7 +13,8 @@ namespace SocialNetworkBE.Controllers {
         private readonly PostEventHandler postEventHandler = new PostEventHandler();
 
         [HttpPost]
-        [Route("")] // Endpoint: /api/v1/posts/ [POST]
+        [Route("")] 
+        // Endpoint: /api/v1/posts/ [POST]
         public ResponseBase CreateAPostFromUser() {
             HttpFileCollection Media = HttpContext.Current.Request.Files;
 
@@ -61,10 +61,10 @@ namespace SocialNetworkBE.Controllers {
             return postEventHandler
                 .HandleUserCreateNewPost(Media, Content, OwnerId, OwnerAvatarURL, OwnerDisplayName, OwnerProfileURL);
         }
+        
         [HttpDelete]
         [Route("")]
         public ResponseBase DetetePostById(string pid) {
-
             bool isRightObjectId = ObjectId.TryParse(pid, out var id);
             if(!isRightObjectId) {
                 return new ResponseBase() {
@@ -75,22 +75,25 @@ namespace SocialNetworkBE.Controllers {
 
             return postEventHandler.DeletePostById(id);
         }
+        
         [HttpPost]
-        [Route("current")] // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
+        [Route("current")] 
+        // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
         public ResponseBase GetPostListWithPaging(int page, int size) {
 
-            if (page < 0) page = 0;
-            if (size < 0) size = 1;
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
             return postEventHandler.GetPostsWithPaging(page, size);
         }
 
         [HttpGet]
-        [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
-        public ResponseBase GetCommentOfPostById(string pid, int page, int size) {
+        [Route("comments")] 
+        // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
+        public ResponseBase GetCommentsOfPostById(string pid, int page, int size) {
 
-            if (pid == "") {
+            if (string.IsNullOrWhiteSpace(pid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
                     Message = "This request require pid, page , size"
@@ -101,7 +104,7 @@ namespace SocialNetworkBE.Controllers {
             if (!isRightObjectId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "ObjectId Wrong Format"
+                    Message = "ObjectId wrong format"
                 };
             }
 
@@ -111,40 +114,59 @@ namespace SocialNetworkBE.Controllers {
 
             return postEventHandler.GetCommentOfPostByPostId(id, page, size);
         }
+        [HttpGet]
+        [Route("comments")]
+        // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
+        public ResponseBase GetCommentsOfPostByIdAndCommentId(string pid, string cid, int page, int size) {
 
-        [HttpPost]
-        [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid} [POST]:
-        public ResponseBase CommentAPostById(string pid, int page, int size) {
-            if (pid == "") {
+            // TODO: Test request wrong format;
+            if (string.IsNullOrWhiteSpace(pid) || string.IsNullOrWhiteSpace(cid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "This request require pid, page , size"
+                    Message = "This request require pid, cid, page, size"
                 };
             }
 
-            bool isRightObjectId = ObjectId.TryParse(pid, out var id);
-            if (!isRightObjectId) {
+            bool isRightPostId = ObjectId.TryParse(pid, out var postId);
+            if (!isRightPostId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "ObjectId Wrong Format"
+                    Message = "pid wrong format object id"
+                };
+            }
+
+            bool isRightCommentParentId = ObjectId.TryParse(cid, out var commentId);
+            if (!isRightCommentParentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "cid wrong format object id"
                 };
             }
 
             if (page < 0) page = 0;
-            if (size < 0) size = 1;
+            if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
+            return postEventHandler.GetCommentOfPostByParentId(postId,commentId, page, size);
+        }
+
+        [HttpPost]
+        [Route("comments")] 
+        // Endpoint: /api/v1/post/comments/?pid={postid} [POST]:
+        public ResponseBase CommentAPostById([FromBody] CommentRequest commentRequest) {
             return new ResponseBase();
         }
 
         [HttpDelete]
-        [Route("comments")] // Endpoint: /api/v1/post/comments?pid={postid}&cid={commentid}  [DELETE]:
+        [Route("comments")] 
+        // Endpoint: /api/v1/post/comments?pid={postid}&cid={commentid}  [DELETE]:
         public ResponseBase DeleteCommentOfPostByPostIdAndCommentId(string pid, string cid) {
             return new ResponseBase();
         }
 
         [HttpGet]
-        [Route("likes")] // Endpoint:/api/v1/post/likes?pid={postid}page=1&size=10&sort=desc [GET]:
+        [Route("likes")] 
+        // Endpoint:/api/v1/post/likes?pid={postid}page=1&size=10&sort=desc [GET]:
         public ResponseBase GetLikesOfPostById(string pid, Int32? page, Int32? size, string sort) {
             return new ResponseBase();
         }

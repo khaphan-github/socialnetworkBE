@@ -17,7 +17,9 @@ namespace SocialNetworkBE.Controllers {
         [Route(REFIX + "/")]
         public ResponseBase SignIn([FromBody] Auth authRequest) {
 
-            bool isEmptyParams = authRequest.Username == null || authRequest.Password == null;
+            bool isEmptyParams = 
+                string.IsNullOrWhiteSpace(authRequest.Username) || 
+                string.IsNullOrWhiteSpace(authRequest.Password);
 
             if (isEmptyParams) {
                 return new ResponseBase() {
@@ -113,7 +115,7 @@ namespace SocialNetworkBE.Controllers {
         [HttpPost]
         [Route(REFIX + "/token")]
         public ResponseBase RefreshToken([FromBody] Token tokenRequest) {
-            bool isEmptyParams = 
+            bool isEmptyParams =
                 tokenRequest.AccessToken == null || tokenRequest.RefreshToken == null;
 
             if (isEmptyParams) {

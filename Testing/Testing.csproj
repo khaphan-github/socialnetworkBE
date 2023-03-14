@@ -121,11 +121,15 @@
       <HintPath>..\packages\System.Text.Encoding.CodePages.7.0.0\lib\net462\System.Text.Encoding.CodePages.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Http, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="ZstdSharp, Version=0.6.7.0, Culture=neutral, PublicKeyToken=8d151af33a4ad5cf, processorArchitecture=MSIL">
       <HintPath>..\packages\ZstdSharp.Port.0.6.7\lib\net461\ZstdSharp.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InterationTesting\AuthEndpointTesting.cs" />
+    <Compile Include="InterationTesting\PostEndpointTesting.cs" />
+    <Compile Include="UnitTesting\CommentRepostioryTest.cs" />
     <Compile Include="UnitTesting\RedisCacheTest.cs" />
     <Compile Include="UnitTesting\AccountRepositoryTest.cs" />
     <Compile Include="UnitTesting\BCryptServiceTest.cs" />
@@ -147,7 +151,6 @@
     <Analyzer Include="..\packages\AWSSDK.SecurityToken.3.7.101.18\analyzers\dotnet\cs\AWSSDK.SecurityToken.CodeAnalysis.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="InterationTesting\" />
     <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

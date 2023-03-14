@@ -80,7 +80,7 @@ namespace SocialNetworkBE.Repository {
                 return newAccount;
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                throw;
+                return null;
             }
         }
 
