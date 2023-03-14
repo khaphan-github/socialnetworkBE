@@ -119,7 +119,6 @@ namespace SocialNetworkBE.Controllers {
         // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
         public ResponseBase GetCommentsOfPostByIdAndCommentId(string pid, string cid, int page, int size) {
 
-            // TODO: Test request wrong format;
             if (string.IsNullOrWhiteSpace(pid) || string.IsNullOrWhiteSpace(cid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
