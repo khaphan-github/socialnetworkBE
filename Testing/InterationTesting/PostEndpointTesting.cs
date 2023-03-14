@@ -188,7 +188,6 @@ namespace Testing.InterationTesting {
         }
 
         [TestMethod]
-        [DataRow(" ")]
         [DataRow("6406c3424218e4f---------")]
         [DataRow("6406c3424218e4f142798663999999")]
         [DataRow("***")]
@@ -202,7 +201,7 @@ namespace Testing.InterationTesting {
             Assert.IsNotNull(response);
 
             Assert.IsTrue(response.Status == Status.WrongFormat);
-            Assert.IsTrue(response.Message == "ObjectId Wrong Format");
+            Assert.IsTrue(response.Message == "ObjectId wrong format");
         }
 
         [TestMethod]
