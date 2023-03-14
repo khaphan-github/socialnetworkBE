@@ -74,7 +74,7 @@ namespace SocialNetworkBE.Services.JsonWebToken {
                     IssuerSigningKey = symmetricSecurityKey
                 };
 
-                ClaimsPrincipal principal = 
+                ClaimsPrincipal principal =
                     jwtSecurityTokenHandler.ValidateToken(token, parameters, out _);
 
                 return principal;
@@ -133,20 +133,13 @@ namespace SocialNetworkBE.Services.JsonWebToken {
          Only access refresh token when accesstoken invalid 
         */
         public List<string> RefreshToken(string accessToken, string refreshToken) {
+            bool isValidAccessToken = IsValidToken(accessToken);
 
-            if (IsValidToken(accessToken)) {
+            if (isValidAccessToken) {
                 return new List<string>();
             }
-
-            bool isValidRefreshToken = IsValidToken(accessToken);
-            List<string> keyPairs = new List<string>();
-
-            if (isValidRefreshToken) {
-                ClaimsIdentity claimsIdentity = GetClaimsIdentityFromToken(refreshToken);
-                keyPairs = GenerateKeyPairs(claimsIdentity);
-            }
-
-            return keyPairs;
+            ClaimsIdentity claimsIdentity = GetClaimsIdentityFromToken(refreshToken);
+            return GenerateKeyPairs(claimsIdentity);
         }
     }
 }
