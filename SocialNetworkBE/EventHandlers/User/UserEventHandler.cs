@@ -10,6 +10,7 @@ using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Hash;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -22,43 +23,12 @@ namespace SocialNetworkBE.EventHandlers.User
     {
         private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
 
-        public ResponseBase AddNewFriendByAccount(ObjectId accountId, ObjectId friendId)
-        {
-            Task task1 = accountResponsitory.AddNewFriendForAccount(accountId, friendId);
-            Task task2 = accountResponsitory.UpdateFriendWhen_AddNewFriendForAccount(accountId, friendId);
-            var tasks = new Task[] {
-                task1,
-                task2
-            };
-            Task.WaitAll(tasks);
-            Task.WhenAll(tasks).Wait();
-            if(task1.IsCompleted && task2.IsCompleted)
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.Success,
-                    Message = "Add success",
-                    Data = accountResponsitory.GetAccountByObjectId(accountId),
-                };
-            }
-            return new ResponseBase()
-            {
-                Status = Status.Failure,
-                Message = "Add failure",
-            };
-
-        }
         public ResponseBase RemoveAFriendFromAccount(ObjectId accountId, ObjectId friendId)
         {
-            Task task1 = accountResponsitory.RemoveAFriendFromAccount(accountId, friendId);
-            Task task2 = accountResponsitory.UpdateFriendWhen_RemoveAFriendFromAccount(accountId, friendId);
-            var tasks = new Task[] {
-                task1,
-                task2
-            };
-            Task.WaitAll(tasks);
-            Task.WhenAll(tasks).Wait();
-            if (task1.IsCompleted && task2.IsCompleted)
+            Account accountDelete = accountResponsitory.RemoveAFriendFromAccount(accountId, friendId);
+            Account accountUpdateDelete = accountResponsitory.UpdateFriendWhen_RemoveAFriendFromAccount(accountId, friendId);
+
+            if (accountDelete != null && accountUpdateDelete!= null)
             {
                 return new ResponseBase()
                 {
@@ -77,23 +47,33 @@ namespace SocialNetworkBE.EventHandlers.User
 
         public ResponseBase SendInvitationToOtherUser(ObjectId accountId, ObjectId friendId)
         {
-            Task task1 = accountResponsitory.SendInvitationToOtherUser(accountId, friendId);
-            Task task2 = accountResponsitory.UpdateListInvitationOfFriendId_SendInvitationToOtherUser(accountId, friendId);
-            var tasks = new Task[] {
-                task1,
-                task2
-            };
-            Task.WaitAll(tasks);
-            Task.WhenAll(tasks).Wait();
-            if (task1.IsCompleted && task2.IsCompleted)
+            var resulString = accountResponsitory.SendInvitationToOtherUser(accountId, friendId);
+            Account accountSent = accountResponsitory.SendInvitationToOtherUser(accountId, friendId).account;
+            Account friendReceive = accountResponsitory.UpdateListInvitationOfFriendId_SendInvitationToOtherUser(accountId, friendId);
+            if (resulString.result == "2 users are friend")
             {
-                if()
-
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "2 users are friend before",
+                };
+            }
+            else if (resulString.result == "User send before")
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "User sent invitation before",
+                };
+            }
+            else if (accountSent != null && friendReceive != null)
+            {
+                
                 return new ResponseBase()
                 {
                     Status = Status.Success,
                     Message = "Send success",
-                    Data = accountResponsitory.GetAccountByObjectId(accountId),
+                    Data = accountResponsitory.GetAccountByObjectId(accountId) ,
                 };
             }
             return new ResponseBase()
@@ -138,6 +118,46 @@ namespace SocialNetworkBE.EventHandlers.User
                 Status = Status.Success,
                 Message = "Get user's friends success",
                 Data = listFriendGet,
+            };
+        }
+
+        public ResponseBase AcceptInvitationFromOtherUser(ObjectId uid, ObjectId fid)
+        {
+            Account userAccept = accountResponsitory.AcceptInvitationFromOtherUser(uid, fid);
+            Account friendAccept = accountResponsitory.UpdateFriend_AcceptInvitationFromOtherUser(uid, fid);
+            if (userAccept!= null && friendAccept!= null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Add success",
+                    Data = accountResponsitory.GetAccountByObjectId(uid),
+                };
+            }
+            return new ResponseBase()
+            {
+                Status = Status.Failure,
+                Message = "Add failure",
+            };
+        }
+
+        public ResponseBase DeniedInvatationToOtherUser(ObjectId uid, ObjectId fid)
+        {
+            Account accountDenied = accountResponsitory.DeniedInvatationToOtherUser(uid, fid);
+            Account accountUpdateDeined = accountResponsitory.UpdateFriend_DeniedInvatationToOtherUser(uid, fid);
+            if (accountDenied != null && accountUpdateDeined != null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Deny success",
+                    Data = accountResponsitory.GetAccountByObjectId(uid),
+                };
+            }
+            return new ResponseBase()
+            {
+                Status = Status.Failure,
+                Message = "Deny failure",
             };
         }
     }

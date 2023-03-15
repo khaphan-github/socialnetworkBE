@@ -4,6 +4,7 @@ using SocialNetworkBE.EventHandlers.User;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Repository;
 using System;
+using System.Threading.Tasks;
 using System.Web.Http;
 using ObjectId = MongoDB.Bson.ObjectId;
 
@@ -48,7 +49,7 @@ namespace SocialNetworkBE.Controllers {
             return new ResponseBase(); 
         }
 
-        [HttpPost] // hyypput
+        [HttpPut] // httpput
         [Route(REFIX + "/profile")] // Endpoint: /api/v1/user/profile?uid=507f1f77bcf86cd799439011
         public ResponseBase UpdateUserProfile(string uid) { 
             return new ResponseBase(); 
@@ -57,7 +58,17 @@ namespace SocialNetworkBE.Controllers {
         [HttpPost]
         [Route(REFIX + "/friends/invite")] // Endpoint: /api/v1/user/friends/invite?uid={uid}&fid={fid} [POST]
         public ResponseBase SendInvitationToOtherUser(string uid, string fid) {
-            return new ResponseBase();
+            bool isRightUserObjectId = ObjectId.TryParse(uid, out var userId);
+            bool isRightfriendObjectId = ObjectId.TryParse(fid, out var friendId);
+            if (!isRightUserObjectId && !isRightfriendObjectId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "wrong format"
+                };
+            }
+            return userEventHandler.SendInvitationToOtherUser(userId, friendId);
         }
 
         [HttpPost]
@@ -73,12 +84,29 @@ namespace SocialNetworkBE.Controllers {
                     Message = "wrong format"
                 };
             }
-            return userEventHandler.AddNewFriendByAccount(userId, friendId);
+            return userEventHandler.AcceptInvitationFromOtherUser(userId, friendId);
         }
 
         [HttpPost]
         [Route(REFIX + "/friends/denied")] // Endpoint: /api/v1/user/friends/denied?uid={uid}&fid={fid} [POST]
         public ResponseBase DeniedInvatationToOtherUser(string uid, string fid) {
+            bool isRightUserObjectId = ObjectId.TryParse(uid, out var userId);
+            bool isRightfriendObjectId = ObjectId.TryParse(fid, out var friendId);
+            if (!isRightUserObjectId && !isRightfriendObjectId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "wrong format"
+                };
+            }
+            return userEventHandler.DeniedInvatationToOtherUser(userId, friendId);
+        }
+
+        [HttpPost]
+        [Route(REFIX + "/friends/remove")] // Endpoint: /api/v1/user/friends/denied?uid={uid}&fid={fid} [POST]
+        public ResponseBase RemoveFriend(string uid, string fid)
+        {
             bool isRightUserObjectId = ObjectId.TryParse(uid, out var userId);
             bool isRightfriendObjectId = ObjectId.TryParse(fid, out var friendId);
             if (!isRightUserObjectId && !isRightfriendObjectId)
