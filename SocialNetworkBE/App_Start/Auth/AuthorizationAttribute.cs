@@ -3,6 +3,7 @@ using SocialNetworkBE.Services.JsonWebToken;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Web;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
@@ -16,23 +17,21 @@ namespace SocialNetworkBE.App_Start.Auth {
         public override void OnAuthorization(HttpActionContext actionContext) {
             string requestUrl = actionContext.Request.RequestUri.ToString();
 
-            bool isPass = false;
+            bool isPassAuthFilter = false;
 
             for (int i = 0; i < NoAuthorizationURL.Length; i++) {
                 bool isMatchUrl = requestUrl.Contains(NoAuthorizationURL[i]);
                 if (isMatchUrl) {
-                    isPass = true;
+                    isPassAuthFilter = true;
                     break;
                 }
             }
 
-            if (!isPass) {
+            if (!isPassAuthFilter) {
                 AuthenticationHeaderValue authHeaderValue = actionContext.Request.Headers.Authorization;
-
                 bool isAuthRequestHeaderEmpty = authHeaderValue == null;
 
                 if (isAuthRequestHeaderEmpty) {
-
                     ResponseBase responseEmptyRequest = new ResponseBase() {
                         Message = "Missing Authorization in request's header",
                         Status = Status.Unauthorized
@@ -47,17 +46,33 @@ namespace SocialNetworkBE.App_Start.Auth {
                 string accessToken = authHeaderValue.ToString();
 
                 JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
-                bool isValidAccessToken = jsonWebTokenService.IsValidToken(accessToken);
-
-                if (!isValidAccessToken) {
+                ClaimsIdentity validAccessToken = jsonWebTokenService.GetClaimsIdentityFromToken(accessToken);
+               
+                if (validAccessToken == null) {
                     ResponseBase responseBase = new ResponseBase() {
                         Message = "Invalid token",
-                        Status = Status.Failure
+                        Status = Status.Unauthorized
                     };
 
                     actionContext.Response =
                         actionContext.Request.CreateResponse(HttpStatusCode.Unauthorized, responseBase);
                 }
+
+                string tokenType = 
+                    jsonWebTokenService.GetValueFromClaimIdentityByTypeClaim(validAccessToken, jsonWebTokenService.KeyClaimsToken);
+                
+                if (tokenType == jsonWebTokenService.RefreshToken) {
+                    ResponseBase responseBase = new ResponseBase() {
+                        Message = "Refresh token only use to get new token keypair - not use to authorize",
+                        Status = Status.Unauthorized
+                    };
+
+                    actionContext.Response =
+                        actionContext.Request.CreateResponse(HttpStatusCode.Unauthorized, responseBase);
+                }
+
+                // Todo: get claims from token then pass them to controller:
+
             }
         }
     }

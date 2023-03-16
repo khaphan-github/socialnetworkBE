@@ -445,6 +445,7 @@
     <Compile Include="ServerConfiguration\ServerEnvironment.cs" />
     <Compile Include="Services\Hash\BCryptService.cs" />
     <Compile Include="Services\JsonWebToken\JsonWebTokenService.cs" />
+    <Compile Include="Services\JsonWebToken\TokenClaimsModel.cs" />
     <Compile Include="Services\Post\PostService.cs" />
     <Compile Include="Services\RedisCache\RedisCacheService.cs" />
     <Compile Include="Services\Firebase\FirebaseImage.cs" />
