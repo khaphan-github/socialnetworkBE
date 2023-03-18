@@ -229,5 +229,9 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Message = "Update commentt success",
             };
         }
+
+        public ResponseBase GetLikesOfPostById(ObjectId postId, int page, int size, string sort) {
+            
+        }
     }
 }

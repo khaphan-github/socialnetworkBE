@@ -224,9 +224,28 @@ namespace SocialNetworkBE.Controllers {
         [HttpGet]
         [Route("likes")] 
         // Endpoint:/api/v1/post/likes?pid={postid}page=1&size=10&sort=desc [GET]:
-        public ResponseBase GetLikesOfPostById(string pid, Int32? page, Int32? size, string sort) {
+        public ResponseBase GetLikesOfPostById(string pid, int page, int size, string sort) {
+            if (string.IsNullOrWhiteSpace(pid)) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "pid is null or white space"
+                };
+            }
 
-            return new ResponseBase();
+            bool isRightCommentId = ObjectId.TryParse(pid, out var postId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "post id wrong format object id"
+                };
+            }
+
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
+            if (size > 20) size = 20;
+
+
+            return postEventHandler.GetLikesOfPostById(postId, page, size, sort);
         }
 
         [HttpPost]
