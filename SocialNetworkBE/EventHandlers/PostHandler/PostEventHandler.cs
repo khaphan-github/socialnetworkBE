@@ -1,6 +1,8 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 using SocialNetworkBE.Payload.Response;
+using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys;
@@ -61,16 +63,13 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         public ResponseBase HandleUserCreateNewPost(
             HttpFileCollection Media,
             string Content,
-            string OwnerId,
-            string OwnerAvatarURL,
-            string OwnerDisplayName,
-            string OwnerProfileURL) {
+           UserMetadata userMetadata) {
 
             FirebaseImage firebaseService = new FirebaseImage();
             List<string> mediaURLList = new List<string>();
 
             if (Media != null) {
-                foreach(var media in Media) {
+                foreach (var media in Media) {
                     // TODO: Handle Upload image;
                 }
 
@@ -80,10 +79,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Id = ObjectId.GenerateNewId(),
                 CreateDate = DateTime.Now,
                 UpdateAt = DateTime.Now,
-                OwnerAvatarURL = OwnerAvatarURL,
-                OwnerId = ObjectId.Parse(OwnerId),
-                OwnerDisplayName = OwnerDisplayName,
-                OwnerProfileURL = OwnerProfileURL,
+                OwnerAvatarURL = userMetadata.AvatarURL,
+                OwnerId = ObjectId.Parse(userMetadata.Id),
+                OwnerDisplayName = userMetadata.DisplayName,
+                OwnerProfileURL = userMetadata.UserProfileUrl,
                 Content = Content,
                 Media = mediaURLList,
             };
@@ -105,9 +104,9 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Data = PostResponse.ConvertPostToPostResponse(savedPost)
             };
         }
-        public ResponseBase DeletePostById(ObjectId id) {
+        public ResponseBase DeletePostById(ObjectId id, ObjectId ownerId) {
 
-            bool isDeleted = PostRespository.DetetePostById(id);
+            bool isDeleted = PostRespository.DetetePostById(id, ownerId);
 
             if (!isDeleted) {
                 return new ResponseBase() {
@@ -122,11 +121,11 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
         }
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
-            
-            List<Comment> commentOfPostWithPaging = 
+
+            List<Comment> commentOfPostWithPaging =
                 CommentRepository.GetCommentOfPostWithPaging(postObjectId, page, size);
-            
-            if(commentOfPostWithPaging.Count == 0) {
+
+            if (commentOfPostWithPaging.Count == 0) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "Get comment failure - comment of post is empty",
@@ -157,6 +156,82 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Message = "Get comment success",
                 Data = commentOfPostWithPaging
             };
+        }
+
+        public ResponseBase CommentAPostByPostId(
+            ObjectId postId,
+            ObjectId? commentId,
+            UserMetadata userMetadata,
+            string comment) {
+
+            Comment commentToCreate = new Comment() {
+                Id = ObjectId.GenerateNewId(),
+                Content = comment,
+                PostId = postId,
+                OwnerId = ObjectId.Parse(userMetadata.Id),
+                OwnerAvatarURL = userMetadata.AvatarURL,
+                OwnerDisplayName = userMetadata.DisplayName,
+                OwnerProfileURL = userMetadata.UserProfileUrl,
+            };
+
+            if (commentId != null) {
+                commentToCreate.ParentId = commentId;
+            }
+
+            Comment commentCreated = CommentRepository.CreateCommentAPost(commentToCreate);
+
+            if (commentCreated == null) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Comment failure",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Comment success",
+                Data = commentCreated
+            };
+        }
+
+        public ResponseBase DeleteCommentByCommentId(ObjectId commentId, UserMetadata userMetadata) {
+            
+            DeleteResult deleteResult = 
+                CommentRepository.DeteteCommentById(commentId, ObjectId.Parse(userMetadata.Id));
+            
+            if (!deleteResult.IsAcknowledged) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Delete comment failure",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Delete comment success",
+            };
+        }
+
+        public ResponseBase UpdateCommentById(ObjectId commentId, UserMetadata userMetadata, string content) {
+
+            UpdateResult updateResult = 
+                CommentRepository.UpdateCommentByComentId(commentId, ObjectId.Parse(userMetadata.Id), content);
+            
+            if(!updateResult.IsAcknowledged) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Update comment failure",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Update commentt success",
+            };
+        }
+
+        public ResponseBase GetLikesOfPostById(ObjectId postId, int page, int size, string sort) {
+            
         }
     }
 }

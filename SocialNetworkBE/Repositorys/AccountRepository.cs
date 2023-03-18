@@ -1,19 +1,14 @@
 ﻿using LiteDB;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using ServiceStack;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Remoting;
 using System.Threading.Tasks;
-using BsonDocument = MongoDB.Bson.BsonDocument;
 using ObjectId = MongoDB.Bson.ObjectId;
 
 namespace SocialNetworkBE.Repository {
@@ -40,7 +35,7 @@ namespace SocialNetworkBE.Repository {
 
                 return AccountCollection.Find(usernameAndPasswordFilter).FirstOrDefault();
             } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                Debug.WriteLine("[ERROR]: " + ex.Message);
                 return null;
             }
         }
