@@ -4,6 +4,7 @@ using SocialNetworkBE.Controllers;
 using SocialNetworkBE.Payload.Request;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Data;
+using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.ServerConfiguration;
@@ -12,6 +13,8 @@ using SocialNetworkBE.Services.Hash;
 namespace Testing.InterationTesting {
     [TestClass]
     public class AuthEndpointTesting {
+        private readonly AuthController authController = new AuthController();
+
         [DataTestMethod]
         [DataRow("user-token-test", "user-token-test-pass")]
         public void GivenUsernameAndPassword_WhenAuthenticate_ThenRecieveTokenAndUserInfo(string username, string password) {
@@ -30,6 +33,8 @@ namespace Testing.InterationTesting {
                 Username = username,
                 Email = "user-token-test@gmail.com",
                 DisplayName = username,
+                AvatarUrl = "https://avatar/" + username + ".png",
+                UserProfileUrl = "https:/socialnetwork/userprofile",
                 Password = passwordHash,
                 HashSalt = randomSalt,
             };
@@ -38,7 +43,6 @@ namespace Testing.InterationTesting {
             Assert.IsNotNull(accountSaved);
 
             // When Call authcontroller
-            AuthController authController = new AuthController();
             Auth authRequest = new Auth() {
                 Username = username,
                 Password = password
@@ -74,7 +78,6 @@ namespace Testing.InterationTesting {
         [DataRow("", "have-password")]
         [DataRow(" ", "have-password")]
         public void GivenEmptyParamRequest_WhenAuthenticate_ThenReceiveWrongFormatResponse(string username, string password) {
-            AuthController authController = new AuthController();
             Auth authRequest = new Auth() {
                 Username = username,
                 Password = password
@@ -105,7 +108,6 @@ namespace Testing.InterationTesting {
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
             "aaaaaaaaaaaaaaaaaaaaaaaaaaa")]
         public void GivenTooLongRequest_WhenAuthenticate_ThenReceiveWrongFormatResponse(string username, string password) {
-            AuthController authController = new AuthController();
             Auth authRequest = new Auth() {
                 Username = username,
                 Password = password
@@ -124,7 +126,6 @@ namespace Testing.InterationTesting {
         [DataRow("username-wrong", "password-wrong")]
         [DataRow("username-wrong", "right-password")]
         public void GivenWrongAccountAuth_WhenAuthenticate_ThenReceiveUnauthorize(string username, string password) {
-            AuthController authController = new AuthController();
             Auth authRequest = new Auth() {
                 Username = username,
                 Password = password
@@ -142,7 +143,6 @@ namespace Testing.InterationTesting {
         [DataRow("KhaThiPhan", "password-wrong")]
         [DataRow("thanhdatne", "password-wrong")]
         public void GivenRightUsernameAuth_WhenAuthenticate_ThenReceiveUnauthorize(string username, string password) {
-            AuthController authController = new AuthController();
             Auth authRequest = new Auth() {
                 Username = username,
                 Password = password
@@ -154,6 +154,38 @@ namespace Testing.InterationTesting {
             Assert.IsNull(response.Data);
             Assert.IsTrue(response.Status == Status.Unauthorized);
             Assert.IsTrue(response.Message == "Username or password was wrong");
+        }
+
+        /**
+         Token endpoint testing:
+            1. Handle refresh token:
+                + When both access token and refresh token valid - return failture
+                + When both access token and refresh token valid -  return failture
+                + When access token and refresh are not pair -  return failture
+                
+                + When access token invalid and refresh token valid - return new token
+
+                + when access token wrong format and refresh token wrong format - return wrong format
+                + when access token wrong format and refresh token right format - return wrong format
+                
+                + when access token right format and refresh token wrong format - return wrong format
+         */
+
+        [TestMethod]
+        [DataRow("", "")]
+        [DataRow("", " ")]
+        [DataRow(" ", "")]
+        [DataRow(" ", " ")]
+        public void GivenWrongFormatToken_WhenRefreshToken_ThenReturnWrongFormatOrMissingTokenInBody(string accessToken, string refreshToken) {
+            Token tokenRequest = new Token() {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+            };
+
+            ResponseBase response =  authController.RefreshToken(tokenRequest);
+            Assert.IsNotNull(response);
+            Assert.IsTrue(response.Status == Status.WrongFormat);
+            Assert.IsTrue(response.Message == "Request missing AccessToken or RefreshToken in request's body");
         }
     }
 }

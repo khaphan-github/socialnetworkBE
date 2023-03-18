@@ -1,17 +1,14 @@
-﻿using SocialNetworkBE.EventHandlers.PostHandler;
-using SocialNetworkBE.Payload.Request;
+﻿using SocialNetworkBE.Payload.Request;
 using SocialNetworkBE.Payload.Response;
-using SocialNetworkBE.Payloads.Data;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Services.Authenticate;
-using System.Web;
 using System.Web.Http;
-using System.Web.Http.Cors;
 
 namespace SocialNetworkBE.Controllers {
     public class AuthController : ApiController {
 
         private const string REFIX = "api/v1/auth";
+        private readonly AuthService authService = new AuthService();
 
         [HttpPost]
         [Route(REFIX + "/")]
@@ -37,8 +34,6 @@ namespace SocialNetworkBE.Controllers {
                     Status = Status.WrongFormat,
                 };
             }
-
-            AuthService authService = new AuthService();
 
             return authService.HandleUserAuthenticate(authRequest);
         }
@@ -108,16 +103,16 @@ namespace SocialNetworkBE.Controllers {
                     Message = "AvatarUrl required"
                 };
             }
-            AuthService authService = new AuthService();
             return authService.HandleUserSignUp(userName, pwd, email, DisplayName, AvatarUrl, UserProfileUrl);
         }
 
         [HttpPost]
         [Route(REFIX + "/token")]
         public ResponseBase RefreshToken([FromBody] Token tokenRequest) {
-            bool isEmptyParams =
-                tokenRequest.AccessToken == null || tokenRequest.RefreshToken == null;
-
+            bool isEmptyParams = 
+                string.IsNullOrWhiteSpace(tokenRequest.AccessToken) || 
+                string.IsNullOrWhiteSpace(tokenRequest.RefreshToken);
+            
             if (isEmptyParams) {
                 return new ResponseBase() {
                     Message = "Request missing AccessToken or RefreshToken in request's body",
@@ -125,24 +120,7 @@ namespace SocialNetworkBE.Controllers {
                 };
             }
 
-            AuthService authService = new AuthService();
-
-            TokenResponse tokenResponse = authService.HandleRefreshToken(tokenRequest);
-
-            if (tokenResponse == null) {
-                return new ResponseBase() {
-                    Status = Status.Unauthorized,
-                    Message = "Token invalid"
-                };
-            }
-
-            ResponseBase response = new ResponseBase() {
-                Status = Status.Success,
-                Message = "Success",
-                Data = tokenResponse
-            };
-
-            return response;
+            return authService.HandleRefreshToken(tokenRequest);
         }
     }
 }
