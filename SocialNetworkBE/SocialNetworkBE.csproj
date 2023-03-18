@@ -422,6 +422,7 @@
     <Compile Include="Payloads\Data\UserResponse.cs" />
     <Compile Include="Payloads\Request\Auth.cs" />
     <Compile Include="Payloads\Request\CommentRequest.cs" />
+    <Compile Include="Payloads\Request\CommentUpdate.cs" />
     <Compile Include="Payloads\Request\FormData.cs" />
     <Compile Include="Payloads\Request\Token.cs" />
     <Compile Include="Payloads\Request\UserMetadata.cs" />

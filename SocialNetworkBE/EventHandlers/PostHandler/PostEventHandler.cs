@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
@@ -154,6 +155,78 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Status = Status.Success,
                 Message = "Get comment success",
                 Data = commentOfPostWithPaging
+            };
+        }
+
+        public ResponseBase CommentAPostByPostId(
+            ObjectId postId,
+            ObjectId? commentId,
+            UserMetadata userMetadata,
+            string comment) {
+
+            Comment commentToCreate = new Comment() {
+                Id = ObjectId.GenerateNewId(),
+                Content = comment,
+                PostId = postId,
+                OwnerId = ObjectId.Parse(userMetadata.Id),
+                OwnerAvatarURL = userMetadata.AvatarURL,
+                OwnerDisplayName = userMetadata.DisplayName,
+                OwnerProfileURL = userMetadata.UserProfileUrl,
+            };
+
+            if (commentId != null) {
+                commentToCreate.ParentId = commentId;
+            }
+
+            Comment commentCreated = CommentRepository.CreateCommentAPost(commentToCreate);
+
+            if (commentCreated == null) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Comment failure",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Comment success",
+                Data = commentCreated
+            };
+        }
+
+        public ResponseBase DeleteCommentByCommentId(ObjectId commentId, UserMetadata userMetadata) {
+            
+            DeleteResult deleteResult = 
+                CommentRepository.DeteteCommentById(commentId, ObjectId.Parse(userMetadata.Id));
+            
+            if (!deleteResult.IsAcknowledged) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Delete comment failure",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Delete comment success",
+            };
+        }
+
+        public ResponseBase UpdateCommentById(ObjectId commentId, UserMetadata userMetadata, string content) {
+
+            UpdateResult updateResult = 
+                CommentRepository.UpdateCommentByComentId(commentId, ObjectId.Parse(userMetadata.Id), content);
+            
+            if(!updateResult.IsAcknowledged) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Update comment failure",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Update commentt success",
             };
         }
     }

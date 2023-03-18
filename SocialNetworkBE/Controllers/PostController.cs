@@ -5,9 +5,8 @@ using System;
 using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
+using System.Security.Cryptography;
 using System.Net.Http;
-using Org.BouncyCastle.Asn1.Ocsp;
-using SocialNetworkBE.ServerConfiguration;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -95,8 +94,6 @@ namespace SocialNetworkBE.Controllers {
         [Route("comments")]
         // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
         public ResponseBase GetCommentsOfPostByIdAndCommentId(string pid, string cid, int page, int size) {
-
-            // TODO: Test request wrong format;
             if (string.IsNullOrWhiteSpace(pid) || string.IsNullOrWhiteSpace(cid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
@@ -131,20 +128,104 @@ namespace SocialNetworkBE.Controllers {
         [Route("comments")] 
         // Endpoint: /api/v1/post/c  [POST]:
         public ResponseBase CommentAPostById([FromBody] CommentRequest commentRequest) {
-            return new ResponseBase();
+            
+            if(string.IsNullOrWhiteSpace(commentRequest.Comment)) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "Comment is null"
+                };
+            }
+            
+            bool isRightPostId = ObjectId.TryParse(commentRequest.PostId.ToString(), out var postId);
+            if (!isRightPostId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "post id wrong format object id"
+                };
+            }
+
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            if(string.IsNullOrWhiteSpace(commentRequest.CommentId)) {
+                return postEventHandler.CommentAPostByPostId(postId, null, userMetadata, commentRequest.Comment);
+            }
+
+            bool isRightCommentId = ObjectId.TryParse(commentRequest.PostId.ToString(), out var commentId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "comment id wrong format object id"
+                };
+            }
+
+            return postEventHandler
+                .CommentAPostByPostId(postId, commentId, userMetadata, commentRequest.Comment);
         }
 
         [HttpDelete]
         [Route("comments")] 
         // Endpoint: /api/v1/post/comments?pid={postid}&cid={commentid}  [DELETE]:
-        public ResponseBase DeleteCommentOfPostByPostIdAndCommentId(string pid, string cid) {
-            return new ResponseBase();
+        public ResponseBase DeleteCommentOfPostByCommentId(string cid) {
+       
+            if (string.IsNullOrWhiteSpace(cid)) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "cid is null or white space"
+                };
+            }
+
+            bool isRightCommentId = ObjectId.TryParse(cid, out var commentId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "comment id wrong format object id"
+                };
+            }
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            return postEventHandler.DeleteCommentByCommentId(commentId, userMetadata);
         }
 
+        [HttpPut]
+        [Route("comments")] 
+        public ResponseBase UpdateACommentById([FromBody] CommentUpdate commentUpdate) {
+
+            if (string.IsNullOrWhiteSpace(commentUpdate.CommentId)) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "cid is null or white space"
+                };
+            }
+
+            bool isRightCommentId = ObjectId.TryParse(commentUpdate.CommentId, out var commentId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "comment id wrong format object id"
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(commentUpdate.Comment)) {
+
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "comment is null or white space"
+                };
+            }
+
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            return postEventHandler.UpdateCommentById(commentId, userMetadata, commentUpdate.Comment);
+
+        }
         [HttpGet]
         [Route("likes")] 
         // Endpoint:/api/v1/post/likes?pid={postid}page=1&size=10&sort=desc [GET]:
         public ResponseBase GetLikesOfPostById(string pid, Int32? page, Int32? size, string sort) {
+
             return new ResponseBase();
         }
 
