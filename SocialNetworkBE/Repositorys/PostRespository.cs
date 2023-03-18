@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SocialNetworkBE.Repository.Config;
-using MongoDB.Bson.Serialization;
 using ServiceStack;
 
 namespace SocialNetworkBE.Repository {
@@ -53,10 +52,11 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public bool DetetePostById(ObjectId postObjectId) {
+        public bool DetetePostById(ObjectId postObjectId, ObjectId ownerId) {
             try {
                 FilterDefinition<Post> postNeedDeleteFilter =
-                    Builders<Post>.Filter.Eq("_id", postObjectId);
+                    Builders<Post>.Filter.Eq("_id", postObjectId) &
+                    Builders<Post>.Filter.Eq("OwnerId", ownerId);
 
                 Post deletePost = PostCollection.FindOneAndDelete(postNeedDeleteFilter);
                 if (deletePost != null) 
@@ -105,18 +105,6 @@ namespace SocialNetworkBE.Repository {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return new List<BsonDocument>();
             }
-        }
-
-        public bool DeteteCommentOfPostByGuid(ObjectId postObjectId, Guid CommentGuid) {
-            throw new NotImplementedException();
-        }
-
-        public Comment MakeACommentToPost(ObjectId postObjectId, Comment comment) {
-            throw new NotImplementedException();
-        }
-
-        public Comment UpdateAcommentByGuid(ObjectId postObjectId, Guid commentGuid) {
-            throw new NotImplementedException();
         }
 
         public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {

@@ -68,10 +68,11 @@ namespace SocialNetworkBE.Repositorys {
             }
         }
 
-        public UpdateResult UpdateCommentByComentId(ObjectId commentid, string content) {
+        public UpdateResult UpdateCommentByComentId(ObjectId commentid, ObjectId ownerId, string content) {
             try {
                 FilterDefinition<Comment> commentFilter =
-                    Builders<Comment>.Filter.Eq("_id", commentid);
+                    Builders<Comment>.Filter.Eq("_id", commentid) &
+                     Builders<Comment>.Filter.Eq("OwnerId", ownerId);
 
                 UpdateDefinition<Comment> contentUpdate = Builders<Comment>.Update.Set("Content", content);
 
@@ -83,10 +84,11 @@ namespace SocialNetworkBE.Repositorys {
             }
         }
 
-        public DeleteResult DeteteCommentById(ObjectId commentid) {
+        public DeleteResult DeteteCommentById(ObjectId commentid, ObjectId ownerId) {
             try {
                 FilterDefinition<Comment> commentFilter =
-                    Builders<Comment>.Filter.Eq("_id", commentid);
+                    Builders<Comment>.Filter.Eq("_id", commentid) &
+                    Builders<Comment>.Filter.Eq("OwnerId", ownerId);
 
                 return CommentCollection.DeleteOne(commentFilter);
             } catch (Exception ex) {
