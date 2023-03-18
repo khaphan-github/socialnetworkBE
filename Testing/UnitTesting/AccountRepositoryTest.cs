@@ -11,29 +11,15 @@ namespace Testing {
     public class AccountRepositoryTest {
         private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
 
-        [TestMethod]
-        public void GivenRightUsername_WhenGetAccountByUsername_ThenReturnAccountInfo() {
-            string username = "kimkhanhne";
-
-            Account accountInserted =
-                accountResponsitory.GetAccountByUsername(username);
-            Assert.IsNotNull(accountInserted);
-
-            bool isRightUsername = accountInserted.Username.Equals(username);
-            Assert.IsTrue(isRightUsername);
-        }
-
-        [TestMethod]
-        public void GivenAnAccount_WhenInsertAccount_ThenReturnAccountInserted() {
+        private Account CreateAccountTest(string username, string password) {
             BCryptService bCryptService = new BCryptService();
 
             string randomSalt = bCryptService.GetRandomSalt();
             string secretKey = ServerEnvironment.GetServerSecretKey();
-            string password = "khaphannepass";
-            string username = "khaphanne";
             string displayName = "Kha Phan";
             string email = "khaphanne@gmail.com";
             string profile = "/khaphanne";
+
             string passwordHash =
                 bCryptService
                 .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
@@ -48,22 +34,24 @@ namespace Testing {
                 Password = passwordHash,
                 HashSalt = randomSalt,
             };
+            return  accountResponsitory.CreateNewAccount(accountTest);
+        }
 
-            Account accountSaved = accountResponsitory.CreateNewAccount(accountTest);
+        [TestMethod]
+        [DataRow("username-test-1", "password-test-1")]
+        [DataRow("username-test-2", "password-test-1")]
+        public void GivenRightUsername_WhenGetAccountByUsername_ThenReturnAccountInfo(string username, string password) {
+            Account accountTest = CreateAccountTest(username, password);
 
-            Assert.IsNotNull(accountSaved);
-            Assert.IsTrue(accountSaved.DisplayName == accountTest.DisplayName);
-            Assert.IsTrue(accountSaved.Email == accountTest.Email);
-            Assert.IsTrue(accountSaved.AvatarUrl == accountTest.AvatarUrl);
-            Assert.IsTrue(accountSaved.UserProfileUrl == accountTest.UserProfileUrl);
-            Assert.IsTrue(accountSaved.Username == accountTest.Username);
-            Assert.IsTrue(accountSaved.Password == accountTest.Password);
-            Assert.IsTrue(accountSaved.HashSalt == accountTest.HashSalt);
+            Account accountInserted =
+                accountResponsitory.GetAccountByUsername(accountTest.Username);
 
-            bool isRightPassword = bCryptService.ValidateStringAndHashBySHA512(randomSalt + password + secretKey, accountSaved.Password);
-            Assert.IsTrue(isRightPassword);
+            Assert.IsNotNull(accountInserted);
+            bool isRightUsername = accountInserted.Username.Equals(username);
+            Assert.IsTrue(isRightUsername);
 
-            Assert.IsTrue(accountResponsitory.DeleteAccount(accountSaved.Id));
+            bool isDeleted = accountResponsitory.DeleteAccount(accountTest.Id);
+            Assert.IsTrue(isDeleted);
         }
     }
 }

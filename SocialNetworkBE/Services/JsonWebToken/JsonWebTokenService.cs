@@ -1,32 +1,44 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 using SocialNetworkBE.ServerConfiguration;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Management.Instrumentation;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Text;
-using System.Web;
+using System.Web.Http.Results;
 
 namespace SocialNetworkBE.Services.JsonWebToken {
     public class JsonWebTokenService {
         // https://gist.github.com/rafiulgits/b967c3f1716436b3c59d038d04a51009
+        
         private readonly string SECRET_KEY = ServerEnvironment.GetServerSecretKey();
+        
+        public readonly int accessTokenExpriseTime = 10; // 10 Minutes
+        public readonly int refreshTokenExpriseTime = 5 * 24 * 60; // 5 Days
 
-        public ClaimsIdentity CreateClaimsIdentity(string username, string email, string role) {
+        public readonly string AccessToken = "AccessToken";
+        public readonly string RefreshToken = "RefreshToken";
+        public readonly string KeyClaimsToken = "token_type";
+        
+        public ClaimsIdentity CreateClaimsIdentityFromModel(TokenClaimsModel tokenClaimsModel, string tokenType) {
+            if (tokenClaimsModel == null) throw new ArgumentNullException("tokenClaimsModel");
             ClaimsIdentity claimsIdentity = new ClaimsIdentity();
 
-            claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, username));
-            claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, email));
-            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, tokenClaimsModel.Email));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, tokenClaimsModel.DisplayName));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, tokenClaimsModel.Role));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Sid, tokenClaimsModel.ObjectId));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, tokenClaimsModel.Username));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Webpage, tokenClaimsModel.UserProfileURL));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.UserData, tokenClaimsModel.AvatarURL));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Hash, tokenClaimsModel.KeyPairHash));
+            claimsIdentity.AddClaim(new Claim(KeyClaimsToken, tokenType));
 
             return claimsIdentity;
         }
 
-        public string CreateTokenFromUserData(ClaimsIdentity claimsIdentity, int exprisesTime) {
+        public string CreateTokenFromClaims(ClaimsIdentity claimsIdentity, int exprisesTime) {
 
             byte[] secretKey = Encoding.UTF8.GetBytes(SECRET_KEY);
 
@@ -44,9 +56,9 @@ namespace SocialNetworkBE.Services.JsonWebToken {
             };
 
             JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-            JwtSecurityToken token = handler.CreateJwtSecurityToken(descriptor);
+            JwtSecurityToken securityToken = handler.CreateJwtSecurityToken(descriptor);
 
-            return handler.WriteToken(token);
+            return handler.WriteToken(securityToken);
         }
 
         private ClaimsPrincipal GetPrincipalFromToken(string token) {
@@ -70,79 +82,37 @@ namespace SocialNetworkBE.Services.JsonWebToken {
                     IssuerSigningKey = symmetricSecurityKey
                 };
 
-                ClaimsPrincipal principal = 
+                ClaimsPrincipal principal =
                     jwtSecurityTokenHandler.ValidateToken(token, parameters, out _);
 
                 return principal;
 
-            } catch (Exception) {
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
                 return null;
             }
         }
-
-        public bool IsValidToken(string token) {
-            ClaimsIdentity claimsIdentity = GetClaimsIdentityFromToken(token);
-            if (claimsIdentity == null) {
-                return false;
-            }
-            return true;
-        }
-
-        private ClaimsIdentity GetClaimsIdentityFromToken(string token) {
+        public ClaimsIdentity GetClaimsIdentityFromToken(string token) {
             ClaimsPrincipal claimsPrinclipal = GetPrincipalFromToken(token);
-
-            if (claimsPrinclipal == null) {
-                return null;
-            }
-
-            try {
-                ClaimsIdentity identity = (ClaimsIdentity)claimsPrinclipal.Identity;
-                if (identity == null) {
-                    return null;
+            if (claimsPrinclipal != null) {
+                try {
+                    return (ClaimsIdentity)claimsPrinclipal.Identity;
+                } catch (NullReferenceException ex) {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
                 }
-                return identity;
-            } catch (NullReferenceException) {
-                return null;
             }
-
+            return null;
         }
 
-        public List<string> GenerateKeyPairs(ClaimsIdentity claimsIdentity) {
+        /** @param: claimType must be ClaimTypes*/
+        public string GetValueFromClaimIdentityByTypeClaim(ClaimsIdentity claimsIdentity, string claimType) {
+            try {
+                if (claimsIdentity == null) return "";
+                return claimsIdentity.FindFirst(claimType).Value;
 
-            int accessTokenExpriseTime = 10; // 10 Minutes
-            int refreshTokenExpriseTime = 5 * 24 * 60; // 5 Days
-
-            string accessToken =
-                CreateTokenFromUserData(claimsIdentity, accessTokenExpriseTime);
-
-            string refreshToken =
-                CreateTokenFromUserData(claimsIdentity, refreshTokenExpriseTime);
-
-            List<string> keyPairs = new List<string>() {
-                accessToken, refreshToken
-            };
-
-            return keyPairs;
-        }
-
-        /** 
-         Only access refresh token when accesstoken invalid 
-        */
-        public List<string> RefreshToken(string accessToken, string refreshToken) {
-
-            if (IsValidToken(accessToken)) {
-                return new List<string>();
+            } catch (ArgumentNullException) {
+                return "";
             }
-
-            bool isValidRefreshToken = IsValidToken(accessToken);
-            List<string> keyPairs = new List<string>();
-
-            if (isValidRefreshToken) {
-                ClaimsIdentity claimsIdentity = GetClaimsIdentityFromToken(refreshToken);
-                keyPairs = GenerateKeyPairs(claimsIdentity);
-            }
-
-            return keyPairs;
         }
     }
 }
