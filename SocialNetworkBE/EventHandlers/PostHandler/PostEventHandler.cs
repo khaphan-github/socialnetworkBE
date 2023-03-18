@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using SocialNetworkBE.Payload.Response;
+using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys;
@@ -61,16 +62,13 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         public ResponseBase HandleUserCreateNewPost(
             HttpFileCollection Media,
             string Content,
-            string OwnerId,
-            string OwnerAvatarURL,
-            string OwnerDisplayName,
-            string OwnerProfileURL) {
+           UserMetadata userMetadata) {
 
             FirebaseImage firebaseService = new FirebaseImage();
             List<string> mediaURLList = new List<string>();
 
             if (Media != null) {
-                foreach(var media in Media) {
+                foreach (var media in Media) {
                     // TODO: Handle Upload image;
                 }
 
@@ -80,10 +78,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Id = ObjectId.GenerateNewId(),
                 CreateDate = DateTime.Now,
                 UpdateAt = DateTime.Now,
-                OwnerAvatarURL = OwnerAvatarURL,
-                OwnerId = ObjectId.Parse(OwnerId),
-                OwnerDisplayName = OwnerDisplayName,
-                OwnerProfileURL = OwnerProfileURL,
+                OwnerAvatarURL = userMetadata.AvatarURL,
+                OwnerId = ObjectId.Parse(userMetadata.Id),
+                OwnerDisplayName = userMetadata.DisplayName,
+                OwnerProfileURL = userMetadata.UserProfileUrl,
                 Content = Content,
                 Media = mediaURLList,
             };
@@ -105,9 +103,9 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Data = PostResponse.ConvertPostToPostResponse(savedPost)
             };
         }
-        public ResponseBase DeletePostById(ObjectId id) {
+        public ResponseBase DeletePostById(ObjectId id, ObjectId ownerId) {
 
-            bool isDeleted = PostRespository.DetetePostById(id);
+            bool isDeleted = PostRespository.DetetePostById(id, ownerId);
 
             if (!isDeleted) {
                 return new ResponseBase() {
@@ -122,11 +120,11 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
         }
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
-            
-            List<Comment> commentOfPostWithPaging = 
+
+            List<Comment> commentOfPostWithPaging =
                 CommentRepository.GetCommentOfPostWithPaging(postObjectId, page, size);
-            
-            if(commentOfPostWithPaging.Count == 0) {
+
+            if (commentOfPostWithPaging.Count == 0) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "Get comment failure - comment of post is empty",

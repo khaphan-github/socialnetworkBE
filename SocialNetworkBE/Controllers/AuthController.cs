@@ -1,12 +1,8 @@
-﻿using SocialNetworkBE.EventHandlers.PostHandler;
-using SocialNetworkBE.Payload.Request;
+﻿using SocialNetworkBE.Payload.Request;
 using SocialNetworkBE.Payload.Response;
-using SocialNetworkBE.Payloads.Data;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Services.Authenticate;
-using System.Web;
 using System.Web.Http;
-using System.Web.Http.Cors;
 
 namespace SocialNetworkBE.Controllers {
     public class AuthController : ApiController {

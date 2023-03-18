@@ -53,10 +53,11 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public bool DetetePostById(ObjectId postObjectId) {
+        public bool DetetePostById(ObjectId postObjectId, ObjectId ownerId) {
             try {
                 FilterDefinition<Post> postNeedDeleteFilter =
-                    Builders<Post>.Filter.Eq("_id", postObjectId);
+                    Builders<Post>.Filter.Eq("_id", postObjectId) &
+                    Builders<Post>.Filter.Eq("OwnerId", ownerId);
 
                 Post deletePost = PostCollection.FindOneAndDelete(postNeedDeleteFilter);
                 if (deletePost != null) 

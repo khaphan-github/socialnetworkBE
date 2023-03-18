@@ -5,6 +5,9 @@ using System;
 using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
+using System.Net.Http;
+using Org.BouncyCastle.Asn1.Ocsp;
+using SocialNetworkBE.ServerConfiguration;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -16,55 +19,27 @@ namespace SocialNetworkBE.Controllers {
         [Route("")] 
         // Endpoint: /api/v1/posts/ [POST]
         public ResponseBase CreateAPostFromUser() {
+            // TODO: Need to test
             HttpFileCollection Media = HttpContext.Current.Request.Files;
-
             var Content = FormData.GetValueByKey("Content");
+            
             if (Content == null) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
                     Message = "Content required"
                 };
             }
-
-            var OwnerId = FormData.GetValueByKey("OwnerId");
-            if (OwnerId == null) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "OwnerId required"
-                };
-            }
-
-            var OwnerAvatarURL = FormData.GetValueByKey("OwnerAvatarURL");
-            if (OwnerAvatarURL == null) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "OwnerAvatarURL required"
-                };
-            }
-
-            var OwnerDisplayName = FormData.GetValueByKey("OwnerDisplayName");
-            if (OwnerDisplayName == null) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "OwnerDisplayName required"
-                };
-            }
-
-            var OwnerProfileURL = FormData.GetValueByKey("OwnerProfileURL");
-            if (OwnerProfileURL == null) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "OwnerProfileURL required"
-                };
-            }
+           UserMetadata userMetadata = 
+                new UserMetadata().GetUserMetadataFromRequest(Request);
 
             return postEventHandler
-                .HandleUserCreateNewPost(Media, Content, OwnerId, OwnerAvatarURL, OwnerDisplayName, OwnerProfileURL);
+                .HandleUserCreateNewPost(Media, Content, userMetadata) ;
         }
         
         [HttpDelete]
         [Route("")]
         public ResponseBase DetetePostById(string pid) {
+            // TODO: Need to test
             bool isRightObjectId = ObjectId.TryParse(pid, out var id);
             if(!isRightObjectId) {
                 return new ResponseBase() {
@@ -72,8 +47,10 @@ namespace SocialNetworkBE.Controllers {
                     Message = "ObjectId Wrong Format"
                 };
             }
+            UserMetadata userMetadata =
+                new UserMetadata().GetUserMetadataFromRequest(Request);
 
-            return postEventHandler.DeletePostById(id);
+            return postEventHandler.DeletePostById(id, ObjectId.Parse(userMetadata.Id));
         }
         
         [HttpPost]
@@ -152,7 +129,7 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpPost]
         [Route("comments")] 
-        // Endpoint: /api/v1/post/comments/?pid={postid} [POST]:
+        // Endpoint: /api/v1/post/c  [POST]:
         public ResponseBase CommentAPostById([FromBody] CommentRequest commentRequest) {
             return new ResponseBase();
         }
