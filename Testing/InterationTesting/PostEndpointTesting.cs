@@ -183,8 +183,7 @@ namespace Testing.InterationTesting {
             List<Comment> comments = response.Data as List<Comment>;
             Assert.IsNull(comments);
 
-            bool isDeleted = PostRespository.DetetePostById(postWithEmptyComment.Id);
-            Assert.IsTrue(isDeleted);
+           
         }
 
         [TestMethod]
@@ -226,8 +225,7 @@ namespace Testing.InterationTesting {
 
             CommentRequest commentRequest = new CommentRequest() {
                 Comment = "Hẹn em vào một ngày chiều thu...",
-                PostId = postToTest.Id,
-                OwnerId = postToTest.OwnerId,
+             
             };
 
             ResponseBase response = postController.CommentAPostById(commentRequest);

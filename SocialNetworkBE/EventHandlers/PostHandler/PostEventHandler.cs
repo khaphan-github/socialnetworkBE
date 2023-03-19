@@ -231,7 +231,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         }
 
         public ResponseBase GetLikesOfPostById(ObjectId postId, int page, int size, string sort) {
-            
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Un Handle",
+            };
         }
     }
 }
