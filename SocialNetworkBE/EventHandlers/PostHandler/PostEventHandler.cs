@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using Org.BouncyCastle.Asn1.Ocsp;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
@@ -10,6 +11,7 @@ using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Services.Firebase;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 
@@ -68,11 +70,26 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             FirebaseImage firebaseService = new FirebaseImage();
             List<string> mediaURLList = new List<string>();
 
+            // TODO: Not update to firebase
             if (Media != null) {
-                foreach (var media in Media) {
-                    // TODO: Handle Upload image;
-                }
+                for (int i = 0; i < Media.Count; i++) {
+                    
+                    HttpPostedFile fileFromMedia = Media[i]; 
+                    
+                    FileStream fileStream = 
+                        new FileStream("" + fileFromMedia.FileName, FileMode.Create);
 
+                    fileFromMedia.InputStream.CopyTo(fileStream);
+
+                    string imageURL = 
+                        firebaseService.UploadImage(
+                            fileStream, 
+                            "Account", 
+                            fileFromMedia.FileName, 
+                            ".png").Result;
+                
+                    mediaURLList.Add(imageURL);
+                }
             }
 
             Post newPost = new Post() {
@@ -195,10 +212,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         }
 
         public ResponseBase DeleteCommentByCommentId(ObjectId commentId, UserMetadata userMetadata) {
-            
-            DeleteResult deleteResult = 
+
+            DeleteResult deleteResult =
                 CommentRepository.DeteteCommentById(commentId, ObjectId.Parse(userMetadata.Id));
-            
+
             if (!deleteResult.IsAcknowledged) {
                 return new ResponseBase() {
                     Status = Status.Failure,
@@ -214,10 +231,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
         public ResponseBase UpdateCommentById(ObjectId commentId, UserMetadata userMetadata, string content) {
 
-            UpdateResult updateResult = 
+            UpdateResult updateResult =
                 CommentRepository.UpdateCommentByComentId(commentId, ObjectId.Parse(userMetadata.Id), content);
-            
-            if(!updateResult.IsAcknowledged) {
+
+            if (!updateResult.IsAcknowledged) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "Update comment failure",
@@ -231,7 +248,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         }
 
         public ResponseBase GetLikesOfPostById(ObjectId postId, int page, int size, string sort) {
-            
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Update commentt success",
+            };
         }
     }
 }
