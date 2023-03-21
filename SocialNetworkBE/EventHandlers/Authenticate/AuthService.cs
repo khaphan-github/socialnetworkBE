@@ -12,6 +12,7 @@ using SocialNetworkBE.Services.JsonWebToken;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Security.Principal;
 
 namespace SocialNetworkBE.Services.Authenticate {
     public class AuthService {
@@ -137,12 +138,18 @@ namespace SocialNetworkBE.Services.Authenticate {
                 }
 
                 // TODO: Error when get Claims from token
+                string refreshToken = jsonWebTokenService
+                    .CreateTokenFromClaims(validRefreshToken, jsonWebTokenService.refreshTokenExpriseTime);
+
+                var existingClaim = validRefreshToken.FindFirst(jsonWebTokenService.KeyClaimsToken);
+                validRefreshToken.RemoveClaim(existingClaim);
+
+                validRefreshToken.AddClaim(
+                    new Claim(jsonWebTokenService.KeyClaimsToken, jsonWebTokenService.AccessToken));
 
                 string accessToken = jsonWebTokenService
                     .CreateTokenFromClaims(validRefreshToken, jsonWebTokenService.accessTokenExpriseTime);
 
-                string refreshToken = jsonWebTokenService
-                    .CreateTokenFromClaims(validRefreshToken, jsonWebTokenService.refreshTokenExpriseTime);
 
                 return new ResponseBase() {
                     Status = Status.Success,

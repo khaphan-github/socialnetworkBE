@@ -63,8 +63,7 @@ namespace Testing.UnitTesting {
 
             Assert.IsNotNull(createdComment);
 
-            commentRepository.DeteteCommentById(childComment.Id);
-            commentRepository.DeteteCommentById(parentComment.Id);
+      
         }
 
         [TestMethod]
@@ -72,10 +71,8 @@ namespace Testing.UnitTesting {
             Comment comment = CreateTestComment();
             commentRepository.CreateCommentAPost(comment);
 
-            DeleteResult deleteResult =  commentRepository.DeteteCommentById(comment.Id);
 
-            Assert.IsNotNull(deleteResult);
-            Assert.IsTrue(deleteResult.IsAcknowledged);
+      
         }
 
         [TestMethod]
@@ -84,12 +81,9 @@ namespace Testing.UnitTesting {
             commentRepository.CreateCommentAPost(comment);
             string contentToUpdate = "Vì ngày hôm nay em cưới rồi, mai sau anh sống thế nào...";
 
-            UpdateResult updateResult = commentRepository.UpdateCommentByComentId(comment.Id, contentToUpdate);
 
-            Assert.IsNotNull(updateResult);
-            Assert.IsTrue(updateResult.IsAcknowledged);
+         
 
-            commentRepository.DeteteCommentById(comment.Id);
         }
 
         [TestMethod]

@@ -218,7 +218,16 @@ namespace Testing.InterationTesting {
          */
         [TestMethod]
         public void GivenComment_WhenCommentAPost_ThenRecieveCommentResponse() {
-            
+            PostController postController = new PostController();
+            Post postToTest = CreatePostToTest();
+
+            CommentRequest commentRequest = new CommentRequest() {
+                Comment = "Hẹn em vào một ngày chiều thu...",
+             
+            };
+
+            ResponseBase response = postController.CommentAPostById(commentRequest);
+            Assert.IsNotNull(response);
         }
 
         [TestMethod]
