@@ -27,6 +27,7 @@ namespace SocialNetworkBE.Repositorys {
                 return null;
             }
         }
+
         public List<Comment> GetCommentOfPostWithPaging(ObjectId postId, int page, int size) {
             try {
                 int paging = page * size;

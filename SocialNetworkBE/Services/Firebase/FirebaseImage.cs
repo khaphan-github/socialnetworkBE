@@ -27,7 +27,6 @@ namespace SocialNetworkBE.Services.Firebase {
             Bucket = ServerEnvironment.GetFirebaseBucket();
             StorageDomain = ServerEnvironment.GetFirebaseStorageDomain();
         }
-
         private async Task<FirebaseAuthLink> ExecuteWithPostContentAsync(string googleUrl, string postContent) {
             string responseData = "N/A";
             try {
@@ -48,7 +47,6 @@ namespace SocialNetworkBE.Services.Firebase {
                 throw new FirebaseAuthException(googleUrl, postContent, responseData, innerException);
             }
         }
-
 
         public async Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password) {
             string contentFormat = "{{\"email\":\"{0}\",\"password\":\"{1}\",\"returnSecureToken\":false}}";
