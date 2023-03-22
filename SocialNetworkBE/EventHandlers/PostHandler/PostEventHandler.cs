@@ -19,9 +19,9 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
         private readonly PostRespository PostRespository = new PostRespository();
         private readonly CommentRepository CommentRepository = new CommentRepository();
-        public ResponseBase GetPostsWithPaging(int page, int size) {
+        public ResponseBase GetPostsWithPaging(int page, int size, string sort) {
             List<PostResponse> postResponses = PostRespository
-             .GetPostByPageAndSizeAndSorted(page, size)
+             .GetPostByPageAndSizeAndSorted(page, size, sort)
              .Select(bsonPost => BsonSerializer.Deserialize<PostResponse>(bsonPost))
              .ToList();
 
@@ -46,6 +46,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
 
             PagingResponse pagingResponse = new PagingResponse() {
+                NumberOfElement = postResponses.Count,
                 Paging = postResponses,
                 NextPageURL = nextPageURL,
                 PreviousPageURL = previousPageURL,
@@ -249,9 +250,19 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         }
 
         public ResponseBase GetLikesOfPostById(ObjectId postId, int page, int size, string sort) {
+            // TODO: Need to Implement
+
             return new ResponseBase() {
                 Status = Status.Success,
                 Message = "Update commentt success",
+            };
+        }
+
+        public ResponseBase LikeAPostByPostId(ObjectId postId, UserMetadata userMetadata) {
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Like success",
             };
         }
     }

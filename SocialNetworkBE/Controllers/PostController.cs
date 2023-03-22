@@ -55,13 +55,11 @@ namespace SocialNetworkBE.Controllers {
         [HttpPost]
         [Route("current")]
         // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
-        public ResponseBase GetPostListWithPaging(int page, int size) {
-
+        public ResponseBase GetPostListWithPaging(int page, int size, string sort) {
             if (page <= 0) page = 0;
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
-
-            return postEventHandler.GetPostsWithPaging(page, size);
+            return postEventHandler.GetPostsWithPaging(page, size, sort);
         }
 
         [HttpGet]
@@ -251,9 +249,18 @@ namespace SocialNetworkBE.Controllers {
         }
 
         [HttpPost]
-        [Route("likes")] // Endpoint:  /api/v1/post/likes?pid={postid}&uid={uid} [POST]:
-        public ResponseBase LikeAPostByPostId(string pid, string uid) {
-            return new ResponseBase();
+        [Route("likes")] // Endpoint:  /api/v1/post/likes?pid={postid} [POST]:
+        public ResponseBase LikeAPostByPostId(string pid) {
+            bool isRightCommentId = ObjectId.TryParse(pid, out var postId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "post id wrong format object id"
+                };
+            }
+            UserMetadata userMetadata = new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            return postEventHandler.LikeAPostByPostId(postId, userMetadata);
         }
 
         [HttpDelete]
