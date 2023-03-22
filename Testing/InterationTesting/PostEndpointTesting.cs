@@ -182,8 +182,6 @@ namespace Testing.InterationTesting {
 
             List<Comment> comments = response.Data as List<Comment>;
             Assert.IsNull(comments);
-
-           
         }
 
         [TestMethod]

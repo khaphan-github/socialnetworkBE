@@ -469,6 +469,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Properties\" />
+    <Folder Include="Public\Image\" />
     <Folder Include="Services\OpenSSL\" />
   </ItemGroup>
   <ItemGroup>

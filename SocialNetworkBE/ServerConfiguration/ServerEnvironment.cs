@@ -47,7 +47,10 @@ namespace SocialNetworkBE.ServerConfiguration {
             string key = "FirebaseAuthPwd";
             return ConfigurationManager.AppSettings[key];
         }
-
+        public static string GetFirebaseStorageDomain() {
+            string key = "FirebaseStorageDomain";
+            return ConfigurationManager.AppSettings[key];
+        }
         public static string GetClientCORSDomain() {
             string key = "Client-CORS-Domain";
             return ConfigurationManager.AppSettings[key];

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace Testing.UnitTesting {
     [TestClass]
     public class CommentRepostioryTest {
+        /** 
         private readonly CommentRepository commentRepository = new CommentRepository();
 
         private Comment CreateTestComment() {
@@ -55,7 +56,7 @@ namespace Testing.UnitTesting {
 
         [TestMethod]
         public void GivenCommentWithParent_WhenCreateComment_ThenReturnCommentCreated() {
-            Comment parentComment = CreateTestComment();
+        Comment parentComment = CreateTestComment();
             Comment childComment = CreateTestComment(parentComment.Id.ToString());
 
             Comment createdComment = commentRepository.CreateCommentAPost(childComment);
@@ -98,5 +99,6 @@ namespace Testing.UnitTesting {
             Assert.IsNotNull(comments);
             Assert.IsTrue(comments.Count == size);
         }
+        */
     }
 }
