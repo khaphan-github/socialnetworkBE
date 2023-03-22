@@ -130,8 +130,22 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {
-            throw new NotImplementedException();
+        public async Task MakeALikeOfPostAsync(ObjectId postObjectId, ObjectId objectId) {
+            try {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId) &  Builders<Post>.Filter.Eq("_id", postObjectId);
+
+                UpdateDefinition<Post> update = Builders<Post>.Update
+                       .Set(post => post.UpdateAt, DateTime.Now)
+                       .Push(post => post.Likes, objectId);
+
+                var options = new FindOneAndUpdateOptions<Post>() {
+                    ReturnDocument = ReturnDocument.After
+                };
+
+                await PostCollection.FindOneAndUpdateAsync(filter, update, options);
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
         }
 
         public bool RemoveAlikeOfPost(ObjectId postObjectId, Guid LikeGuid) {
