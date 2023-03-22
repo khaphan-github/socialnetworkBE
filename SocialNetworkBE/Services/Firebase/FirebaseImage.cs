@@ -13,7 +13,6 @@ using Newtonsoft.Json;
 
 namespace SocialNetworkBE.Services.Firebase {
     public class FirebaseImage {
-
         private string APIKey { get; set; }
         private string UserEmail { get; set; }
         private string Password { get; set; }

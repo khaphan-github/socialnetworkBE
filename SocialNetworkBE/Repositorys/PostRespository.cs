@@ -6,18 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using SocialNetworkBE.Repository.Config;
 using ServiceStack;
+using System.Threading.Tasks;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
         private IMongoCollection<Post> PostCollection { get; set; }
-        private IMongoDatabase databaseConnected { get; set; }
+        private IMongoDatabase DatabaseConnected { get; set; }
         private const string PostDocumentName = "Post";
 
         public PostRespository() {
             MongoDBConfiguration MongoDatabase = new MongoDBConfiguration();
-            databaseConnected = MongoDatabase.GetMongoDBConnected();
+            DatabaseConnected = MongoDatabase.GetMongoDBConnected();
 
-            PostCollection = databaseConnected.GetCollection<Post>(PostDocumentName);
+            PostCollection = DatabaseConnected.GetCollection<Post>(PostDocumentName);
         }
 
         public List<Post> GetPostByUserId(ObjectId userObjectId) {
@@ -59,7 +60,7 @@ namespace SocialNetworkBE.Repository {
                     Builders<Post>.Filter.Eq("OwnerId", ownerId);
 
                 Post deletePost = PostCollection.FindOneAndDelete(postNeedDeleteFilter);
-                if (deletePost != null) 
+                if (deletePost != null)
                     return true;
 
                 return false;
@@ -69,12 +70,15 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public List<BsonDocument> GetPostByPageAndSizeAndSorted(int page, int size) {
+        public List<BsonDocument> GetPostByPageAndSizeAndSorted(int page, int size, string sortType) {
             try {
                 int paging = page * size;
+                var sort = sortType == "desc"
+                    ? Builders<BsonDocument>.Sort.Descending("UpdateAt")
+                    : Builders<BsonDocument>.Sort.Ascending("UpdateAt");
 
                 IMongoCollection<BsonDocument> PostCollectionBsonDocument =
-                    databaseConnected.GetCollection<BsonDocument>(PostDocumentName);
+                    DatabaseConnected.GetCollection<BsonDocument>(PostDocumentName);
 
                 FilterDefinition<BsonDocument> justUpdatePostFilter = Builders<BsonDocument>.Filter.Empty;
 
@@ -94,16 +98,35 @@ namespace SocialNetworkBE.Repository {
 
                 var topLevelProjectionResults = PostCollectionBsonDocument
                     .Find(justUpdatePostFilter)
+                    .Sort(sort)
                     .Project(projection)
                     .Skip(paging)
                     .Limit(size)
                     .ToList();
 
                 return topLevelProjectionResults;
-
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return new List<BsonDocument>();
+            }
+        }
+
+        public async Task UpdateNumOfCommentOfPost(ObjectId postObjectId, int increaseValue) {
+            try {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
+
+                UpdateDefinition<Post> update = Builders<Post>.Update
+                    .Inc(post => post.NumOfComment, increaseValue)
+                    .Set(post => post.UpdateAt, DateTime.Now);
+
+                var options = new FindOneAndUpdateOptions<Post>() { 
+                    ReturnDocument = ReturnDocument.After 
+                };
+
+                await PostCollection.FindOneAndUpdateAsync(filter, update, options);
+
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
             }
         }
 
