@@ -7,6 +7,7 @@ using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
 using System.Security.Cryptography;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -17,8 +18,7 @@ namespace SocialNetworkBE.Controllers {
         [HttpPost]
         [Route("")] 
         // Endpoint: /api/v1/posts/ [POST]
-        public ResponseBase CreateAPostFromUser() {
-            // TODO: Need to test
+        public async Task<ResponseBase> CreateAPostFromUser() {
             HttpFileCollection Media = HttpContext.Current.Request.Files;
             var Content = FormData.GetValueByKey("Content");
             
@@ -31,7 +31,7 @@ namespace SocialNetworkBE.Controllers {
            UserMetadata userMetadata = 
                 new UserMetadata().GetUserMetadataFromRequest(Request);
 
-            return postEventHandler
+            return await postEventHandler
                 .HandleUserCreateNewPost(Media, Content, userMetadata) ;
         }
         

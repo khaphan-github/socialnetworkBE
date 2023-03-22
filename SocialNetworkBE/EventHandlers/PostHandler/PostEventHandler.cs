@@ -1,7 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
-using Org.BouncyCastle.Asn1.Ocsp;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
@@ -11,8 +10,8 @@ using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Services.Firebase;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace SocialNetworkBE.EventHandlers.PostHandler {
@@ -62,7 +61,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             return response;
         }
 
-        public ResponseBase HandleUserCreateNewPost(
+        public async Task<ResponseBase> HandleUserCreateNewPost(
             HttpFileCollection Media,
             string Content,
            UserMetadata userMetadata) {
@@ -70,25 +69,25 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             FirebaseImage firebaseService = new FirebaseImage();
             List<string> mediaURLList = new List<string>();
 
-            // TODO: Not update to firebase
+            int MaxMediaInCollection = 10;
+            if (Media != null && Media.Count > MaxMediaInCollection) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "Number of file must smaller than 10 file",
+                };
+            }
+
             if (Media != null) {
                 for (int i = 0; i < Media.Count; i++) {
-                    
-                    HttpPostedFile fileFromMedia = Media[i]; 
-                    
-                    FileStream fileStream = 
-                        new FileStream("" + fileFromMedia.FileName, FileMode.Create);
+                    string mediaName = Guid.NewGuid().ToString() + ".png";
 
-                    fileFromMedia.InputStream.CopyTo(fileStream);
+                    string folder = "PostMedia";
 
-                    string imageURL = 
-                        firebaseService.UploadImage(
-                            fileStream, 
-                            "Account", 
-                            fileFromMedia.FileName, 
-                            ".png").Result;
-                
-                    mediaURLList.Add(imageURL);
+                    await firebaseService.UploadImageAsync(Media[i].InputStream, folder, mediaName);
+
+                    string imageDownloadLink = firebaseService.StorageDomain + "/" + folder + "/" + mediaName;
+
+                    mediaURLList.Add(imageDownloadLink);
                 }
             }
 

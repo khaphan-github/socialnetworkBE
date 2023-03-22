@@ -6,45 +6,82 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using SocialNetworkBE.ServerConfiguration;
 using Firebase.Storage;
+using System.Threading;
+using System.Net.Http;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace SocialNetworkBE.Services.Firebase {
     public class FirebaseImage {
-        public async Task<string> UploadImage(FileStream fileStream, string folder, string name, string fileFormat) {
-            Image imageResize = Resize2Max50Kbytes(fileStream);
-            MemoryStream stream = new MemoryStream();
 
-            imageResize.Save(stream, ImageFormat.Jpeg);
+        private string APIKey { get; set; }
+        private string UserEmail { get; set; }
+        private string Password { get; set; }
+        private string Bucket { get; set; }
+        public string StorageDomain { get; set; }
+        private FirebaseAuthLink FirebaseAuthLink { get; set; }
+        public FirebaseImage() {
+            APIKey = ServerEnvironment.GetFirebaseApiKey();
+            UserEmail = ServerEnvironment.GetFirebaseAuthEmail();
+            Password = ServerEnvironment.GetFirebaseAuthPwd();
+            Bucket = ServerEnvironment.GetFirebaseBucket();
+            StorageDomain = ServerEnvironment.GetFirebaseStorageDomain();
+        }
 
-            var auth = new FirebaseAuthProvider(new FirebaseConfig(ServerEnvironment.GetFirebaseApiKey()));
-            var a = await auth
-                .SignInWithEmailAndPasswordAsync(
-                    ServerEnvironment.GetFirebaseAuthEmail(),
-                    ServerEnvironment.GetFirebaseAuthPwd()
-                );
+        private async Task<FirebaseAuthLink> ExecuteWithPostContentAsync(string googleUrl, string postContent) {
+            string responseData = "N/A";
+            try {
+                HttpClient client = new HttpClient();
 
-            var  task =  new FirebaseStorage(
-                ServerEnvironment.GetFirebaseBucket(),
+                HttpResponseMessage response =
+                    await client.PostAsync(
+                        new Uri(string.Format(googleUrl, new object[1] { APIKey })),
+                        new StringContent(postContent, Encoding.UTF8,
+                        "application/json"));
 
-                 new FirebaseStorageOptions
-                 {
-                     AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
+                responseData = await response.Content.ReadAsStringAsync();
+                response.EnsureSuccessStatusCode();
+
+                FirebaseAuthLink firebaseAuthLink = JsonConvert.DeserializeObject<FirebaseAuthLink>(responseData);
+                return firebaseAuthLink;
+            } catch (Exception innerException) {
+                throw new FirebaseAuthException(googleUrl, postContent, responseData, innerException);
+            }
+        }
+
+
+        public async Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password) {
+            string contentFormat = "{{\"email\":\"{0}\",\"password\":\"{1}\",\"returnSecureToken\":false}}";
+            string postContent = string.Format(contentFormat, new object[2] { email, password });
+
+            string googleApisEndpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key={0}";
+            
+            return await ExecuteWithPostContentAsync(googleApisEndpoint, postContent)
+                .ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        public async Task<string> UploadImageAsync(Stream fileStream, string folder, string mediaName) {
+
+            if(FirebaseAuthLink == null) {
+                FirebaseAuthLink = await SignInWithEmailAndPasswordAsync(UserEmail, Password);
+            }
+
+            CancellationToken cancellationToken = new CancellationToken();
+
+            FirebaseStorageTask pushMediaTask = new FirebaseStorage(
+                Bucket,
+                 new FirebaseStorageOptions {
+                     AuthTokenAsyncFactory =
+                        () => Task.FromResult(FirebaseAuthLink.FirebaseToken),
                      ThrowOnCancel = true,
                  })
                 .Child(folder)
-                .Child(name + fileFormat)
-                .PutAsync(stream);
+                .Child(mediaName)
+                .PutAsync(fileStream, cancellationToken);
 
-            return await task;
+            return await pushMediaTask;
         }
 
-
-
-        public async Task getUrl(string namePic) {
-            FirebaseStorage storage = new FirebaseStorage("socialnetwork-4c654.appspot.com");
-            var starsRef = storage.Child("AvatarUrl").Child(namePic);       
-            string link = await starsRef.GetDownloadUrlAsync();
-            System.Diagnostics.Debug.WriteLine(link);
-        }
 
         public Image Resize2Max50Kbytes(FileStream fileStream) {
             System.Diagnostics.Debug.WriteLine(fileStream.GetType());
@@ -74,9 +111,7 @@ namespace SocialNetworkBE.Services.Firebase {
                 resultStream.Close();
                 scale -= 0.05f;
             }
-
             return img;
-
         }
     }
 
