@@ -10,12 +10,12 @@ namespace Testing {
     public class PostRepositoryTest {
         private readonly PostRespository PostRespository = new PostRespository();
 
-       
+
 
         [TestMethod]
         public void GivenUserObjectId_WhenGetPostByUserId_ThenReturnListOfPost() {
 
-            ObjectId existedUserObjectId = ObjectId.Parse("63f975f79e8d47050cfa8f19");
+            ObjectId existedUserObjectId = ObjectId.Parse("64049464be304cff9d2062be");
 
             List<Post> postResult = PostRespository.GetPostByUserId(existedUserObjectId);
 
@@ -25,7 +25,7 @@ namespace Testing {
         [TestMethod]
         public void GivenNewPost_WhenInsertOnePost_ThenReturnRightPost() {
             // Given
-            ObjectId ownerId = ObjectId.Parse("63f975f79e8d47050cfa8f19");
+            ObjectId ownerId = ObjectId.Parse("64049464be304cff9d2062be");
 
             string content = "Gavin :\r\nHẹn em vào một ngày chiều thu / khi mùa hoa kia dần chớm nở\r\nTa lại " +
                 "hòa mình vào bài ca / là lúc tim em đã dần hé mở \r\nAnh đào chuyển mình xơ xác đông phong / " +
@@ -38,42 +38,39 @@ namespace Testing {
                 "khi mái tóc bạc màu / Giờ còn lại gì trao nhau \r\nRừng phong , mắt ngọc trông nàng \r\nThủy thanh ," +
                 " trùng non bất phùng lai\r\nTrống không , Tâm tư với Bông vàng \r\nSuy nghĩ , rối bời khóc Cùng ai x2";
 
+            ObjectId postId = ObjectId.GenerateNewId();
             Post post = new Post() {
-                Id = new ObjectId(),
+                Id = postId,
                 Media = new List<string>() {
                     "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY" +
                     "2h8Mnx8aHVtYW58ZW58MHx8MHx8&w=1000&q=80",
                     "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY" +
                     "2h8Mnx8aHVtYW58ZW58MHx8MHx8&w=1000&q=80"
                 },
+                OwnerProfileURL = "/usertest1",
+                OwnerDisplayName = "User Test 1",
+                OwnerAvatarURL = "https://s120-ava-talk.zadn.vn/d/9/d/5/17/120/4123221a970ff46aff6e24ef54e0fa1f.jpg",
                 CreateDate = DateTime.Now,
                 UpdateAt = DateTime.Now,
-                NumofComment = 0,
+
+                NumOfComment = 0,
                 Scope = "public",
                 OwnerId = ownerId,
                 Content = content,
+                CommentsURL = "/api/v1/post/comments/?pid=" + postId.ToString() + "&page=0&size=3",
+                LikesURL = "/api/v1/post/likes/?pid=" + postId.ToString() + "&page=0&size=3",
             };
 
-            string commentGuid = Guid.NewGuid().ToString();
-            post.Comments = new Dictionary<string, Comment> {
+            
+            post.Likes = new List<Like> {
                 {
-                    commentGuid,
-                    new Comment() {
-                        Content = "Nice",
-                        CreateDate = DateTime.Now,
-                        NumofLike = 0,
-                        OwnerId = ownerId,
-
-                    }
-                }
-            };
-            string likeGuid = Guid.NewGuid().ToString();
-            post.Likes = new Dictionary<string, Like> {
-                {
-                    likeGuid,
                     new Like() {
+                          OwnerProfileURL = "/usertest1",
+                        OwnerDisplayName = "User Test 1",
+                        OwnerAvatarURL = "https://s120-ava-talk.zadn.vn/d/9/d/5/17/120/4123221a970ff46aff6e24ef54e0fa1f.jpg",
                         CreateDate= DateTime.Now,
                         OwnerId = ownerId,
+
                         TypeofAction = "Like"
                     }
                 }
@@ -98,7 +95,7 @@ namespace Testing {
             bool isRightMedia1 = savedPost.Media[1] == post.Media[1];
             Assert.IsTrue(isRightMedia1);
 
-            bool isNumOfCommentEqualZero = savedPost.NumofComment == 0;
+            bool isNumOfCommentEqualZero = savedPost.NumOfComment == 0;
             Assert.IsTrue(isNumOfCommentEqualZero);
 
             bool isRightUserId = savedPost.OwnerId.Equals(post.OwnerId);
@@ -106,36 +103,7 @@ namespace Testing {
 
             bool isRightContent = savedPost.Content == post.Content;
             Assert.IsTrue(isRightContent);
-
-            /** Commetn of post*/
-            string expectComment = "Nice";
-            Comment recieveComment;
-
-            bool isCanGetComment = savedPost.Comments.TryGetValue(commentGuid, out recieveComment);
-            Assert.IsTrue(isCanGetComment);
-
-            bool isRightComment = recieveComment.Content == expectComment;
-            Assert.IsTrue(isRightComment);
-
-            bool isRightOwnerIdOfComment = recieveComment.OwnerId.Equals(ownerId);
-            Assert.IsTrue(isRightOwnerIdOfComment);
-
-            bool isNumofLikeEqualZero = recieveComment.NumofLike == 0;
-            Assert.IsTrue(isNumofLikeEqualZero);
-
-            Like recieveLike;
-            bool isCanGetLike = savedPost.Likes.TryGetValue(likeGuid, out recieveLike);
-            Assert.IsTrue(isCanGetLike);
-
-            bool isRightLikeOwnerId = recieveLike.OwnerId.Equals(ownerId);
-            Assert.IsTrue(isRightLikeOwnerId);
-
-            bool isRightTypeOfAction = recieveLike.TypeofAction.Equals("Like");
-            Assert.IsTrue(isRightTypeOfAction);
-
-            bool isDeleted = PostRespository.DetetePostById(post.Id);
-            Assert.IsTrue(isDeleted);
-        }
+        }      
     }
 }
 

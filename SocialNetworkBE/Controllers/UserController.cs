@@ -1,21 +1,45 @@
-﻿using SocialNetworkBE.Payload.Response;
+﻿using LiteDB;
+using MongoDB.Bson;
+using SocialNetworkBE.EventHandlers.User;
+using SocialNetworkBE.Payload.Response;
+using SocialNetworkBE.Repository;
 using System;
 using System.Web.Http;
+using ObjectId = MongoDB.Bson.ObjectId;
 
 namespace SocialNetworkBE.Controllers {
     public class UserController : ApiController {
-
+        private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
+        private readonly UserEventHandler userEventHandler = new UserEventHandler();
         private const string REFIX = "api/v1/user";
         [HttpGet]
         [Route(REFIX + "/")] // Endpoint: /api/v1/user?id=507f1f77bcf86cd799439011 [GET]
         public ResponseBase GetUserProfileById(string uid) {
-            return new ResponseBase();
+            bool isRightId = ObjectId.TryParse(uid, out var userId);
+            if(!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+            return userEventHandler.GetUserProfileById(userId);
         }
 
         [HttpGet]
-        [Route(REFIX + "/friends")] // Endpoint: api/v1/user/friends?id=507f1f77bcf86cd799439011&page=1&size=15 [GET]
-        public ResponseBase GetFriendOfUserByUserId(string uid, Int32 page, Int32 size) { 
-            return new ResponseBase(); 
+        [Route(REFIX + "/friends")] // Endpoint: api/v1/user/friends?id=507f1f77bcf86cd799439011&page=1&size=15 [GET] RETURN LIST(ID, DISPLAYNAME, AVATAR, PROFILEURL)
+        public ResponseBase GetFriendOfUserByUserId(string uid) {
+            bool isRightId = ObjectId.TryParse(uid, out var userId);
+            if (!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+            return userEventHandler.GetFriendOfUserByUserId(userId);
         }
 
         [HttpGet]
@@ -24,7 +48,7 @@ namespace SocialNetworkBE.Controllers {
             return new ResponseBase(); 
         }
 
-        [HttpPost]
+        [HttpPost] // hyypput
         [Route(REFIX + "/profile")] // Endpoint: /api/v1/user/profile?uid=507f1f77bcf86cd799439011
         public ResponseBase UpdateUserProfile(string uid) { 
             return new ResponseBase(); 
@@ -39,13 +63,33 @@ namespace SocialNetworkBE.Controllers {
         [HttpPost]
         [Route(REFIX + "/friends/accept")]  // Endpoint: /api/v1/user/friends/accept?uid={uid}&fid={fid} [POST]
         public ResponseBase AcceptInvitationFromOtherUser(string uid, string fid) {
-            return new ResponseBase();
+            bool isRightUserObjectId = ObjectId.TryParse(uid, out var userId);
+            bool isRightfriendObjectId = ObjectId.TryParse(fid, out var friendId);
+            if(!isRightUserObjectId && !isRightfriendObjectId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "wrong format"
+                };
+            }
+            return userEventHandler.AddNewFriendByAccount(userId, friendId);
         }
 
         [HttpPost]
         [Route(REFIX + "/friends/denied")] // Endpoint: /api/v1/user/friends/denied?uid={uid}&fid={fid} [POST]
         public ResponseBase DeniedInvatationToOtherUser(string uid, string fid) {
-            return new ResponseBase();
+            bool isRightUserObjectId = ObjectId.TryParse(uid, out var userId);
+            bool isRightfriendObjectId = ObjectId.TryParse(fid, out var friendId);
+            if (!isRightUserObjectId && !isRightfriendObjectId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "wrong format"
+                };
+            }
+            return userEventHandler.RemoveAFriendFromAccount(userId, friendId);
         }
     }
 }

@@ -2,97 +2,53 @@
 using MongoDB.Bson;
 using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys.DataModels;
+using SocialNetworkBE.ServerConfiguration;
+using SocialNetworkBE.Services.Hash;
 
 namespace Testing {
-    /// <summary>
-    /// Summary description for AccountRepositoryTest
-    /// </summary>
+
     [TestClass]
     public class AccountRepositoryTest {
         private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
 
-        [TestMethod]
-        public void GivenRightUsernameAndPassword_WhenGetAccountByUsernameAndPassword_ThenReturnAccountInfo() {
-            string username = "user-test-0";
-            string password = "password-test-0";
+        private Account CreateAccountTest(string username, string password) {
+            BCryptService bCryptService = new BCryptService();
 
-            Account accountInserted =
-                accountResponsitory.GetAccountByUsernameAndPassword(username, password);
-            Assert.IsNotNull(accountInserted);
+            string randomSalt = bCryptService.GetRandomSalt();
+            string secretKey = ServerEnvironment.GetServerSecretKey();
+            string displayName = "Kha Phan";
+            string email = "khaphanne@gmail.com";
+            string profile = "/khaphanne";
 
-            bool isRightUsername = accountInserted.Username.Equals(username);
-            Assert.IsTrue(isRightUsername);
+            string passwordHash =
+                bCryptService
+                .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
 
-            bool isRightPassword = accountInserted.Password.Equals(password);
-            Assert.IsTrue(isRightPassword);
-        }
-
-        [TestMethod]
-        public void GivenEmptyUsernameAndRightPassword_WhenGetAccountByUsernameAndPassword_ThenRerturnNull() {
-            string username = "";
-            string password = "password-test-not-exist";
-           
-            Account accountInserted =
-                accountResponsitory.GetAccountByUsernameAndPassword(username, password);
-            
-            Assert.IsNull(accountInserted);
-        }
-
-        [TestMethod]
-        public void GivenRightUsernameAndEmptyPassword_WhenGetAccountByUsernameAndPassword_ThenRerturnNull() {
-            string username = "user-test-0";
-            string password = "";
-
-            Account accountInserted =
-                accountResponsitory.GetAccountByUsernameAndPassword(username, password);
-
-            Assert.IsNull(accountInserted);
-        }
-
-        [TestMethod]
-        public void GivenWrongUsernameAndPassword_WhenGetAccountByUsernameAndPassword_ThenRerturnNull () {
-            string username = "user-test-not-exist";
-            string password = "password-test-not-exist";
-
-            Account accountInserted =
-                accountResponsitory.GetAccountByUsernameAndPassword(username, password);
-            Assert.IsNull(accountInserted);
-        }
-
-        [TestMethod]
-        public void GivenWrongUsernameAndRightPassword_WhenGetAccountByUsernameAndPassword_ThenRerturnNull() {
-            string username = "user-test-not-exist";
-            string password = "password-test-0";
-
-            Account accountInserted =
-                accountResponsitory.GetAccountByUsernameAndPassword(username, password);
-            Assert.IsNull(accountInserted);
-        }
-
-        [TestMethod]
-        public void GivenRightUsernameAndWrongPassword_WhenGetAccountByUsernameAndPassword_ThenRerturnNull() {
-            string username = "user-test-0";
-            string password = "password-test-not-exist";
-
-            Account accountInserted =
-                accountResponsitory.GetAccountByUsernameAndPassword(username, password);
-            Assert.IsNull(accountInserted);
-        }
-
-        [TestMethod]
-        public void GivenAnAccount_WhenInsertAccount_ThenReturnAccountInserted() {
             Account accountTest = new Account() {
                 Id = ObjectId.GenerateNewId(),
-                DisplayName = "User Test 1",
-                Email = "usertest1@gmail.com",
+                DisplayName = displayName,
+                Email = email,
                 AvatarUrl = "https://s120-ava-talk.zadn.vn/d/9/d/5/17/120/4123221a970ff46aff6e24ef54e0fa1f.jpg",
-                UserProfileUrl = "/usertest1",
-                Username = "user-test-1",
-                Password = "password-test-1"
+                UserProfileUrl = profile,
+                Username = username,
+                Password = passwordHash,
+                HashSalt = randomSalt,
             };
+            return  accountResponsitory.CreateNewAccount(accountTest);
+        }
 
-            Account accountSaved = accountResponsitory.CreateNewAccount(accountTest);
-            Assert.IsNotNull(accountSaved);
+        [TestMethod]
+        [DataRow("username-test-1", "password-test-1")]
+        [DataRow("username-test-2", "password-test-1")]
+        public void GivenRightUsername_WhenGetAccountByUsername_ThenReturnAccountInfo(string username, string password) {
+            Account accountTest = CreateAccountTest(username, password);
+
+            Account accountInserted =
+                accountResponsitory.GetAccountByUsername(accountTest.Username);
+
+            Assert.IsNotNull(accountInserted);
+            bool isRightUsername = accountInserted.Username.Equals(username);
+            Assert.IsTrue(isRightUsername);
 
             bool isDeleted = accountResponsitory.DeleteAccount(accountTest.Id);
             Assert.IsTrue(isDeleted);

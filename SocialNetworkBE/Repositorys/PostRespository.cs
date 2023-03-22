@@ -5,29 +5,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SocialNetworkBE.Repository.Config;
-using SocialNetworkBE.Repositorys.Interfaces;
+using ServiceStack;
+using System.Threading.Tasks;
 
 namespace SocialNetworkBE.Repository {
-    public class PostRespository : IPostRepository {
+    public class PostRespository {
         private IMongoCollection<Post> PostCollection { get; set; }
+        private IMongoDatabase DatabaseConnected { get; set; }
+        private const string PostDocumentName = "Post";
 
         public PostRespository() {
-            const string PostDocumentName = "Post";
-
             MongoDBConfiguration MongoDatabase = new MongoDBConfiguration();
-            IMongoDatabase databaseConnected = MongoDatabase.GetMongoDBConnected();
+            DatabaseConnected = MongoDatabase.GetMongoDBConnected();
 
-            PostCollection = databaseConnected.GetCollection<Post>(PostDocumentName);
+            PostCollection = DatabaseConnected.GetCollection<Post>(PostDocumentName);
         }
 
         public List<Post> GetPostByUserId(ObjectId userObjectId) {
             try {
                 FilterDefinition<Post> userOwnedPostFilter = Builders<Post>.Filter.Eq("OwnerId", userObjectId);
-            
+
                 return PostCollection.Find(userOwnedPostFilter).ToList();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                throw;
+                return new List<Post> { null };
             }
         }
 
@@ -38,7 +39,7 @@ namespace SocialNetworkBE.Repository {
                 return PostCollection.Find(userOwnedPostFilter).FirstOrDefault();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                throw;
+                return null;
             }
         }
 
@@ -52,53 +53,81 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public bool DetetePostById(ObjectId postObjectId) {
+        public bool DetetePostById(ObjectId postObjectId, ObjectId ownerId) {
             try {
-                FilterDefinition<Post> postNeedDeleteFilter = Builders<Post>.Filter.Eq("_id", postObjectId);
-                PostCollection.DeleteOne(postNeedDeleteFilter);
+                FilterDefinition<Post> postNeedDeleteFilter =
+                    Builders<Post>.Filter.Eq("_id", postObjectId) &
+                    Builders<Post>.Filter.Eq("OwnerId", ownerId);
 
-                return true;
+                Post deletePost = PostCollection.FindOneAndDelete(postNeedDeleteFilter);
+                if (deletePost != null)
+                    return true;
+
+                return false;
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return false;
             }
         }
 
-        public List<Post> GetPostByPageAndSizeAndSorted(int page, int size) {
+        public List<BsonDocument> GetPostByPageAndSizeAndSorted(int page, int size, string sortType) {
             try {
                 int paging = page * size;
-                
-                FilterDefinition < Post > justUpdatePostFilter = Builders<Post>.Filter.Empty;
+                var sort = sortType == "desc"
+                    ? Builders<BsonDocument>.Sort.Descending("UpdateAt")
+                    : Builders<BsonDocument>.Sort.Ascending("UpdateAt");
 
-                var topLevelProjectionResults = PostCollection
+                IMongoCollection<BsonDocument> PostCollectionBsonDocument =
+                    DatabaseConnected.GetCollection<BsonDocument>(PostDocumentName);
+
+                FilterDefinition<BsonDocument> justUpdatePostFilter = Builders<BsonDocument>.Filter.Empty;
+
+                var projection = Builders<BsonDocument>.Projection
+                    .Include("OwnerId")
+                    .Include("OwnerAvatarURL")
+                    .Include("OwnerDisplayName")
+                    .Include("OwnerProfileURL")
+                    .Include("UpdateAt")
+                    .Include("Scope")
+                    .Include("Content")
+                    .Include("Media")
+                    .Include("NumOfComment")
+                    .Include("CommentsURL")
+                    .Include("NumOfLike")
+                    .Include("LikesURL");
+
+                var topLevelProjectionResults = PostCollectionBsonDocument
                     .Find(justUpdatePostFilter)
-                    .SortByDescending(post => post.CreateDate)
+                    .Sort(sort)
+                    .Project(projection)
                     .Skip(paging)
                     .Limit(size)
                     .ToList();
 
                 return topLevelProjectionResults;
-
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                return new List<Post>();
+                return new List<BsonDocument>();
             }
         }
 
-        public bool DeteteCommentOfPostByGuid(ObjectId postObjectId, Guid CommentGuid) {
-            throw new NotImplementedException();
-        }
+        public async Task UpdateNumOfCommentOfPost(ObjectId postObjectId, int increaseValue) {
+            try {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
 
-        public Comment MakeACommentToPost(ObjectId postObjectId, Comment comment) {
-            throw new NotImplementedException();
-        }
+                UpdateDefinition<Post> update = Builders<Post>.Update
+                    .Inc(post => post.NumOfComment, increaseValue)
+                    .Set(post => post.UpdateAt, DateTime.Now);
 
-        public Comment UpdateAcommentByGuid(ObjectId postObjectId, Guid commentGuid) {
-            throw new NotImplementedException();
-        }
+                var options = new FindOneAndUpdateOptions<Post>() { 
+                    ReturnDocument = ReturnDocument.After 
+                };
 
-        public List<Comment> GetCommentsByPostIdWithPaging(ObjectId postObjectId, int page, int size) {
-            throw new NotImplementedException();
+                await PostCollection.FindOneAndUpdateAsync(filter, update, options);
+
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
         }
 
         public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {
