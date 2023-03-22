@@ -20,7 +20,6 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         private readonly PostRespository PostRespository = new PostRespository();
         private readonly CommentRepository CommentRepository = new CommentRepository();
         public ResponseBase GetPostsWithPaging(int page, int size) {
-
             List<PostResponse> postResponses = PostRespository
              .GetPostByPageAndSizeAndSorted(page, size)
              .Select(bsonPost => BsonSerializer.Deserialize<PostResponse>(bsonPost))
@@ -70,6 +69,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             List<string> mediaURLList = new List<string>();
 
             int MaxMediaInCollection = 10;
+
             if (Media != null && Media.Count > MaxMediaInCollection) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
@@ -174,7 +174,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
         }
 
-        public ResponseBase CommentAPostByPostId(
+        public async Task<ResponseBase> CommentAPostByPostId(
             ObjectId postId,
             ObjectId? commentId,
             UserMetadata userMetadata,
@@ -193,8 +193,8 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             if (commentId != null) {
                 commentToCreate.ParentId = commentId;
             }
-
             Comment commentCreated = CommentRepository.CreateCommentAPost(commentToCreate);
+            await PostRespository.UpdateNumOfCommentOfPost(postId, 1);
 
             if (commentCreated == null) {
                 return new ResponseBase() {
@@ -210,22 +210,24 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
         }
 
-        public ResponseBase DeleteCommentByCommentId(ObjectId commentId, UserMetadata userMetadata) {
+        public async Task<ResponseBase> DeleteCommentByCommentId(ObjectId commentId, ObjectId postId, UserMetadata userMetadata) {
 
             DeleteResult deleteResult =
                 CommentRepository.DeteteCommentById(commentId, ObjectId.Parse(userMetadata.Id));
 
-            if (!deleteResult.IsAcknowledged) {
+            if (deleteResult.IsAcknowledged) {
+                await PostRespository.UpdateNumOfCommentOfPost(postId, -1);
+                
                 return new ResponseBase() {
-                    Status = Status.Failure,
-                    Message = "Delete comment failure",
+                    Status = Status.Success,
+                    Message = "Delete comment success",
                 };
             }
-
             return new ResponseBase() {
-                Status = Status.Success,
-                Message = "Delete comment success",
+                Status = Status.Failure,
+                Message = "Delete comment failure",
             };
+          
         }
 
         public ResponseBase UpdateCommentById(ObjectId commentId, UserMetadata userMetadata, string content) {

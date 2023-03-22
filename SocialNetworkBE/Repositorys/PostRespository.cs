@@ -6,6 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using SocialNetworkBE.Repository.Config;
 using ServiceStack;
+using System.IO.Packaging;
+using System.Drawing.Text;
+using System.Threading.Tasks;
+using MongoDB.Driver.Builders;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
@@ -59,7 +63,7 @@ namespace SocialNetworkBE.Repository {
                     Builders<Post>.Filter.Eq("OwnerId", ownerId);
 
                 Post deletePost = PostCollection.FindOneAndDelete(postNeedDeleteFilter);
-                if (deletePost != null) 
+                if (deletePost != null)
                     return true;
 
                 return false;
@@ -104,6 +108,24 @@ namespace SocialNetworkBE.Repository {
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return new List<BsonDocument>();
+            }
+        }
+
+
+        public async Task UpdateNumOfCommentOfPost(ObjectId postObjectId, int increaseValue) {
+            try {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
+
+                UpdateDefinition<Post> update = 
+                    Builders<Post>.Update.Inc(post => post.NumOfComment, increaseValue);
+
+                var options = new FindOneAndUpdateOptions<Post>() { 
+                    ReturnDocument = ReturnDocument.After 
+                };
+
+                await PostCollection.FindOneAndUpdateAsync(filter, update, options);
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
             }
         }
 
