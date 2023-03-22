@@ -84,7 +84,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
                     string folder = "PostMedia";
 
-                    await firebaseService.UploadImageAsync(Media[i].InputStream, folder, mediaName);
+                    await firebaseService.UploadImageAsync(Media[i].InputStream, folder, mediaName).ConfigureAwait(false);
 
                     string imageDownloadLink = firebaseService.StorageDomain + "/" + folder + "/" + mediaName;
 
@@ -218,7 +218,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             if (deleteResult.IsAcknowledged) {
                 await PostRespository.UpdateNumOfCommentOfPost(postId, -1);
-                
+
                 return new ResponseBase() {
                     Status = Status.Success,
                     Message = "Delete comment success",
@@ -228,7 +228,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Status = Status.Failure,
                 Message = "Delete comment failure",
             };
-          
+
         }
 
         public ResponseBase UpdateCommentById(ObjectId commentId, UserMetadata userMetadata, string content) {
