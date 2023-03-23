@@ -7,6 +7,12 @@ using System.Linq;
 using SocialNetworkBE.Repository.Config;
 using ServiceStack;
 using System.Threading.Tasks;
+using MongoDB.Driver.Builders;
+using Amazon.Runtime.Documents;
+using System.Collections.ObjectModel;
+using MongoDB.Driver.Linq;
+using SocialNetworkBE.Payloads.Response;
+using MongoDB.Bson.Serialization;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
@@ -119,8 +125,8 @@ namespace SocialNetworkBE.Repository {
                     .Inc(post => post.NumOfComment, increaseValue)
                     .Set(post => post.UpdateAt, DateTime.Now);
 
-                var options = new FindOneAndUpdateOptions<Post>() { 
-                    ReturnDocument = ReturnDocument.After 
+                var options = new FindOneAndUpdateOptions<Post>() {
+                    ReturnDocument = ReturnDocument.After
                 };
 
                 await PostCollection.FindOneAndUpdateAsync(filter, update, options);
@@ -130,12 +136,47 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {
-            throw new NotImplementedException();
+        public async Task MakeALikeOfPostAsync(ObjectId postObjectId, ObjectId userId) {
+            try {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
+
+                UpdateDefinition<Post> update = Builders<Post>.Update
+                       .Set(post => post.UpdateAt, DateTime.Now)
+                       .Push(post => post.Likes, userId)
+                       .Inc(post => post.NumOfLike, 1);
+
+                await PostCollection.UpdateOneAsync(filter, update);
+
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
         }
 
-        public bool RemoveAlikeOfPost(ObjectId postObjectId, Guid LikeGuid) {
-            throw new NotImplementedException();
+        public async Task RemoveAlikeOfPostAsync(ObjectId postObjectId, ObjectId userId) {
+            try {
+                var filter = Builders<Post>.Filter.Eq(post => post.Id, postObjectId);
+                var update = Builders<Post>.Update
+                    .Pull(post => post.Likes, userId)
+                    .Inc(post => post.NumOfLike, -1);
+
+                await PostCollection.UpdateOneAsync(filter, update);
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
+        }
+
+        public BsonDocument GetUserMetadataLikedPost(ObjectId postObjectId, int page, int size) {
+            try {
+                int paging = page * size;
+
+                var filter = Builders<Post>.Filter.Eq(post => post.Id, postObjectId);
+                var projection = Builders<Post>.Projection.Include(post => post.Likes);
+
+                return PostCollection.Find(filter).Project(projection).Skip(paging).Limit(size).FirstOrDefault();
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return new BsonDocument();
+            }
         }
     }
 }

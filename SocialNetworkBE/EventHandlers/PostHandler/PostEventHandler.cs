@@ -19,6 +19,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
         private readonly PostRespository PostRespository = new PostRespository();
         private readonly CommentRepository CommentRepository = new CommentRepository();
+        private readonly AccountResponsitory AccountRepostitory = new AccountResponsitory();
         public ResponseBase GetPostsWithPaging(int page, int size, string sort) {
             List<PostResponse> postResponses = PostRespository
              .GetPostByPageAndSizeAndSorted(page, size, sort)
@@ -248,22 +249,90 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Message = "Update commentt success",
             };
         }
+        public async Task<ResponseBase> GetLikesOfPostById(ObjectId postId, int page, int size) {
 
-        public ResponseBase GetLikesOfPostById(ObjectId postId, int page, int size, string sort) {
-            // TODO: Need to Implement
+            BsonDocument likesOfPost =
+                PostRespository.GetUserMetadataLikedPost(postId, page, size);
+
+            List<ObjectId> userLikedId = 
+                likesOfPost["Likes"].AsBsonArray
+                .Select(objectId => ObjectId.Parse(objectId.ToString()))
+                .ToList();
+
+
+            if (userLikedId.Count == 0) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "There are not like in this post",
+                };
+            }
+
+            List<BsonDocument> likesBsonDocument = 
+                await AccountRepostitory.GetListAccountsMetadata(userLikedId, page, size).ConfigureAwait(false);
+
+            List<LikeResponse> likessResponse =
+                likesBsonDocument.Select(bson => BsonSerializer.Deserialize<LikeResponse>(bson)).ToList();
+
+
+            // Logic: page index endpoint
+            string pagingEndpoint = "/api/v1/posts/likes?page=";
+            string pagingSize = "&size=" + size.ToString();
+
+            string nextPageURL = pagingEndpoint + (page + 1).ToString() + pagingSize;
+            string previousPageURL = pagingEndpoint;
+
+            if (page == 0)
+                previousPageURL += page.ToString() + pagingSize;
+            else
+                previousPageURL += (page - 1).ToString() + pagingSize;
+
+
+            PagingResponse pagingResponse = new PagingResponse() {
+                NumberOfElement = likessResponse.Count,
+                Paging = likessResponse,
+                NextPageURL = nextPageURL,
+                PreviousPageURL = previousPageURL,
+            };
 
             return new ResponseBase() {
                 Status = Status.Success,
-                Message = "Update commentt success",
+                Message = "Get list user like post success",
+                Data = pagingResponse
             };
         }
 
-        public ResponseBase LikeAPostByPostId(ObjectId postId, UserMetadata userMetadata) {
+        public async Task<ResponseBase> LikeAPostByPostId(ObjectId postId, UserMetadata userMetadata) {
+            try {
+                await PostRespository.MakeALikeOfPostAsync(postId, ObjectId.Parse(userMetadata.Id));
 
-            return new ResponseBase() {
-                Status = Status.Success,
-                Message = "Like success",
-            };
+                return new ResponseBase() {
+                    Status = Status.Success,
+                    Message = "Like Success",
+                };
+
+            } catch (Exception) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Like Failure",
+                };
+            }
+        }
+
+        public async Task<ResponseBase> UnLikeAPostByPostId(ObjectId postId, UserMetadata userMetadata) {
+            try {
+                await PostRespository.RemoveAlikeOfPostAsync(postId, ObjectId.Parse(userMetadata.Id));
+
+                return new ResponseBase() {
+                    Status = Status.Success,
+                    Message = "Unlike Success",
+                };
+
+            } catch (Exception) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Unlike Failure",
+                };
+            }
         }
     }
 }
