@@ -142,7 +142,8 @@ namespace SocialNetworkBE.Repository {
 
                 UpdateDefinition<Post> update = Builders<Post>.Update
                        .Set(post => post.UpdateAt, DateTime.Now)
-                       .Push(post => post.Likes, userId);
+                       .Push(post => post.Likes, userId)
+                       .Inc(post => post.NumOfLike, 1);
 
                 await PostCollection.UpdateOneAsync(filter, update);
 
@@ -154,7 +155,10 @@ namespace SocialNetworkBE.Repository {
         public async Task RemoveAlikeOfPostAsync(ObjectId postObjectId, ObjectId userId) {
             try {
                 var filter = Builders<Post>.Filter.Eq(post => post.Id, postObjectId);
-                var update = Builders<Post>.Update.Pull(post => post.Likes, userId);
+                var update = Builders<Post>.Update
+                    .Pull(post => post.Likes, userId)
+                    .Inc(post => post.NumOfLike, -1);
+
                 await PostCollection.UpdateOneAsync(filter, update);
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
@@ -175,4 +179,4 @@ namespace SocialNetworkBE.Repository {
             }
         }
     }
-} 
+}

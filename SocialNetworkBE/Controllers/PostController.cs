@@ -137,7 +137,7 @@ namespace SocialNetworkBE.Controllers {
             if (!isRightPostId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "post id wrong format object id"
+                    Message = "Post id wrong format object id"
                 };
             }
 
@@ -152,7 +152,7 @@ namespace SocialNetworkBE.Controllers {
             if (!isRightCommentId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "comment id wrong format object id"
+                    Message = "Comment id wrong format object id"
                 };
             }
 
