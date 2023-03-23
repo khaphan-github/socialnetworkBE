@@ -8,9 +8,6 @@ namespace SocialNetworkBE.Repositorys.DataModels {
         public ObjectId PostId { get; set; }
         public ObjectId? ParentId { get; set; }
         public ObjectId OwnerId { get; set; }
-        public string OwnerAvatarURL { get; set; }
-        public string OwnerDisplayName { get; set; }
-        public string OwnerProfileURL { get; set; }
         public string Content { get; set; }
         public int CommentCount { get; set; } = 0;
         public int ActionCount { get; set; } = 0;

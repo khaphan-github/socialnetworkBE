@@ -1,4 +1,4 @@
-﻿using LiteDB;
+﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository.Config;
@@ -6,6 +6,7 @@ using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -301,6 +302,21 @@ namespace SocialNetworkBE.Repository {
             }
            
             return friends;
+        }
+
+        public async Task<List<BsonDocument>> GetListAccountsMetadata(List<ObjectId> accounts, int page, int size) {
+            try {
+                var filter = Builders<Account>.Filter.In(x => x.Id, accounts);
+                var projection = Builders<Account>.Projection
+                    .Include(account => account.DisplayName)
+                    .Include(account => account.UserProfileUrl)
+                    .Include(account => account.AvatarUrl)
+                    .Include(account => account.Id);
+                  
+                return await AccountCollection.Find(filter).Project(projection).Skip(page * size).Limit(size).ToListAsync();
+            } catch (Exception) {
+                return new List<BsonDocument>();   
+            }
         }
     }
 }
