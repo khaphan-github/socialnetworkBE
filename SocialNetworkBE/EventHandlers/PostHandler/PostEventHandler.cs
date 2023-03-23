@@ -186,10 +186,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Id = ObjectId.GenerateNewId(),
                 Content = comment,
                 PostId = postId,
-                OwnerId = ObjectId.Parse(userMetadata.Id),
-                OwnerAvatarURL = userMetadata.AvatarURL,
-                OwnerDisplayName = userMetadata.DisplayName,
-                OwnerProfileURL = userMetadata.UserProfileUrl,
+                OwnerId = ObjectId.Parse(userMetadata.Id)
             };
 
             if (commentId != null) {
