@@ -163,7 +163,7 @@ namespace SocialNetworkBE.Controllers {
         [HttpDelete]
         [Route("comments")]
         // Endpoint: /api/v1/post/comments?pid={postid}&cid={commentid}  [DELETE]:
-        public async Task<ResponseBase> DeleteCommentOfPostByPostIdCommentIdAndCommentId(string pid,string cid) {
+        public async Task<ResponseBase> DeleteCommentOfPostByPostIdCommentIdAndCommentId(string pid, string cid) {
             if (string.IsNullOrWhiteSpace(cid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
@@ -225,7 +225,7 @@ namespace SocialNetworkBE.Controllers {
         [HttpGet]
         [Route("likes")]
         // Endpoint:/api/v1/post/likes?pid={postid}page=1&size=10&sort=desc [GET]:
-        public ResponseBase GetLikesOfPostById(string pid, int page, int size, string sort) {
+        public async Task<ResponseBase> GetLikesOfPostById(string pid, int page, int size) {
             if (string.IsNullOrWhiteSpace(pid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
@@ -245,12 +245,12 @@ namespace SocialNetworkBE.Controllers {
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
-            return postEventHandler.GetLikesOfPostById(postId, page, size, sort);
+            return await postEventHandler.GetLikesOfPostById(postId, page, size);
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("likes")] // Endpoint:  /api/v1/post/likes?pid={postid} [POST]:
-        public ResponseBase LikeAPostByPostId(string pid) {
+        public async Task<ResponseBase> LikeAPostByPostId(string pid) {
             bool isRightCommentId = ObjectId.TryParse(pid, out var postId);
             if (!isRightCommentId) {
                 return new ResponseBase() {
@@ -260,13 +260,22 @@ namespace SocialNetworkBE.Controllers {
             }
             UserMetadata userMetadata = new UserMetadata().GetUserMetadataFromRequest(Request);
 
-            return postEventHandler.LikeAPostByPostId(postId, userMetadata);
+            return await postEventHandler.LikeAPostByPostId(postId, userMetadata);
         }
 
         [HttpDelete]
         [Route("likes")] // Endpoint:  /api/v1/post/likes?pid={postid}&lid={likeid} [DELETE]:
-        public ResponseBase UnLikePostByPostId(string pid, string lid) {
-            return new ResponseBase();
+        public async Task<ResponseBase> UnLikePostByPostId(string pid) {
+            bool isRightCommentId = ObjectId.TryParse(pid, out var postId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "post id wrong format object id"
+                };
+            }
+            UserMetadata userMetadata = new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            return await postEventHandler.UnLikeAPostByPostId(postId, userMetadata);
         }
     }
 }

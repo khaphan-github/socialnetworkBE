@@ -20,5 +20,6 @@ namespace SocialNetworkBE.Repositorys.DataModels
         public string CommentsURL { get; set; }
         public int NumOfLike { get; set; } = 0;
         public string LikesURL { get; set; }
+        public List<ObjectId> Likes { get; set; }
     }
 }
