@@ -7,6 +7,7 @@ using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys;
 using SocialNetworkBE.Repositorys.DataModels;
+using SocialNetworkBE.Repositorys.DataTranfers;
 using SocialNetworkBE.Services.Firebase;
 using System;
 using System.Collections.Generic;
@@ -34,25 +35,9 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             }
 
             // Logic: page index endpoint
-            string pagingEndpoint = "/api/v1/posts/current?page=";
-            string pagingSize = "&size=" + size.ToString();
-
-            string nextPageURL = pagingEndpoint + (page + 1).ToString() + pagingSize;
-            string previousPageURL = pagingEndpoint;
-
-            if (page == 0)
-                previousPageURL += page.ToString() + pagingSize;
-            else
-                previousPageURL += (page - 1).ToString() + pagingSize;
-
-
-            PagingResponse pagingResponse = new PagingResponse() {
-                NumberOfElement = postResponses.Count,
-                Paging = postResponses,
-                NextPageURL = nextPageURL,
-                PreviousPageURL = previousPageURL,
-            };
-
+            string pagingEndpoint = "/api/v1/posts/current?";
+            PagingResponse pagingResponse = 
+                new PagingResponse(pagingEndpoint, page, size, postResponses);
             ResponseBase response = new ResponseBase() {
                 Status = Status.Success,
                 Message = "Get post success",
@@ -65,7 +50,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         public async Task<ResponseBase> HandleUserCreateNewPost(
             HttpFileCollection Media,
             string Content,
-           UserMetadata userMetadata) {
+            UserMetadata userMetadata) {
 
             FirebaseImage firebaseService = new FirebaseImage();
             List<string> mediaURLList = new List<string>();
@@ -138,43 +123,56 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Message = "Detete success"
             };
         }
-        public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
 
-            List<Comment> commentOfPostWithPaging =
-                CommentRepository.GetCommentOfPostWithPaging(postObjectId, page, size);
+        public async Task<ResponseBase> GetCommentOfPostByPostId(ObjectId postObjectId,ObjectId? parentCommentId, int page, int size) {
+            List<CommentDataTranfer> commentOfPostWithPaging;
+            if (parentCommentId == null) {
+                commentOfPostWithPaging = await CommentRepository.GetCommentOfPostWithPaging(postObjectId, null, page, size);
+            }
+            else {
+                commentOfPostWithPaging = await CommentRepository.GetCommentOfPostWithPaging(postObjectId, parentCommentId, page, size);
+            }
 
-            if (commentOfPostWithPaging.Count == 0) {
+
+            if (commentOfPostWithPaging == null) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "Get comment failure - comment of post is empty",
                 };
             }
+            const string commentEndpoint = "/api/v1/posts/comments/";
+
+            List<CommentsResponse> commentResponses = 
+                commentOfPostWithPaging
+                .Select(comment => new CommentsResponse() {
+                    ActionCount= comment.ActionCount,
+                    ActionUser= comment.ActionUser,
+                    ChildCount = comment.CommentCount,
+                    ChildrenHref = comment.CommentCount > 0 ? commentEndpoint + "?parent=" + comment.Id : "",
+                    Content = comment.Content,
+                    CreateDate= comment.CreateDate,
+                    Id= comment.Id,
+                    IsHaveChild = comment.CommentCount > 0,
+                    OwnerAvatarURL= comment.OwnerAvatarURL,
+                    OwnerDisplayName= comment.OwnerDisplayName,
+                    OwnerId= comment.OwnerId,
+                    OwnerProfileURL= comment.OwnerProfileURL,
+                    ParentId= comment.ParentId,
+                    PostId = comment.PostId,
+                })
+                .ToList();
+
+            string pagingEndpoint = "/api/v1/posts/current?pid=" + postObjectId.ToString() + "&";
+            PagingResponse pagingResponse =
+                new PagingResponse(pagingEndpoint, page, commentResponses.Count, commentResponses);
 
             return new ResponseBase() {
                 Status = Status.Success,
                 Message = "Get comment success",
-                Data = commentOfPostWithPaging
+                Data = pagingResponse
             };
         }
 
-        public ResponseBase GetCommentOfPostByParentId(ObjectId postId, ObjectId commentId, int page, int size) {
-
-            List<Comment> commentOfPostWithPaging =
-                CommentRepository.GetChildrenCommentsByParentId(postId, commentId, page, size);
-
-            if (commentOfPostWithPaging.Count == 0) {
-                return new ResponseBase() {
-                    Status = Status.Failure,
-                    Message = "Get comment failure - comment of post is empty",
-                };
-            }
-
-            return new ResponseBase() {
-                Status = Status.Success,
-                Message = "Get comment success",
-                Data = commentOfPostWithPaging
-            };
-        }
 
         public async Task<ResponseBase> CommentAPostByPostId(
             ObjectId postId,
@@ -187,16 +185,20 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Content = comment,
                 PostId = postId,
                 OwnerId = ObjectId.Parse(userMetadata.Id),
-                OwnerAvatarURL = userMetadata.AvatarURL,
-                OwnerDisplayName = userMetadata.DisplayName,
-                OwnerProfileURL = userMetadata.UserProfileUrl,
             };
 
             if (commentId != null) {
                 commentToCreate.ParentId = commentId;
+                ObjectId parentObjectId = ObjectId.Parse(commentId.ToString());
+
+                await CommentRepository
+                    .UpdateNumberOfChildrent(parentObjectId, 1)
+                    .ConfigureAwait(false);
             }
+
             Comment commentCreated = CommentRepository.CreateCommentAPost(commentToCreate);
-            await PostRespository.UpdateNumOfCommentOfPost(postId, 1);
+
+            await PostRespository.UpdateNumOfCommentOfPost(postId, 1).ConfigureAwait(false);
 
             if (commentCreated == null) {
                 return new ResponseBase() {
@@ -231,6 +233,21 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
 
         }
+        public async Task<ResponseBase> GetCommentById(ObjectId commentId) {
+            // TODO: Get commetn by id
+            CommentDataTranfer commentDataTranfer = await CommentRepository.GetCommentById(commentId);
+            if(commentDataTranfer == null) {
+                return new ResponseBase() {
+                    Status = Status.Success,
+                    Message = "Comment not exist",
+                };
+            }
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Get comment success",
+                Data = commentDataTranfer,
+            };
+        }
 
         public ResponseBase UpdateCommentById(ObjectId commentId, UserMetadata userMetadata, string content) {
 
@@ -246,7 +263,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             return new ResponseBase() {
                 Status = Status.Success,
-                Message = "Update commentt success",
+                Message = "Update comment success",
             };
         }
         public async Task<ResponseBase> GetLikesOfPostById(ObjectId postId, int page, int size) {
@@ -254,7 +271,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             BsonDocument likesOfPost =
                 PostRespository.GetUserMetadataLikedPost(postId, page, size);
 
-            List<ObjectId> userLikedId = 
+            List<ObjectId> userLikedId =
                 likesOfPost["Likes"].AsBsonArray
                 .Select(objectId => ObjectId.Parse(objectId.ToString()))
                 .ToList();
@@ -267,32 +284,16 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 };
             }
 
-            List<BsonDocument> likesBsonDocument = 
+            List<BsonDocument> likesBsonDocument =
                 await AccountRepostitory.GetListAccountsMetadata(userLikedId, page, size).ConfigureAwait(false);
 
-            List<LikeResponse> likessResponse =
+            List<LikeResponse> likesResponse =
                 likesBsonDocument.Select(bson => BsonSerializer.Deserialize<LikeResponse>(bson)).ToList();
 
 
-            // Logic: page index endpoint
-            string pagingEndpoint = "/api/v1/posts/likes?page=";
-            string pagingSize = "&size=" + size.ToString();
-
-            string nextPageURL = pagingEndpoint + (page + 1).ToString() + pagingSize;
-            string previousPageURL = pagingEndpoint;
-
-            if (page == 0)
-                previousPageURL += page.ToString() + pagingSize;
-            else
-                previousPageURL += (page - 1).ToString() + pagingSize;
-
-
-            PagingResponse pagingResponse = new PagingResponse() {
-                NumberOfElement = likessResponse.Count,
-                Paging = likessResponse,
-                NextPageURL = nextPageURL,
-                PreviousPageURL = previousPageURL,
-            };
+            string pagingEndpoint = "/api/v1/posts/likes?";
+            PagingResponse pagingResponse = 
+                new PagingResponse(pagingEndpoint,page, likesResponse.Count, likesResponse) ;
 
             return new ResponseBase() {
                 Status = Status.Success,

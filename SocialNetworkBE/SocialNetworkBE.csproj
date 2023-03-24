@@ -426,7 +426,7 @@
     <Compile Include="Payloads\Request\FormData.cs" />
     <Compile Include="Payloads\Request\Token.cs" />
     <Compile Include="Payloads\Request\UserMetadata.cs" />
-    <Compile Include="Payloads\Response\CommentResponse.cs" />
+    <Compile Include="Payloads\Response\CommentsResponse.cs" />
     <Compile Include="Payloads\Response\FriendRespone.cs" />
     <Compile Include="Payloads\Response\LikeResponse.cs" />
     <Compile Include="Payloads\Response\PagingResponse.cs" />
@@ -437,6 +437,7 @@
     <Compile Include="Repositorys\CommentRepository.cs" />
     <Compile Include="Repositorys\Configs\MongoDBConfiguration.cs" />
     <Compile Include="EventHandlers\Authenticate\AuthService.cs" />
+    <Compile Include="Repositorys\DataTranfers\CommentDataTranfer.cs" />
     <Compile Include="Repositorys\Interfaces\IPostRepository.cs" />
     <Compile Include="Repositorys\DataModels\Account.cs" />
     <Compile Include="Repositorys\DataModels\Comment.cs" />
