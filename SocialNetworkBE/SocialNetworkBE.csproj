@@ -440,6 +440,7 @@
     <Compile Include="EventHandlers\Authenticate\AuthService.cs" />
     <Compile Include="Repositorys\DataModels\Notify.cs" />
     <Compile Include="Repositorys\DataTranfers\CommentDataTranfer.cs" />
+    <Compile Include="Repositorys\DataTranfers\PostDataTranfer.cs" />
     <Compile Include="Repositorys\Interfaces\IPostRepository.cs" />
     <Compile Include="Repositorys\DataModels\Account.cs" />
     <Compile Include="Repositorys\DataModels\Comment.cs" />
