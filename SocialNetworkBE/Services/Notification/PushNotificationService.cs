@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace SocialNetworkBE.Services.Post {
-    public class PostService {
+namespace SocialNetworkBE.Services.Notification {
+    public class PushNotificationService {
 
     }
 }

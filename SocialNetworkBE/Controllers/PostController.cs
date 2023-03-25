@@ -1,12 +1,9 @@
 ﻿using MongoDB.Bson;
 using SocialNetworkBE.EventHandlers.PostHandler;
 using SocialNetworkBE.Payload.Response;
-using System;
 using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
-using System.Security.Cryptography;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace SocialNetworkBE.Controllers {
@@ -62,37 +59,24 @@ namespace SocialNetworkBE.Controllers {
             return postEventHandler.GetPostsWithPaging(page, size, sort);
         }
 
-        [HttpGet]
-        [Route("comments")]
+        [Route("comment")]
         // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
-        public ResponseBase GetCommentsOfPostById(string pid, int page, int size) {
-
-            if (string.IsNullOrWhiteSpace(pid)) {
+        public async Task<ResponseBase> GetCommentsById(string id) {
+            bool isRightPostId = ObjectId.TryParse(id, out var commentId);
+            if (!isRightPostId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "This request require pid, page , size"
+                    Message = "pid wrong format object id"
                 };
             }
-
-            bool isRightObjectId = ObjectId.TryParse(pid, out var id);
-            if (!isRightObjectId) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "ObjectId wrong format"
-                };
-            }
-
-            if (page < 0) page = 0;
-            if (size < 0) size = 1;
-            if (size > 20) size = 20;
-
-            return postEventHandler.GetCommentOfPostByPostId(id, page, size);
+            return await postEventHandler.GetCommentById(commentId);
         }
+
         [HttpGet]
         [Route("comments")]
         // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
-        public ResponseBase GetCommentsOfPostByIdAndCommentId(string pid, string cid, int page, int size) {
-            if (string.IsNullOrWhiteSpace(pid) || string.IsNullOrWhiteSpace(cid)) {
+        public async Task<ResponseBase> GetCommentsOfPostById(string pid, string cid, int page, int size) {
+            if (string.IsNullOrWhiteSpace(pid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
                     Message = "This request require pid, cid, page, size"
@@ -106,21 +90,18 @@ namespace SocialNetworkBE.Controllers {
                     Message = "pid wrong format object id"
                 };
             }
-
-            bool isRightCommentParentId = ObjectId.TryParse(cid, out var commentId);
-            if (!isRightCommentParentId) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "cid wrong format object id"
-                };
-            }
-
             if (page < 0) page = 0;
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
-            return postEventHandler.GetCommentOfPostByParentId(postId, commentId, page, size);
+            bool isRightCommentid = ObjectId.TryParse(cid, out var commentId);
+            if(!isRightCommentid) {
+                return await postEventHandler.GetCommentOfPostByPostId(postId, null, page, size);
+            }
+            return await postEventHandler.GetCommentOfPostByPostId(postId, commentId, page, size);
         }
+
+
 
         [HttpPost]
         [Route("comments")]
@@ -148,7 +129,7 @@ namespace SocialNetworkBE.Controllers {
                 return await postEventHandler.CommentAPostByPostId(postId, null, userMetadata, commentRequest.Comment);
             }
 
-            bool isRightCommentId = ObjectId.TryParse(commentRequest.PostId.ToString(), out var commentId);
+            bool isRightCommentId = ObjectId.TryParse(commentRequest.CommentId.ToString(), out var commentId);
             if (!isRightCommentId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
