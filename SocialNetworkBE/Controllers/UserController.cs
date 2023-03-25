@@ -1,10 +1,16 @@
-﻿using LiteDB;
+﻿using Amazon.Runtime.Internal;
+using LiteDB;
 using MongoDB.Bson;
+using ServiceStack.Web;
 using SocialNetworkBE.EventHandlers.User;
 using SocialNetworkBE.Payload.Response;
+using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Repository;
+using SocialNetworkBE.Repositorys.DataModels;
 using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
 using ObjectId = MongoDB.Bson.ObjectId;
 
@@ -51,8 +57,66 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpPut] // httpput
         [Route(REFIX + "/profile")] // Endpoint: /api/v1/user/profile?uid=507f1f77bcf86cd799439011
-        public ResponseBase UpdateUserProfile(string uid) { 
-            return new ResponseBase(); 
+        public async Task<ResponseBase> UpdateUserProfileAsync(string uid) {
+            var pwd = FormData.GetValueByKey("Password");
+            if (pwd == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Password required"
+                };
+            }
+
+            var email = FormData.GetValueByKey("Email");
+            if (email == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Email required"
+                };
+            }
+
+            var userName = FormData.GetValueByKey("Username");
+            if (userName == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Username required"
+                };
+            }
+
+
+            var DisplayName = FormData.GetValueByKey("Displayname");
+            if (DisplayName == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "DisplayName required"
+                };
+            }
+            bool isRightUserObjectId = ObjectId.TryParse(uid, out var userId);
+            if (!isRightUserObjectId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "wrong format"
+                };
+            }
+            HttpFileCollection media = HttpContext.Current.Request.Files;
+            var AvatarUrl = media[0];
+
+            AccountRequest accountRequest = new AccountRequest();
+            accountRequest.DisplayName = DisplayName;
+            accountRequest.Email = email;
+            accountRequest.Username = userName;
+            accountRequest.Password = pwd;
+            accountRequest.Id = userId.ToString();
+            return await userEventHandler.UpdateAccount(accountRequest, userId, AvatarUrl); 
         }
 
         [HttpPost]

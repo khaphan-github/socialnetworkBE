@@ -1,12 +1,15 @@
 ﻿using LiteDB;
 using ServiceStack;
 using ServiceStack.DataAnnotations;
+using ServiceStack.Web;
 using SocialNetworkBE.Payload.Response;
+using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.Interfaces;
 using SocialNetworkBE.ServerConfiguration;
+using SocialNetworkBE.Services.Firebase;
 using SocialNetworkBE.Services.Hash;
 using System;
 using System.Collections.Generic;
@@ -22,6 +25,52 @@ namespace SocialNetworkBE.EventHandlers.User
     public class UserEventHandler
     {
         private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
+
+        public async Task<ResponseBase> UpdateAccount(AccountRequest account, ObjectId accId, HttpPostedFile Media)
+        {
+            FirebaseImage firebaseService = new FirebaseImage();
+            List<string> mediaURLList = new List<string>();
+
+            if (Media == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "File not allow null",
+                };
+            }
+
+            if (Media != null)
+            {
+                    string mediaName = Guid.NewGuid().ToString() + ".png";
+
+                    string folder = "AvatarUrl";
+
+                    await firebaseService.UploadImageAsync(Media.InputStream, folder, mediaName);
+
+                    string imageDownloadLink = firebaseService.StorageDomain + "/" + folder + "/" + mediaName;
+
+                    account.AvatarUrl = imageDownloadLink;
+            }
+            try
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Update success",
+                    Data = accountResponsitory.UpdateAccount(account, accId)
+                };
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine("Error:" + ex);
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Update failure"
+                };
+            }
+        }
 
         public ResponseBase RemoveAFriendFromAccount(ObjectId accountId, ObjectId friendId)
         {
@@ -127,11 +176,16 @@ namespace SocialNetworkBE.EventHandlers.User
             Account friendAccept = accountResponsitory.UpdateFriend_AcceptInvitationFromOtherUser(uid, fid);
             if (userAccept!= null && friendAccept!= null)
             {
+                FriendRespone friendRespone = new FriendRespone();
+                friendRespone.Id = fid;
+                friendRespone.DisplayName = friendAccept.DisplayName;
+                friendRespone.Avatar = friendAccept.AvatarUrl;
+                friendRespone.ProfileUrl = friendAccept.UserProfileUrl;
                 return new ResponseBase()
                 {
                     Status = Status.Success,
                     Message = "Add success",
-                    Data = accountResponsitory.GetAccountByObjectId(uid),
+                    Data = friendRespone,
                 };
             }
             return new ResponseBase()

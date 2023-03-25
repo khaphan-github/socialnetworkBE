@@ -2,16 +2,21 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 using ServiceStack;
+using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.Interfaces;
+using SocialNetworkBE.ServerConfiguration;
+using SocialNetworkBE.Services.Hash;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Remoting;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BsonDocument = MongoDB.Bson.BsonDocument;
 using ObjectId = MongoDB.Bson.ObjectId;
@@ -26,6 +31,70 @@ namespace SocialNetworkBE.Repository {
             IMongoDatabase databaseConnected = MongoDatabase.GetMongoDBConnected();
 
             AccountCollection = databaseConnected.GetCollection<Account>(AccountDocumentName);
+        }
+
+        public bool CheckUsernameExist(string Username)
+        {
+            FilterDefinition<Account> usernameFilter = Builders<Account>.Filter.Where(account => account.Username == Username);
+            Account accountCheck = AccountCollection.Find(usernameFilter).FirstOrDefault();
+            bool exist = (accountCheck != null);
+            return (exist);
+        }
+
+        public bool CheckEmailExist(string Email)
+        {
+            FilterDefinition<Account> emailFilter = Builders<Account>.Filter.Where(account => account.Email == Email);
+            Account accountCheck = AccountCollection.Find(emailFilter).FirstOrDefault();
+            bool exist = (accountCheck != null);
+            return (exist);
+        }
+
+        public bool ValidatePassword(string password, out string ErrorMessage)
+        {
+            var input = password;
+            ErrorMessage = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                throw new Exception("Password should not be empty");
+            }
+
+            var hasNumber = new Regex(@"[0-9]+");
+            var hasUpperChar = new Regex(@"[A-Z]+");
+            var hasMiniMaxChars = new Regex(@".{8,15}");
+            var hasLowerChar = new Regex(@"[a-z]+");
+            var hasSymbols = new Regex(@"[!@#$%^&*()_+=\[{\]};:<>|./?,-]");
+
+            if (!hasLowerChar.IsMatch(input))
+            {
+                ErrorMessage = "Password should contain At least one lower case letter";
+                return false;
+            }
+            else if (!hasUpperChar.IsMatch(input))
+            {
+                ErrorMessage = "Password should contain At least one upper case letter";
+                return false;
+            }
+            else if (!hasMiniMaxChars.IsMatch(input))
+            {
+                ErrorMessage = "Password should not be less than or greater than 12 characters";
+                return false;
+            }
+            else if (!hasNumber.IsMatch(input))
+            {
+                ErrorMessage = "Password should contain At least one numeric value";
+                return false;
+            }
+
+            else if (!hasSymbols.IsMatch(input))
+            {
+                ErrorMessage = "Password should contain At least one special case characters";
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         public Account GetAccountByUsername(string username) {
@@ -325,6 +394,26 @@ namespace SocialNetworkBE.Repository {
                 }
             }
             AccountCollection.ReplaceOne(b => b.Id == fid, accountUpdate);
+            return accountUpdate;
+        }
+
+        public Account UpdateAccount(AccountRequest accountRequest, ObjectId accId)
+        {
+            FilterDefinition<Account> accountFilter = Builders<Account>.Filter.Eq("_id", accId);
+            Account accountUpdate = AccountCollection.Find(accountFilter).FirstOrDefault();
+            accountUpdate.DisplayName = accountRequest.DisplayName;
+            accountUpdate.AvatarUrl = accountRequest.AvatarUrl;
+            accountUpdate.Username = accountRequest.Username;
+            BCryptService bCryptService = new BCryptService();
+            string password = accountUpdate.Password = accountRequest.Password;
+            string randomSalt = bCryptService.GetRandomSalt();
+            string secretKey = ServerEnvironment.GetServerSecretKey();
+            string passwordHash =
+                bCryptService
+                .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
+            accountUpdate.Email = accountRequest.Email;
+            accountUpdate.HashSalt = passwordHash;
+            AccountCollection.ReplaceOne(b => b.Id == accId, accountUpdate);
             return accountUpdate;
         }
     }
