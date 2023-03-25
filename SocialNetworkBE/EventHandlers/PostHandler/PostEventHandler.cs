@@ -21,24 +21,22 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         private readonly PostRespository PostRespository = new PostRespository();
         private readonly CommentRepository CommentRepository = new CommentRepository();
         private readonly AccountResponsitory AccountRepostitory = new AccountResponsitory();
-        public ResponseBase GetPostsWithPaging(int page, int size, string sort) {
-            List<PostResponse> postResponses = PostRespository
-             .GetPostByPageAndSizeAndSorted(page, size, sort)
-             .Select(bsonPost => BsonSerializer.Deserialize<PostResponse>(bsonPost))
-             .ToList();
+        public async Task<ResponseBase> GetPostsWithPaging(UserMetadata userMetadata, int page, int size) {
+            // TODO: Get like post
+            List<PostDataTranfer> postResponses = 
+                await PostRespository.GetSortedAndProjectedPostsAsync(ObjectId.Parse(userMetadata.Id), page, size);
 
-            if (postResponses.Count == 0) {
+            if (postResponses == null) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "Empty post",
                 };
             }
-
             // Logic: page index endpoint
             string pagingEndpoint = "/api/v1/posts/current?";
             PagingResponse pagingResponse = 
                 new PagingResponse(pagingEndpoint, page, size, postResponses);
-            ResponseBase response = new ResponseBase() {
+            ResponseBase response = new ResponseBase() { 
                 Status = Status.Success,
                 Message = "Get post success",
                 Data = pagingResponse
