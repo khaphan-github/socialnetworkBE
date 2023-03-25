@@ -6,58 +6,82 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using SocialNetworkBE.ServerConfiguration;
 using Firebase.Storage;
+using System.Threading;
+using System.Net.Http;
+using System.Text;
+using Newtonsoft.Json;
 
-namespace SocialNetworkBE.Services.Firebase
-{
-    public class FirebaseImage
-    {
+namespace SocialNetworkBE.Services.Firebase {
+    public class FirebaseImage {
+        private string APIKey { get; set; }
+        private string UserEmail { get; set; }
+        private string Password { get; set; }
+        private string Bucket { get; set; }
+        public string StorageDomain { get; set; }
+        private FirebaseAuthLink FirebaseAuthLink { get; set; }
+        public FirebaseImage() {
+            APIKey = ServerEnvironment.GetFirebaseApiKey();
+            UserEmail = ServerEnvironment.GetFirebaseAuthEmail();
+            Password = ServerEnvironment.GetFirebaseAuthPwd();
+            Bucket = ServerEnvironment.GetFirebaseBucket();
+            StorageDomain = ServerEnvironment.GetFirebaseStorageDomain();
+        }
+        private async Task<FirebaseAuthLink> ExecuteWithPostContentAsync(string googleUrl, string postContent) {
+            string responseData = "N/A";
+            try {
+                HttpClient client = new HttpClient();
 
-        public static async Task UploadImage(FileStream fileStream)
-        {
-            var imgInput = Resize2Max50Kbytes(fileStream);
+                HttpResponseMessage response =
+                    await client.PostAsync(
+                        new Uri(string.Format(googleUrl, new object[1] { APIKey })),
+                        new StringContent(postContent, Encoding.UTF8,
+                        "application/json"));
+
+                responseData = await response.Content.ReadAsStringAsync();
+                response.EnsureSuccessStatusCode();
+
+                FirebaseAuthLink firebaseAuthLink = JsonConvert.DeserializeObject<FirebaseAuthLink>(responseData);
+                return firebaseAuthLink;
+            } catch (Exception innerException) {
+                throw new FirebaseAuthException(googleUrl, postContent, responseData, innerException);
+            }
+        }
+
+        public async Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password) {
+            string contentFormat = "{{\"email\":\"{0}\",\"password\":\"{1}\",\"returnSecureToken\":false}}";
+            string postContent = string.Format(contentFormat, new object[2] { email, password });
+
+            string googleApisEndpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key={0}";
             
-            var stream = new MemoryStream();
-            imgInput.Save(stream, ImageFormat.Jpeg);
+            return await ExecuteWithPostContentAsync(googleApisEndpoint, postContent)
+                .ConfigureAwait(continueOnCapturedContext: false);
+        }
 
-            var auth = new FirebaseAuthProvider(new FirebaseConfig(ServerEnvironment.GetFirebaseApiKey()));
-            var a = await auth.SignInWithEmailAndPasswordAsync(ServerEnvironment.GetFirebaseAuthEmail(), ServerEnvironment.GetFirebaseAuthPwd());
+        public async Task<string> UploadImageAsync(Stream fileStream, string folder, string mediaName) {
 
-            var task = new FirebaseStorage(
-                ServerEnvironment.GetFirebaseBucket(),
+            if(FirebaseAuthLink == null) {
+                FirebaseAuthLink = await SignInWithEmailAndPasswordAsync(UserEmail, Password);
+            }
 
-                 new FirebaseStorageOptions
-                 {
-                     AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
+            CancellationToken cancellationToken = new CancellationToken();
+
+            FirebaseStorageTask pushMediaTask = new FirebaseStorage(
+                Bucket,
+                 new FirebaseStorageOptions {
+                     AuthTokenAsyncFactory =
+                        () => Task.FromResult(FirebaseAuthLink.FirebaseToken),
                      ThrowOnCancel = true,
                  })
-                .Child("AvatarUrl")
-                .Child("nameAcc.jpg")
-                .PutAsync(stream);
-            task.Progress.ProgressChanged += (s, e) => System.Diagnostics.Debug.WriteLine($"Progress: {e.Percentage} %");
+                .Child(folder)
+                .Child(mediaName)
+                .PutAsync(fileStream, cancellationToken);
 
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("Link ảnh:\n" + await task);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Lỗi: {0}", ex);
-            }
+            return await pushMediaTask;
         }
 
-        
 
-        public static async Task getUrl(string namePic)
-        {
-            FirebaseStorage storage = new FirebaseStorage("socialnetwork-4c654.appspot.com");
-            var starsRef = storage.Child("AvatarUrl").Child(namePic);
-            string link = await starsRef.GetDownloadUrlAsync();
-            System.Diagnostics.Debug.WriteLine(link);
-        }
-
-        public static Image Resize2Max50Kbytes(FileStream fileStream)
-        {
-            System.Diagnostics.Debug.WriteLine(fileStream.GetType());  
+        public Image Resize2Max50Kbytes(FileStream fileStream) {
+            System.Diagnostics.Debug.WriteLine(fileStream.GetType());
 
             var memoryStream = new MemoryStream();
 
@@ -65,6 +89,7 @@ namespace SocialNetworkBE.Services.Firebase
 
             byte[] byteArray = memoryStream.ToArray();
             System.Diagnostics.Debug.WriteLine("before: " + byteArray.Length);
+
             byte[] currentByteImageArray = byteArray;
             double scale = 1f;
 
@@ -72,8 +97,7 @@ namespace SocialNetworkBE.Services.Firebase
             Image img = Image.FromStream(inputMemoryStream);
             Image fullsizeImage = Image.FromStream(inputMemoryStream);
 
-            while (currentByteImageArray.Length > 40000)
-            {
+            while (currentByteImageArray.Length > 40000) {
                 Bitmap fullSizeBitmap = new Bitmap(fullsizeImage, new Size((int)(fullsizeImage.Width * scale), (int)(fullsizeImage.Height * scale)));
                 MemoryStream resultStream = new MemoryStream();
 
@@ -82,19 +106,9 @@ namespace SocialNetworkBE.Services.Firebase
                 currentByteImageArray = resultStream.ToArray();
                 resultStream.Dispose();
                 resultStream.Close();
-
                 scale -= 0.05f;
             }
-
-            System.Diagnostics.Debug.WriteLine("after: "+ currentByteImageArray.Length);
-            using (var ms = new MemoryStream(currentByteImageArray))
-            { 
-                var imgResult =  Image.FromStream(ms);
-                imgResult.Save("C:/anh/kkne.jpg");
-               
-                return img;
-            }
-
+            return img;
         }
     }
 

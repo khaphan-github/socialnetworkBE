@@ -1,6 +1,4 @@
 ﻿namespace SocialNetworkBE.Services.Validates {
-    public class RequestValidation {
-
-        
+    public  class RequestValidation {        
     }
 }

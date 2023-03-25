@@ -18,7 +18,7 @@ namespace Testing.UnitTesting {
         [TestMethod]
         public void GivenMongoDBDatabaseKey_WhenGetEnvironmentVariableByKey_ThenReturnRightDatabaseName() {
             string mongoDatabaseName = ServerEnvironment.GetMongoDatabaseName();
-            string expectString = "SocialNetwork";
+            string expectString = "SocialNetWorkTestDB";
 
             bool isEmpty = mongoDatabaseName == null;
             bool isRightDatabaseName = mongoDatabaseName == expectString;

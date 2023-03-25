@@ -1,25 +1,30 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 using SocialNetworkBE.Payload.Response;
+using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
+using SocialNetworkBE.Repositorys;
 using SocialNetworkBE.Repositorys.DataModels;
+using SocialNetworkBE.Services.Firebase;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace SocialNetworkBE.EventHandlers.PostHandler {
     public class PostEventHandler {
 
-        private readonly PostRespository postRespository = new PostRespository();
-        public ResponseBase GetPostsWithPaging(int page, int size) {
-
-            List<PostResponse> postResponses = postRespository
-             .GetPostByPageAndSizeAndSorted(page, size)
+        private readonly PostRespository PostRespository = new PostRespository();
+        private readonly CommentRepository CommentRepository = new CommentRepository();
+        private readonly AccountResponsitory AccountRepostitory = new AccountResponsitory();
+        public ResponseBase GetPostsWithPaging(int page, int size, string sort) {
+            List<PostResponse> postResponses = PostRespository
+             .GetPostByPageAndSizeAndSorted(page, size, sort)
              .Select(bsonPost => BsonSerializer.Deserialize<PostResponse>(bsonPost))
              .ToList();
-
 
             if (postResponses.Count == 0) {
                 return new ResponseBase() {
@@ -42,6 +47,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
 
             PagingResponse pagingResponse = new PagingResponse() {
+                NumberOfElement = postResponses.Count,
                 Paging = postResponses,
                 NextPageURL = nextPageURL,
                 PreviousPageURL = previousPageURL,
@@ -56,33 +62,53 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             return response;
         }
 
-        public ResponseBase HandleUserCreateNewPost(
+        public async Task<ResponseBase> HandleUserCreateNewPost(
             HttpFileCollection Media,
             string Content,
-            string OwnerId,
-            string OwnerAvatarURL,
-            string OwnerDisplayName,
-            string OwnerProfileURL) {
+           UserMetadata userMetadata) {
+
+            FirebaseImage firebaseService = new FirebaseImage();
+            List<string> mediaURLList = new List<string>();
+
+            int MaxMediaInCollection = 10;
+
+            if (Media != null && Media.Count > MaxMediaInCollection) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "Number of file must smaller than 10 file",
+                };
+            }
 
             if (Media != null) {
-                // TODO: Handle Upload image;
+                for (int i = 0; i < Media.Count; i++) {
+                    string mediaName = Guid.NewGuid().ToString() + ".png";
+
+                    string folder = "PostMedia";
+
+                    await firebaseService.UploadImageAsync(Media[i].InputStream, folder, mediaName);
+
+                    string imageDownloadLink = firebaseService.StorageDomain + "/" + folder + "/" + mediaName;
+
+                    mediaURLList.Add(imageDownloadLink);
+                }
             }
 
             Post newPost = new Post() {
                 Id = ObjectId.GenerateNewId(),
                 CreateDate = DateTime.Now,
                 UpdateAt = DateTime.Now,
-                OwnerAvatarURL = OwnerAvatarURL,
-                OwnerId = ObjectId.Parse(OwnerId),
-                OwnerDisplayName = OwnerDisplayName,
-                OwnerProfileURL = OwnerProfileURL,
+                OwnerAvatarURL = userMetadata.AvatarURL,
+                OwnerId = ObjectId.Parse(userMetadata.Id),
+                OwnerDisplayName = userMetadata.DisplayName,
+                OwnerProfileURL = userMetadata.UserProfileUrl,
                 Content = Content,
+                Media = mediaURLList,
             };
 
             newPost.CommentsURL = "/api/v1/post/comments?pid=" + newPost.Id.ToString();
             newPost.LikesURL = "/api/v1/post/likes?pid=" + newPost.Id.ToString();
 
-            Post savedPost = postRespository.CreateNewPost(newPost);
+            Post savedPost = PostRespository.CreateNewPost(newPost);
             if (savedPost == null) {
                 return new ResponseBase() {
                     Status = Status.Failure,
@@ -96,9 +122,9 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 Data = PostResponse.ConvertPostToPostResponse(savedPost)
             };
         }
-        public ResponseBase DeletePostById(ObjectId id) {
+        public ResponseBase DeletePostById(ObjectId id, ObjectId ownerId) {
 
-            bool isDeleted = postRespository.DetetePostById(id);
+            bool isDeleted = PostRespository.DetetePostById(id, ownerId);
 
             if (!isDeleted) {
                 return new ResponseBase() {
@@ -109,23 +135,204 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             return new ResponseBase() {
                 Status = Status.Success,
-                Message = "Detete Success"
+                Message = "Detete success"
             };
         }
-
         public ResponseBase GetCommentOfPostByPostId(ObjectId postObjectId, int page, int size) {
-            var bsonDocumentComment = postRespository.GetCommentsByPostIdWithPaging(postObjectId, page, size);
-            if (bsonDocumentComment == null) {
+
+            List<Comment> commentOfPostWithPaging =
+                CommentRepository.GetCommentOfPostWithPaging(postObjectId, page, size);
+
+            if (commentOfPostWithPaging.Count == 0) {
                 return new ResponseBase() {
                     Status = Status.Failure,
-                    Message = "This post have no comment"
+                    Message = "Get comment failure - comment of post is empty",
                 };
             }
+
             return new ResponseBase() {
                 Status = Status.Success,
                 Message = "Get comment success",
-                Data = bsonDocumentComment
+                Data = commentOfPostWithPaging
             };
+        }
+
+        public ResponseBase GetCommentOfPostByParentId(ObjectId postId, ObjectId commentId, int page, int size) {
+
+            List<Comment> commentOfPostWithPaging =
+                CommentRepository.GetChildrenCommentsByParentId(postId, commentId, page, size);
+
+            if (commentOfPostWithPaging.Count == 0) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Get comment failure - comment of post is empty",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Get comment success",
+                Data = commentOfPostWithPaging
+            };
+        }
+
+        public async Task<ResponseBase> CommentAPostByPostId(
+            ObjectId postId,
+            ObjectId? commentId,
+            UserMetadata userMetadata,
+            string comment) {
+
+            Comment commentToCreate = new Comment() {
+                Id = ObjectId.GenerateNewId(),
+                Content = comment,
+                PostId = postId,
+                OwnerId = ObjectId.Parse(userMetadata.Id),
+                OwnerAvatarURL = userMetadata.AvatarURL,
+                OwnerDisplayName = userMetadata.DisplayName,
+                OwnerProfileURL = userMetadata.UserProfileUrl,
+            };
+
+            if (commentId != null) {
+                commentToCreate.ParentId = commentId;
+            }
+            Comment commentCreated = CommentRepository.CreateCommentAPost(commentToCreate);
+            await PostRespository.UpdateNumOfCommentOfPost(postId, 1);
+
+            if (commentCreated == null) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Comment failure",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Comment success",
+                Data = commentCreated
+            };
+        }
+
+        public async Task<ResponseBase> DeleteCommentByCommentId(ObjectId commentId, ObjectId postId, UserMetadata userMetadata) {
+
+            DeleteResult deleteResult =
+                CommentRepository.DeteteCommentById(commentId, ObjectId.Parse(userMetadata.Id));
+
+            if (deleteResult.IsAcknowledged) {
+                await PostRespository.UpdateNumOfCommentOfPost(postId, -1);
+                
+                return new ResponseBase() {
+                    Status = Status.Success,
+                    Message = "Delete comment success",
+                };
+            }
+            return new ResponseBase() {
+                Status = Status.Failure,
+                Message = "Delete comment failure",
+            };
+          
+        }
+
+        public ResponseBase UpdateCommentById(ObjectId commentId, UserMetadata userMetadata, string content) {
+
+            UpdateResult updateResult =
+                CommentRepository.UpdateCommentByComentId(commentId, ObjectId.Parse(userMetadata.Id), content);
+
+            if (!updateResult.IsAcknowledged) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Update comment failure",
+                };
+            }
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Update commentt success",
+            };
+        }
+        public async Task<ResponseBase> GetLikesOfPostById(ObjectId postId, int page, int size) {
+
+            BsonDocument likesOfPost =
+                PostRespository.GetUserMetadataLikedPost(postId, page, size);
+
+            List<ObjectId> userLikedId = 
+                likesOfPost["Likes"].AsBsonArray
+                .Select(objectId => ObjectId.Parse(objectId.ToString()))
+                .ToList();
+
+
+            if (userLikedId.Count == 0) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "There are not like in this post",
+                };
+            }
+
+            List<BsonDocument> likesBsonDocument = 
+                await AccountRepostitory.GetListAccountsMetadata(userLikedId, page, size).ConfigureAwait(false);
+
+            List<LikeResponse> likessResponse =
+                likesBsonDocument.Select(bson => BsonSerializer.Deserialize<LikeResponse>(bson)).ToList();
+
+
+            // Logic: page index endpoint
+            string pagingEndpoint = "/api/v1/posts/likes?page=";
+            string pagingSize = "&size=" + size.ToString();
+
+            string nextPageURL = pagingEndpoint + (page + 1).ToString() + pagingSize;
+            string previousPageURL = pagingEndpoint;
+
+            if (page == 0)
+                previousPageURL += page.ToString() + pagingSize;
+            else
+                previousPageURL += (page - 1).ToString() + pagingSize;
+
+
+            PagingResponse pagingResponse = new PagingResponse() {
+                NumberOfElement = likessResponse.Count,
+                Paging = likessResponse,
+                NextPageURL = nextPageURL,
+                PreviousPageURL = previousPageURL,
+            };
+
+            return new ResponseBase() {
+                Status = Status.Success,
+                Message = "Get list user like post success",
+                Data = pagingResponse
+            };
+        }
+
+        public async Task<ResponseBase> LikeAPostByPostId(ObjectId postId, UserMetadata userMetadata) {
+            try {
+                await PostRespository.MakeALikeOfPostAsync(postId, ObjectId.Parse(userMetadata.Id));
+
+                return new ResponseBase() {
+                    Status = Status.Success,
+                    Message = "Like Success",
+                };
+
+            } catch (Exception) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Like Failure",
+                };
+            }
+        }
+
+        public async Task<ResponseBase> UnLikeAPostByPostId(ObjectId postId, UserMetadata userMetadata) {
+            try {
+                await PostRespository.RemoveAlikeOfPostAsync(postId, ObjectId.Parse(userMetadata.Id));
+
+                return new ResponseBase() {
+                    Status = Status.Success,
+                    Message = "Unlike Success",
+                };
+
+            } catch (Exception) {
+                return new ResponseBase() {
+                    Status = Status.Failure,
+                    Message = "Unlike Failure",
+                };
+            }
         }
     }
 }

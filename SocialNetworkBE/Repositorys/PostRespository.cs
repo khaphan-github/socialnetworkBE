@@ -5,22 +5,26 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SocialNetworkBE.Repository.Config;
-using SocialNetworkBE.Repositorys.Interfaces;
-using MongoDB.Bson.Serialization;
-using SocialNetworkBE.Payloads.Response;
 using ServiceStack;
+using System.Threading.Tasks;
+using MongoDB.Driver.Builders;
+using Amazon.Runtime.Documents;
+using System.Collections.ObjectModel;
+using MongoDB.Driver.Linq;
+using SocialNetworkBE.Payloads.Response;
+using MongoDB.Bson.Serialization;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
         private IMongoCollection<Post> PostCollection { get; set; }
-        private IMongoDatabase databaseConnected { get; set; }
+        private IMongoDatabase DatabaseConnected { get; set; }
         private const string PostDocumentName = "Post";
 
         public PostRespository() {
             MongoDBConfiguration MongoDatabase = new MongoDBConfiguration();
-            databaseConnected = MongoDatabase.GetMongoDBConnected();
+            DatabaseConnected = MongoDatabase.GetMongoDBConnected();
 
-            PostCollection = databaseConnected.GetCollection<Post>(PostDocumentName);
+            PostCollection = DatabaseConnected.GetCollection<Post>(PostDocumentName);
         }
 
         public List<Post> GetPostByUserId(ObjectId userObjectId) {
@@ -30,7 +34,7 @@ namespace SocialNetworkBE.Repository {
                 return PostCollection.Find(userOwnedPostFilter).ToList();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                throw;
+                return new List<Post> { null };
             }
         }
 
@@ -41,7 +45,7 @@ namespace SocialNetworkBE.Repository {
                 return PostCollection.Find(userOwnedPostFilter).FirstOrDefault();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                throw;
+                return null;
             }
         }
 
@@ -55,26 +59,32 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public bool DetetePostById(ObjectId postObjectId) {
+        public bool DetetePostById(ObjectId postObjectId, ObjectId ownerId) {
             try {
                 FilterDefinition<Post> postNeedDeleteFilter =
-                    Builders<Post>.Filter.Eq("_id", postObjectId);
+                    Builders<Post>.Filter.Eq("_id", postObjectId) &
+                    Builders<Post>.Filter.Eq("OwnerId", ownerId);
 
-                PostCollection.DeleteOne(postNeedDeleteFilter);
+                Post deletePost = PostCollection.FindOneAndDelete(postNeedDeleteFilter);
+                if (deletePost != null)
+                    return true;
 
-                return true;
+                return false;
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return false;
             }
         }
 
-        public List<BsonDocument> GetPostByPageAndSizeAndSorted(int page, int size) {
+        public List<BsonDocument> GetPostByPageAndSizeAndSorted(int page, int size, string sortType) {
             try {
                 int paging = page * size;
+                var sort = sortType == "desc"
+                    ? Builders<BsonDocument>.Sort.Descending("UpdateAt")
+                    : Builders<BsonDocument>.Sort.Ascending("UpdateAt");
 
                 IMongoCollection<BsonDocument> PostCollectionBsonDocument =
-                    databaseConnected.GetCollection<BsonDocument>(PostDocumentName);
+                    DatabaseConnected.GetCollection<BsonDocument>(PostDocumentName);
 
                 FilterDefinition<BsonDocument> justUpdatePostFilter = Builders<BsonDocument>.Filter.Empty;
 
@@ -94,77 +104,79 @@ namespace SocialNetworkBE.Repository {
 
                 var topLevelProjectionResults = PostCollectionBsonDocument
                     .Find(justUpdatePostFilter)
+                    .Sort(sort)
                     .Project(projection)
                     .Skip(paging)
                     .Limit(size)
                     .ToList();
 
                 return topLevelProjectionResults;
-
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return new List<BsonDocument>();
             }
         }
 
-        public bool DeteteCommentOfPostByGuid(ObjectId postObjectId, Guid CommentGuid) {
-            throw new NotImplementedException();
-        }
-
-        public Comment MakeACommentToPost(ObjectId postObjectId, Comment comment) {
-            throw new NotImplementedException();
-        }
-
-        public Comment UpdateAcommentByGuid(ObjectId postObjectId, Guid commentGuid) {
-            throw new NotImplementedException();
-        }
-
-        public List<Comment> GetCommentsByPostIdWithPaging(ObjectId postObjectId, int page, int size) {
+        public async Task UpdateNumOfCommentOfPost(ObjectId postObjectId, int increaseValue) {
             try {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
 
-                int paging = page * size;
+                UpdateDefinition<Post> update = Builders<Post>.Update
+                    .Inc(post => post.NumOfComment, increaseValue)
+                    .Set(post => post.UpdateAt, DateTime.Now);
 
-                IMongoCollection<BsonDocument> postCollectionBsonDocument =
-                    databaseConnected.GetCollection<BsonDocument>(PostDocumentName);
+                var options = new FindOneAndUpdateOptions<Post>() {
+                    ReturnDocument = ReturnDocument.After
+                };
 
-                FilterDefinition<BsonDocument> postFilter =
-                    Builders<BsonDocument>.Filter.Eq("_id", postObjectId);
-
-                // TODO: Need to optimize performance query comment - not get all comment then paging
-                
-                var commentProject = Builders<BsonDocument>.Projection.Include("Comments");
-
-                var commentOfPost = postCollectionBsonDocument
-                    .Find(postFilter)
-                    .Project(commentProject)
-                    .FirstOrDefault();
-
-                if (commentOfPost == null) {
-                    return new List<Comment>();
-                }
-
-                Post savedPost = BsonSerializer.Deserialize<Post>(commentOfPost);
-
-                if (savedPost != null) {
-                    return savedPost.Comments
-                        .OrderBy(comment => comment.CreateDate)
-                        .Skip(paging)
-                        .ToList();
-                }
+                await PostCollection.FindOneAndUpdateAsync(filter, update, options);
 
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
             }
-
-            return new List<Comment>();
         }
 
-        public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {
-            throw new NotImplementedException();
+        public async Task MakeALikeOfPostAsync(ObjectId postObjectId, ObjectId userId) {
+            try {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
+
+                UpdateDefinition<Post> update = Builders<Post>.Update
+                       .Set(post => post.UpdateAt, DateTime.Now)
+                       .Push(post => post.Likes, userId)
+                       .Inc(post => post.NumOfLike, 1);
+
+                await PostCollection.UpdateOneAsync(filter, update);
+
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
         }
 
-        public bool RemoveAlikeOfPost(ObjectId postObjectId, Guid LikeGuid) {
-            throw new NotImplementedException();
+        public async Task RemoveAlikeOfPostAsync(ObjectId postObjectId, ObjectId userId) {
+            try {
+                var filter = Builders<Post>.Filter.Eq(post => post.Id, postObjectId);
+                var update = Builders<Post>.Update
+                    .Pull(post => post.Likes, userId)
+                    .Inc(post => post.NumOfLike, -1);
+
+                await PostCollection.UpdateOneAsync(filter, update);
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
+        }
+
+        public BsonDocument GetUserMetadataLikedPost(ObjectId postObjectId, int page, int size) {
+            try {
+                int paging = page * size;
+
+                var filter = Builders<Post>.Filter.Eq(post => post.Id, postObjectId);
+                var projection = Builders<Post>.Projection.Include(post => post.Likes);
+
+                return PostCollection.Find(filter).Project(projection).Skip(paging).Limit(size).FirstOrDefault();
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return new BsonDocument();
+            }
         }
     }
 }
