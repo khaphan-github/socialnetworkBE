@@ -420,6 +420,7 @@
     <Compile Include="Payloads\Data\AuthResponse.cs" />
     <Compile Include="Payloads\Data\TokenResponse.cs" />
     <Compile Include="Payloads\Data\UserResponse.cs" />
+    <Compile Include="Payloads\Request\AccountRequest.cs" />
     <Compile Include="Payloads\Request\Auth.cs" />
     <Compile Include="Payloads\Request\CommentRequest.cs" />
     <Compile Include="Payloads\Request\CommentUpdate.cs" />

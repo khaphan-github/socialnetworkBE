@@ -172,10 +172,34 @@ namespace SocialNetworkBE.Services.Authenticate {
              string userName,
              string pwd,
              string email,
-              string DisplayName,
-              string AvatarUrl,
-              string UserProfileUrl
-             ) {
+              string DisplayName
+             )
+        {
+            if (accountResponsitory.CheckUsernameExist(userName))
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Username is exist"
+                };
+            }
+            else if(accountResponsitory.CheckEmailExist(email))
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Email is exist"
+                };
+            }
+            
+            else if (!accountResponsitory.ValidatePassword(pwd, out string ErrorMessage))
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = ErrorMessage
+                };
+            }
 
             BCryptService bCryptService = new BCryptService();
 
@@ -190,8 +214,8 @@ namespace SocialNetworkBE.Services.Authenticate {
                 Id = ObjectId.GenerateNewId(),
                 DisplayName = DisplayName,
                 Email = email,
-                AvatarUrl = AvatarUrl,
-                UserProfileUrl = UserProfileUrl,
+                AvatarUrl = null,
+                UserProfileUrl = null,
                 Username = userName,
                 Password = passwordHash,
                 HashSalt = randomSalt,
