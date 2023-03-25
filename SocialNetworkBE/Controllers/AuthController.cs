@@ -45,7 +45,7 @@ namespace SocialNetworkBE.Controllers {
         public ResponseBase SignUp()
         {
             
-            var pwd = FormData.GetValueByKey("pwd");
+            var pwd = FormData.GetValueByKey("Password");
             if (pwd == null)
             {
                 return new ResponseBase()
@@ -55,7 +55,7 @@ namespace SocialNetworkBE.Controllers {
                 };
             }
 
-            var email = FormData.GetValueByKey("email");
+            var email = FormData.GetValueByKey("Email");
             if (email == null)
             {
                 return new ResponseBase()
@@ -65,7 +65,7 @@ namespace SocialNetworkBE.Controllers {
                 };
             }
 
-            var userName = FormData.GetValueByKey("userName");
+            var userName = FormData.GetValueByKey("Username");
             if (userName == null)
             {
                 return new ResponseBase()
@@ -76,7 +76,7 @@ namespace SocialNetworkBE.Controllers {
             }
 
 
-            var DisplayName = FormData.GetValueByKey("DisplayName");
+            var DisplayName = FormData.GetValueByKey("Displayname");
             if (DisplayName == null)
             {
                 return new ResponseBase()
@@ -86,27 +86,8 @@ namespace SocialNetworkBE.Controllers {
                 };
             }
 
-            var AvatarUrl = FormData.GetValueByKey("AvatarUrl");
-            if (AvatarUrl == null)
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.WrongFormat,
-                    Message = "AvatarUrl required"
-                };
-            }
-
-            var UserProfileUrl = FormData.GetValueByKey("UserProfileUrl");
-            if (UserProfileUrl == null)
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.WrongFormat,
-                    Message = "AvatarUrl required"
-                };
-            }
             AuthService authService = new AuthService();
-            return authService.HandleUserSignUp(userName, pwd, email, DisplayName, AvatarUrl, UserProfileUrl);
+            return authService.HandleUserSignUp(userName, pwd, email, DisplayName);
         }
 
         [HttpPost]
