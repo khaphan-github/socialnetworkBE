@@ -36,6 +36,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             string pagingEndpoint = "/api/v1/posts/current?";
             PagingResponse pagingResponse = 
                 new PagingResponse(pagingEndpoint, page, size, postResponses);
+
             ResponseBase response = new ResponseBase() { 
                 Status = Status.Success,
                 Message = "Get post success",
@@ -86,6 +87,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 OwnerProfileURL = userMetadata.UserProfileUrl,
                 Content = Content,
                 Media = mediaURLList,
+                Likes = new List<ObjectId>(),
             };
 
             newPost.CommentsURL = "/api/v1/post/comments?pid=" + newPost.Id.ToString();
