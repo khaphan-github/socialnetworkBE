@@ -10,5 +10,7 @@ namespace SocialNetworkBE.Services.SignalR {
             string time = DateTime.Now.ToString();
             System.Diagnostics.Debug.WriteLine(time + ": " + message);
         }
+
+
     }
 }
