@@ -1,4 +1,4 @@
-﻿using LiteDB;
+using LiteDB;
 using ServiceStack;
 using ServiceStack.DataAnnotations;
 using ServiceStack.Web;

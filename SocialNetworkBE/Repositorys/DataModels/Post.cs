@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.Web;
 using MongoDB.Bson;
 
 namespace SocialNetworkBE.Repositorys.DataModels
@@ -21,10 +18,8 @@ namespace SocialNetworkBE.Repositorys.DataModels
         public List<string> Media { get; set; }
         public int NumOfComment { get; set; } = 0;
         public string CommentsURL { get; set; }
-
-        public List<Comment> Comments { get; set; }
         public int NumOfLike { get; set; } = 0;
         public string LikesURL { get; set; }
-        public List<Like> Likes { get; set; }
+        public List<ObjectId> Likes { get; set; }
     }
 }

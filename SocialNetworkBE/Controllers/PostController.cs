@@ -5,7 +5,9 @@ using System;
 using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
-using MongoDB.Driver;
+using System.Security.Cryptography;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -14,83 +16,58 @@ namespace SocialNetworkBE.Controllers {
         private readonly PostEventHandler postEventHandler = new PostEventHandler();
 
         [HttpPost]
-        [Route("")] // Endpoint: /api/v1/posts/ [POST]
-        public ResponseBase CreateAPostFromUser() {
+        [Route("")]
+        // Endpoint: /api/v1/posts/ [POST]
+        public async Task<ResponseBase> CreateAPostFromUser() {
             HttpFileCollection Media = HttpContext.Current.Request.Files;
-
             var Content = FormData.GetValueByKey("Content");
+
             if (Content == null) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
                     Message = "Content required"
                 };
             }
+            UserMetadata userMetadata =
+                 new UserMetadata().GetUserMetadataFromRequest(Request);
 
-            var OwnerId = FormData.GetValueByKey("OwnerId");
-            if (OwnerId == null) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "OwnerId required"
-                };
-            }
-
-            var OwnerAvatarURL = FormData.GetValueByKey("OwnerAvatarURL");
-            if (OwnerAvatarURL == null) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "OwnerAvatarURL required"
-                };
-            }
-
-            var OwnerDisplayName = FormData.GetValueByKey("OwnerDisplayName");
-            if (OwnerDisplayName == null) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "OwnerDisplayName required"
-                };
-            }
-
-            var OwnerProfileURL = FormData.GetValueByKey("OwnerProfileURL");
-            if (OwnerProfileURL == null) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "OwnerProfileURL required"
-                };
-            }
-
-            return postEventHandler
-                .HandleUserCreateNewPost(Media, Content, OwnerId, OwnerAvatarURL, OwnerDisplayName, OwnerProfileURL);
+            return await postEventHandler
+                .HandleUserCreateNewPost(Media, Content, userMetadata);
         }
+
         [HttpDelete]
         [Route("")]
         public ResponseBase DetetePostById(string pid) {
-
+            // TODO: Need to test
             bool isRightObjectId = ObjectId.TryParse(pid, out var id);
-            if(!isRightObjectId) {
+            if (!isRightObjectId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
                     Message = "ObjectId Wrong Format"
                 };
             }
+            UserMetadata userMetadata =
+                new UserMetadata().GetUserMetadataFromRequest(Request);
 
-            return postEventHandler.DeletePostById(id);
+            return postEventHandler.DeletePostById(id, ObjectId.Parse(userMetadata.Id));
         }
+
         [HttpPost]
-        [Route("current")] // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
-        public ResponseBase GetPostListWithPaging(int page, int size) {
-
-            if (page < 0) page = 0;
-            if (size < 0) size = 1;
+        [Route("current")]
+        // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
+        public ResponseBase GetPostListWithPaging(int page, int size, string sort) {
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
             if (size > 20) size = 20;
-
-            return postEventHandler.GetPostsWithPaging(page, size);
+            return postEventHandler.GetPostsWithPaging(page, size, sort);
         }
 
         [HttpGet]
-        [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
-        public ResponseBase GetCommentOfPostById(string pid, int page, int size) {
+        [Route("comments")]
+        // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
+        public ResponseBase GetCommentsOfPostById(string pid, int page, int size) {
 
-            if (pid == "") {
+            if (string.IsNullOrWhiteSpace(pid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
                     Message = "This request require pid, page , size"
@@ -101,7 +78,7 @@ namespace SocialNetworkBE.Controllers {
             if (!isRightObjectId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "ObjectId Wrong Format"
+                    Message = "ObjectId wrong format"
                 };
             }
 
@@ -111,54 +88,194 @@ namespace SocialNetworkBE.Controllers {
 
             return postEventHandler.GetCommentOfPostByPostId(id, page, size);
         }
-
-        [HttpPost]
-        [Route("comments")] // Endpoint: /api/v1/post/comments/?pid={postid} [POST]:
-        public ResponseBase CommentAPostById(string pid, int page, int size) {
-            if (pid == "") {
+        [HttpGet]
+        [Route("comments")]
+        // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
+        public ResponseBase GetCommentsOfPostByIdAndCommentId(string pid, string cid, int page, int size) {
+            if (string.IsNullOrWhiteSpace(pid) || string.IsNullOrWhiteSpace(cid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "This request require pid, page , size"
+                    Message = "This request require pid, cid, page, size"
                 };
             }
 
-            bool isRightObjectId = ObjectId.TryParse(pid, out var id);
-            if (!isRightObjectId) {
+            bool isRightPostId = ObjectId.TryParse(pid, out var postId);
+            if (!isRightPostId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "ObjectId Wrong Format"
+                    Message = "pid wrong format object id"
+                };
+            }
+
+            bool isRightCommentParentId = ObjectId.TryParse(cid, out var commentId);
+            if (!isRightCommentParentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "cid wrong format object id"
                 };
             }
 
             if (page < 0) page = 0;
-            if (size < 0) size = 1;
+            if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
-            return new ResponseBase();
-        }
-
-        [HttpDelete]
-        [Route("comments")] // Endpoint: /api/v1/post/comments?pid={postid}&cid={commentid}  [DELETE]:
-        public ResponseBase DeleteCommentOfPostByPostIdAndCommentId(string pid, string cid) {
-            return new ResponseBase();
-        }
-
-        [HttpGet]
-        [Route("likes")] // Endpoint:/api/v1/post/likes?pid={postid}page=1&size=10&sort=desc [GET]:
-        public ResponseBase GetLikesOfPostById(string pid, Int32? page, Int32? size, string sort) {
-            return new ResponseBase();
+            return postEventHandler.GetCommentOfPostByParentId(postId, commentId, page, size);
         }
 
         [HttpPost]
-        [Route("likes")] // Endpoint:  /api/v1/post/likes?pid={postid}&uid={uid} [POST]:
-        public ResponseBase LikeAPostByPostId(string pid, string uid) {
-            return new ResponseBase();
+        [Route("comments")]
+        // Endpoint: /api/v1/post/c  [POST]:
+        public async Task<ResponseBase> CommentAPostById([FromBody] CommentRequest commentRequest) {
+            if (string.IsNullOrWhiteSpace(commentRequest.Comment)) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "Comment is null"
+                };
+            }
+
+            bool isRightPostId = ObjectId.TryParse(commentRequest.PostId.ToString(), out var postId);
+            if (!isRightPostId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "Post id wrong format object id"
+                };
+            }
+
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            if (string.IsNullOrWhiteSpace(commentRequest.CommentId)) {
+                return await postEventHandler.CommentAPostByPostId(postId, null, userMetadata, commentRequest.Comment);
+            }
+
+            bool isRightCommentId = ObjectId.TryParse(commentRequest.PostId.ToString(), out var commentId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "Comment id wrong format object id"
+                };
+            }
+
+            return await postEventHandler
+                .CommentAPostByPostId(postId, commentId, userMetadata, commentRequest.Comment);
+        }
+
+        [HttpDelete]
+        [Route("comments")]
+        // Endpoint: /api/v1/post/comments?pid={postid}&cid={commentid}  [DELETE]:
+        public async Task<ResponseBase> DeleteCommentOfPostByPostIdCommentIdAndCommentId(string pid, string cid) {
+            if (string.IsNullOrWhiteSpace(cid)) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "cid is null or white space"
+                };
+            }
+            bool isRightCommentId = ObjectId.TryParse(cid, out var commentId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "comment id wrong format object id"
+                };
+            }
+            bool isRightPostId = ObjectId.TryParse(cid, out var postId);
+            if (!isRightPostId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "post id wrong format object id"
+                };
+            }
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            return await postEventHandler.DeleteCommentByCommentId(commentId, postId, userMetadata);
+        }
+
+        [HttpPut]
+        [Route("comments")]
+        public ResponseBase UpdateACommentById([FromBody] CommentUpdate commentUpdate) {
+
+            if (string.IsNullOrWhiteSpace(commentUpdate.CommentId)) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "cid is null or white space"
+                };
+            }
+
+            bool isRightCommentId = ObjectId.TryParse(commentUpdate.CommentId, out var commentId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "comment id wrong format object id"
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(commentUpdate.Comment)) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "comment is null or white space"
+                };
+            }
+
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            return postEventHandler.UpdateCommentById(commentId, userMetadata, commentUpdate.Comment);
+        }
+
+        [HttpGet]
+        [Route("likes")]
+        // Endpoint:/api/v1/post/likes?pid={postid}page=1&size=10&sort=desc [GET]:
+        public async Task<ResponseBase> GetLikesOfPostById(string pid, int page, int size) {
+            if (string.IsNullOrWhiteSpace(pid)) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "pid is null or white space"
+                };
+            }
+
+            bool isRightCommentId = ObjectId.TryParse(pid, out var postId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "post id wrong format object id"
+                };
+            }
+
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
+            if (size > 20) size = 20;
+
+            return await postEventHandler.GetLikesOfPostById(postId, page, size);
+        }
+
+        [HttpPut]
+        [Route("likes")] // Endpoint:  /api/v1/post/likes?pid={postid} [POST]:
+        public async Task<ResponseBase> LikeAPostByPostId(string pid) {
+            bool isRightCommentId = ObjectId.TryParse(pid, out var postId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "post id wrong format object id"
+                };
+            }
+            UserMetadata userMetadata = new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            return await postEventHandler.LikeAPostByPostId(postId, userMetadata);
         }
 
         [HttpDelete]
         [Route("likes")] // Endpoint:  /api/v1/post/likes?pid={postid}&lid={likeid} [DELETE]:
-        public ResponseBase UnLikePostByPostId(string pid, string lid) {
-            return new ResponseBase();
+        public async Task<ResponseBase> UnLikePostByPostId(string pid) {
+            bool isRightCommentId = ObjectId.TryParse(pid, out var postId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "post id wrong format object id"
+                };
+            }
+            UserMetadata userMetadata = new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            return await postEventHandler.UnLikeAPostByPostId(postId, userMetadata);
         }
     }
 }

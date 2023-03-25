@@ -1,4 +1,4 @@
-﻿using LiteDB;
+using LiteDB;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using ServiceStack;
