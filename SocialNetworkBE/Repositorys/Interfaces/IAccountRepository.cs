@@ -7,8 +7,7 @@ namespace SocialNetworkBE.Repositorys.Interfaces {
         Account GetAccountByUsername(string username);
         Account CreateNewAccount(Account newAccount);
         bool DeleteAccount(ObjectId accountId);
-        Task AddNewFriendForAccount(ObjectId accountId, ObjectId friendId);
-        Task RemoveAFriendFromAccount(ObjectId accountId, ObjectId friendId);
+
 
     }
 }
