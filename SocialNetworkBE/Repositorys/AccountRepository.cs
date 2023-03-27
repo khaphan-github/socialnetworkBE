@@ -113,6 +113,25 @@ namespace SocialNetworkBE.Repository {
                 return null;
             }
         }
+
+        public string GetUserProfileUrlById(ObjectId id)
+        {
+            if (id == null) throw new ArgumentNullException("username");
+
+            try
+            {
+                FilterDefinition<Account> idFilter =
+                    Builders<Account>.Filter.Where(account => account.Id == id);
+
+
+                return AccountCollection.Find(idFilter).FirstOrDefault().UserProfileUrl;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return null;
+            }
+        }
         public Account GetAccountByObjectId(ObjectId id )
         {
             if (id == null) throw new ArgumentNullException("username");
@@ -416,8 +435,10 @@ namespace SocialNetworkBE.Repository {
             AccountCollection.ReplaceOne(b => b.Id == accId, accountUpdate);
             return accountUpdate;
         }
+
         public async Task<List<BsonDocument>> GetListAccountsMetadata(List<ObjectId> accounts, int page, int size) {
             try {
+
                 var filter = Builders<Account>.Filter.In(x => x.Id, accounts);
                 var projection = Builders<Account>.Projection
                     .Include(account => account.DisplayName)
@@ -426,6 +447,7 @@ namespace SocialNetworkBE.Repository {
                     .Include(account => account.Id);
 
                 return await AccountCollection.Find(filter).Project(projection).Skip(page * size).Limit(size).ToListAsync();
+
             } catch (Exception) {
                 return new List<BsonDocument>();
             }

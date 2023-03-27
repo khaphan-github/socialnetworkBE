@@ -214,8 +214,8 @@ namespace SocialNetworkBE.Services.Authenticate {
                 Id = ObjectId.GenerateNewId(),
                 DisplayName = DisplayName,
                 Email = email,
-                AvatarUrl = null,
-                UserProfileUrl = null,
+                AvatarUrl = "https://firebasestorage.googleapis.com/v0/b/socialnetwork-4c654.appspot.com/o/AvatarUrl%2Fdefault.jpg?alt=media&token=7d54d355-df94-40b7-b0e8-527764c3528f",
+                UserProfileUrl = "/"+userName,
                 Username = userName,
                 Password = passwordHash,
                 HashSalt = randomSalt,
@@ -235,10 +235,18 @@ namespace SocialNetworkBE.Services.Authenticate {
                 };
             }
 
+            AccountRespone accountResponse = new AccountRespone();
+            accountResponse.Id = newAccount.Id;
+            accountResponse.DisplayName = newAccount.DisplayName;
+            accountResponse.Email = newAccount.Email;
+            accountResponse.AvatarUrl = newAccount.AvatarUrl;
+            accountResponse.Username = newAccount.Username;
+            accountResponse.UserProfileUrl = newAccount.UserProfileUrl;
+
             return new ResponseBase() {
                 Status = Status.Success,
                 Message = "Create account success",
-                Data = accountResponsitory.GetAccountByObjectId(newAccount.Id)
+                Data = accountResponse
             };
         }
     }
