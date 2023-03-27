@@ -2,6 +2,7 @@ using LiteDB;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using ServiceStack;
+using SocialNetworkBE.Payloads.Data;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository.Config;
@@ -132,7 +133,7 @@ namespace SocialNetworkBE.Repository {
                 return null;
             }
         }
-        public Account GetAccountByObjectId(ObjectId id )
+        public AccountResponseForGet GetAccountByObjectId(ObjectId id )
         {
             if (id == null) throw new ArgumentNullException("username");
 
@@ -140,9 +141,20 @@ namespace SocialNetworkBE.Repository {
             {
                 FilterDefinition<Account> idFilter =
                     Builders<Account>.Filter.Where(account => account.Id == id);
-
-
-                return AccountCollection.Find(idFilter).FirstOrDefault();
+                Account accountFind = AccountCollection.Find(idFilter).FirstOrDefault();
+                AccountResponseForGet accountGet = new AccountResponseForGet();
+                accountGet.Id = id;
+                accountGet.DisplayName = accountFind.DisplayName;
+                accountGet.Email = accountFind.Email;
+                accountGet.Username = accountFind.Username;
+                accountGet.AvatarUrl = accountFind.AvatarUrl;
+                accountGet.UserProfileUrl = accountFind.UserProfileUrl;
+                accountGet.NumberOfFriend = accountFind.NumberOfFriend;
+                accountGet.ListFriendsObjectId = accountFind.ListFriendsObjectId;
+                accountGet.ListObjectId_GiveUserInvitation = accountFind.ListObjectId_GiveUserInvitation;
+                accountGet.ListObjectId_UserSendInvite = accountFind.ListObjectId_UserSendInvite;
+                accountGet.ListPostsObjectId = accountFind.ListPostsObjectId;
+                return accountGet;
             }
             catch (Exception ex)
             {
