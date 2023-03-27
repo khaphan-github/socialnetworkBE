@@ -151,6 +151,25 @@ namespace SocialNetworkBE.EventHandlers.User
             };
         }
 
+        public ResponseBase GetUserProfileUrlById(ObjectId uid)
+        {
+            string userUrlGet = accountResponsitory.GetUserProfileUrlById(uid);
+            if (userUrlGet == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Get url failure"
+                };
+            }
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Get url success",
+                Data = "User's profile: " + userUrlGet,
+            };
+        }
+
         public ResponseBase GetFriendOfUserByUserId(ObjectId uid)
         {
             var listFriendGet = accountResponsitory.GetFriendsOfUserByUserId(uid,1 ,1);

@@ -35,6 +35,22 @@ namespace SocialNetworkBE.Controllers {
         }
 
         [HttpGet]
+        [Route(REFIX + "/profile")] 
+        public ResponseBase GetUserProfileUrlById(string uid)
+        {
+            bool isRightId = ObjectId.TryParse(uid, out var userId);
+            if (!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+            return userEventHandler.GetUserProfileUrlById(userId);
+        }
+
+        [HttpGet]
         [Route(REFIX + "/friends")] // Endpoint: api/v1/user/friends?id=507f1f77bcf86cd799439011&page=1&size=15 [GET] RETURN LIST(ID, DISPLAYNAME, AVATAR, PROFILEURL)
         public ResponseBase GetFriendOfUserByUserId(string uid) {
             bool isRightId = ObjectId.TryParse(uid, out var userId);
