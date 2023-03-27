@@ -52,11 +52,13 @@ namespace SocialNetworkBE.Controllers {
         [HttpPost]
         [Route("current")]
         // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
-        public ResponseBase GetPostListWithPaging(int page, int size, string sort) {
+        public async Task<ResponseBase> GetPostListWithPaging(int page, int size) {
             if (page <= 0) page = 0;
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
-            return postEventHandler.GetPostsWithPaging(page, size, sort);
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+            return await postEventHandler.GetPostsWithPaging(userMetadata, page, size);
         }
 
         [Route("comment")]
