@@ -135,6 +135,30 @@ namespace SocialNetworkBE.Repository {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
             }
         }
+        public async Task<Post> UpdateAPost(ObjectId postObjectId, Post PostUpdate)
+        {
+            try
+            {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
+
+                UpdateDefinition<Post> update = Builders<Post>.Update
+                    .Set(post => post, PostUpdate);
+
+                var options = new FindOneAndUpdateOptions<Post>()
+                {
+                    ReturnDocument = ReturnDocument.After
+                };
+
+               await PostCollection.FindOneAndUpdateAsync(filter, update, options);
+                return GetPostById(postObjectId);
+               
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return null;
+            }
+        }
 
         public async Task MakeALikeOfPostAsync(ObjectId postObjectId, ObjectId userId) {
             try {

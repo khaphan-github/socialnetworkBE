@@ -5,15 +5,20 @@ using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
+using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.DataTranfers;
 using SocialNetworkBE.Services.Firebase;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.UI.WebControls;
 
 namespace SocialNetworkBE.EventHandlers.PostHandler {
     public class PostEventHandler {
@@ -21,6 +26,17 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         private readonly PostRespository PostRespository = new PostRespository();
         private readonly CommentRepository CommentRepository = new CommentRepository();
         private readonly AccountResponsitory AccountRepostitory = new AccountResponsitory();
+        private IMongoCollection<Post> PostCollection { get; set; }
+        private IMongoDatabase DatabaseConnected { get; set; }
+        private const string PostDocumentName = "Post";
+
+        public PostEventHandler()
+        {
+            MongoDBConfiguration MongoDatabase = new MongoDBConfiguration();
+            DatabaseConnected = MongoDatabase.GetMongoDBConnected();
+
+            PostCollection = DatabaseConnected.GetCollection<Post>(PostDocumentName);
+        }
         public ResponseBase GetPostsWithPaging(int page, int size, string sort) {
             List<PostResponse> postResponses = PostRespository
              .GetPostByPageAndSizeAndSorted(page, size, sort)
@@ -233,6 +249,94 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
 
         }
+
+        public async Task<ResponseBase> UpdateAPost(ObjectId postId, HttpFileCollection Media,
+            string Content,
+            UserMetadata userMetadata)
+        {
+
+            FirebaseImage firebaseService = new FirebaseImage();
+            List<string> mediaURLList = new List<string>();
+
+            int MaxMediaInCollection = 10;
+            FilterDefinition<Post> postFilter =
+                    Builders<Post>.Filter.Eq("_id", postId);
+
+            Post post = PostCollection.Find(postFilter).FirstOrDefault();
+            if (post == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Can't find Post",
+                };
+            }
+            int sizeMediaPost = post.Media.Count();
+
+            if (Media != null && Media.Count > MaxMediaInCollection)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Number of file must smaller than 10 file",
+                };
+            }
+            
+            List<string> medianame = new List<string>();
+            for(int i = 0; i < sizeMediaPost; i++)
+            {
+                var mediaTemp = post.Media[i].Split('/').Last();
+                Debug.WriteLine(mediaTemp);
+                medianame.Add(mediaTemp);
+            }    
+
+            if (Media != null)
+            {
+                for (int i = 0; i < Media.Count; i++)
+                {
+                    string folder = "PostMedia";
+                    if (Media.Count <= sizeMediaPost)
+                    {
+                        await firebaseService.UploadImageAsync(Media[i].InputStream, folder, medianame[i]).ConfigureAwait(false);
+
+                        string imageDownloadLink = firebaseService.StorageDomain + "/" + folder + "/" + medianame[i];
+
+                        mediaURLList.Add(imageDownloadLink);
+                    }
+                    else
+                    {
+                        string mediaNameNew = Guid.NewGuid().ToString() + ".png";
+                        await firebaseService.UploadImageAsync(Media[i].InputStream, folder, mediaNameNew).ConfigureAwait(false);
+
+                        string imageDownloadLink = firebaseService.StorageDomain + "/" + folder + "/" + mediaNameNew;
+
+                        mediaURLList.Add(imageDownloadLink);
+                    }
+                }
+            }
+            post.Media = mediaURLList;
+            post.Content = Content;
+            Post updateResult =
+            await PostRespository.UpdateAPost(postId, post);
+
+            if (updateResult == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Update failure",
+                };
+            }
+
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Update success",
+                Data = updateResult
+            };
+
+        }
+
         public async Task<ResponseBase> GetCommentById(ObjectId commentId) {
             // TODO: Get commetn by id
             CommentDataTranfer commentDataTranfer = await CommentRepository.GetCommentById(commentId);
