@@ -431,6 +431,7 @@
     <Compile Include="Controllers\ChatController.cs" />
     <Compile Include="Controllers\PostController.cs" />
     <Compile Include="Controllers\UserController.cs" />
+    <Compile Include="EventHandlers\Chat\ChatEventHandler.cs" />
     <Compile Include="EventHandlers\PostHandler\PostEventHandler.cs" />
     <Compile Include="EventHandlers\User\UserEventHandler.cs" />
     <Compile Include="Global.asax.cs">
@@ -444,6 +445,7 @@
     <Compile Include="Payloads\Request\CommentRequest.cs" />
     <Compile Include="Payloads\Request\CommentUpdate.cs" />
     <Compile Include="Payloads\Request\FormData.cs" />
+    <Compile Include="Payloads\Request\RoomPaticipate.cs" />
     <Compile Include="Payloads\Request\Token.cs" />
     <Compile Include="Payloads\Request\UserMetadata.cs" />
     <Compile Include="Payloads\Response\CommentsResponse.cs" />
@@ -458,6 +460,7 @@
     <Compile Include="Repositorys\Configs\MongoDBConfiguration.cs" />
     <Compile Include="EventHandlers\Authenticate\AuthService.cs" />
     <Compile Include="Repositorys\DataModels\Notify.cs" />
+    <Compile Include="Repositorys\DataModels\RoomChat.cs" />
     <Compile Include="Repositorys\DataTranfers\CommentDataTranfer.cs" />
     <Compile Include="Repositorys\DataTranfers\PostDataTranfer.cs" />
     <Compile Include="Repositorys\Interfaces\IPostRepository.cs" />
@@ -468,6 +471,7 @@
     <Compile Include="Repositorys\Interfaces\IAccountRepository.cs" />
     <Compile Include="Repositorys\NotifyRepository.cs" />
     <Compile Include="Repositorys\PostRespository.cs" />
+    <Compile Include="Repositorys\RoomChatRepository.cs" />
     <Compile Include="ServerConfiguration\ConstantConfig.cs" />
     <Compile Include="ServerConfiguration\ServerEnvironment.cs" />
     <Compile Include="Services\Hash\BCryptService.cs" />
