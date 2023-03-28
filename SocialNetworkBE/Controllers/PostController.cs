@@ -6,6 +6,8 @@ using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
 using System.Threading.Tasks;
 using System.Web.ModelBinding;
+using ServiceStack.Messaging;
+using SocialNetworkBE.Payloads.Response;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -32,6 +34,8 @@ namespace SocialNetworkBE.Controllers {
             return await postEventHandler
                 .HandleUserCreateNewPost(Media, Content, userMetadata);
         }
+
+        
 
         [HttpDelete]
         [Route("")]
@@ -236,11 +240,9 @@ namespace SocialNetworkBE.Controllers {
                     Message = "Media required"
                 };
             }
-            UserMetadata userMetadata =
-                 new UserMetadata().GetUserMetadataFromRequest(Request);
 
             return await postEventHandler
-                .UpdateAPost(PostId, Media, Content, userMetadata);
+                .UpdateAPost(PostId, Media, Content);
         }
 
         [HttpGet]

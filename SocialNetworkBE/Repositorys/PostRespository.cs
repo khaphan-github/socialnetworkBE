@@ -13,6 +13,9 @@ using System.Collections.ObjectModel;
 using MongoDB.Driver.Linq;
 using SocialNetworkBE.Payloads.Response;
 using MongoDB.Bson.Serialization;
+using Firebase.Database.Http;
+using System.Collections;
+using System.Web.Mvc;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
@@ -140,18 +143,8 @@ namespace SocialNetworkBE.Repository {
             try
             {
                 var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
-
-                UpdateDefinition<Post> update = Builders<Post>.Update
-                    .Set(post => post, PostUpdate);
-
-                var options = new FindOneAndUpdateOptions<Post>()
-                {
-                    ReturnDocument = ReturnDocument.After
-                };
-
-               await PostCollection.FindOneAndUpdateAsync(filter, update, options);
+                await PostCollection.ReplaceOneAsync(filter, PostUpdate, new UpdateOptions { IsUpsert = true });
                 return GetPostById(postObjectId);
-               
             }
             catch (Exception ex)
             {

@@ -251,12 +251,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         }
 
         public async Task<ResponseBase> UpdateAPost(ObjectId postId, HttpFileCollection Media,
-            string Content,
-            UserMetadata userMetadata)
+            string Content)
         {
 
             FirebaseImage firebaseService = new FirebaseImage();
-            List<string> mediaURLList = new List<string>();
 
             int MaxMediaInCollection = 10;
             FilterDefinition<Post> postFilter =
@@ -295,26 +293,20 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 for (int i = 0; i < Media.Count; i++)
                 {
                     string folder = "PostMedia";
-                    if (Media.Count <= sizeMediaPost)
+                    if (i < sizeMediaPost)
                     {
                         await firebaseService.UploadImageAsync(Media[i].InputStream, folder, medianame[i]).ConfigureAwait(false);
-
-                        string imageDownloadLink = firebaseService.StorageDomain + "/" + folder + "/" + medianame[i];
-
-                        mediaURLList.Add(imageDownloadLink);
                     }
                     else
                     {
                         string mediaNameNew = Guid.NewGuid().ToString() + ".png";
                         await firebaseService.UploadImageAsync(Media[i].InputStream, folder, mediaNameNew).ConfigureAwait(false);
 
-                        string imageDownloadLink = firebaseService.StorageDomain + "/" + folder + "/" + mediaNameNew;
-
-                        mediaURLList.Add(imageDownloadLink);
+                        string imageDownloadLink2 = firebaseService.StorageDomain + "/" + folder + "/" + mediaNameNew;
+                        post.Media.Add(imageDownloadLink2);
                     }
                 }
             }
-            post.Media = mediaURLList;
             post.Content = Content;
             Post updateResult =
             await PostRespository.UpdateAPost(postId, post);
