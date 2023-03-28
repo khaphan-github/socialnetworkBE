@@ -3,6 +3,7 @@ using ServiceStack;
 using ServiceStack.DataAnnotations;
 using ServiceStack.Web;
 using SocialNetworkBE.Payload.Response;
+using SocialNetworkBE.Payloads.Data;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
@@ -134,7 +135,7 @@ namespace SocialNetworkBE.EventHandlers.User
 
         public ResponseBase GetUserProfileById(ObjectId uid)
         {
-            var userGet = accountResponsitory.GetAccountByObjectId(uid);
+            AccountResponseForGet userGet = accountResponsitory.GetAccountByObjectId(uid);
             if(userGet == null)
             {
                 return new ResponseBase()
@@ -147,7 +148,26 @@ namespace SocialNetworkBE.EventHandlers.User
             {
                 Status = Status.Success,
                 Message = "Get user success",
-                Data = accountResponsitory.GetAccountByObjectId(uid),
+                Data = userGet,
+            };
+        }
+
+        public ResponseBase GetUserProfileUrlById(ObjectId uid)
+        {
+            string userUrlGet = accountResponsitory.GetUserProfileUrlById(uid);
+            if (userUrlGet == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Get url failure"
+                };
+            }
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Get url success",
+                Data = "User's profile: " + userUrlGet,
             };
         }
 

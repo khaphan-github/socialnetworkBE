@@ -19,6 +19,20 @@ namespace SocialNetworkBE.Controllers {
         private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
         private readonly UserEventHandler userEventHandler = new UserEventHandler();
         private const string REFIX = "api/v1/user";
+
+        [HttpGet]
+        [Route(REFIX + "/")]
+        public ResponseBase UserIdByToken()
+        {
+            UserMetadata userMetadata =
+                 new UserMetadata().GetUserMetadataFromRequest(Request);
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Get success",
+                Data = userMetadata.Id
+            };
+        }
         [HttpGet]
         [Route(REFIX + "/")] // Endpoint: /api/v1/user?id=507f1f77bcf86cd799439011 [GET]
         public ResponseBase GetUserProfileById(string uid) {
@@ -32,6 +46,22 @@ namespace SocialNetworkBE.Controllers {
                 };
             }
             return userEventHandler.GetUserProfileById(userId);
+        }
+
+        [HttpGet]
+        [Route(REFIX + "/profile")] 
+        public ResponseBase GetUserProfileUrlById(string uid)
+        {
+            bool isRightId = ObjectId.TryParse(uid, out var userId);
+            if (!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+            return userEventHandler.GetUserProfileUrlById(userId);
         }
 
         [HttpGet]

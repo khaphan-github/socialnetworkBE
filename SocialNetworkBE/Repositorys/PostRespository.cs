@@ -7,7 +7,15 @@ using System.Linq;
 using SocialNetworkBE.Repository.Config;
 using ServiceStack;
 using System.Threading.Tasks;
+using MongoDB.Driver.Builders;
+using Amazon.Runtime.Documents;
+using System.Collections.ObjectModel;
 using MongoDB.Driver.Linq;
+using SocialNetworkBE.Payloads.Response;
+using MongoDB.Bson.Serialization;
+using Firebase.Database.Http;
+using System.Collections;
+using System.Web.Mvc;
 using SocialNetworkBE.Repositorys.DataTranfers;
 
 namespace SocialNetworkBE.Repository {
@@ -72,8 +80,10 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public Task<List<PostDataTranfer>> GetSortedAndProjectedPostsAsync(ObjectId userId, int pageNumber, int pageSize) {
-            try {
+        public Task<List<PostDataTranfer>> GetSortedAndProjectedPostsAsync(ObjectId userId, int pageNumber, int pageSize)
+        {
+            try
+            {
                 var pipeline = new BsonDocument[]
             {
                 new BsonDocument("$sort", new BsonDocument("UpdateAt", -1)),
@@ -112,9 +122,7 @@ namespace SocialNetworkBE.Repository {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return Task.FromResult<List<PostDataTranfer>>(null);
             }
-
         }
-
 
         public async Task UpdateNumOfCommentOfPost(ObjectId postObjectId, int increaseValue) {
             try {
@@ -132,6 +140,20 @@ namespace SocialNetworkBE.Repository {
 
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
+        }
+        public async Task<Post> UpdateAPost(ObjectId postObjectId, Post PostUpdate)
+        {
+            try
+            {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
+                await PostCollection.ReplaceOneAsync(filter, PostUpdate, new UpdateOptions { IsUpsert = true });
+                return GetPostById(postObjectId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return null;
             }
         }
 
