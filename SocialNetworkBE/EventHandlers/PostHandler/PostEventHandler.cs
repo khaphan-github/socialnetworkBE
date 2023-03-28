@@ -5,15 +5,20 @@ using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.Repository;
+using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.DataTranfers;
 using SocialNetworkBE.Services.Firebase;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.UI.WebControls;
 
 namespace SocialNetworkBE.EventHandlers.PostHandler {
     public class PostEventHandler {
@@ -21,23 +26,35 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         private readonly PostRespository PostRespository = new PostRespository();
         private readonly CommentRepository CommentRepository = new CommentRepository();
         private readonly AccountResponsitory AccountRepostitory = new AccountResponsitory();
-        public async Task<ResponseBase> GetPostsWithPaging(UserMetadata userMetadata, int page, int size) {
-            // TODO: Get like post
-            List<PostDataTranfer> postResponses = 
-                await PostRespository.GetSortedAndProjectedPostsAsync(ObjectId.Parse(userMetadata.Id), page, size);
+        private IMongoCollection<Post> PostCollection { get; set; }
+        private IMongoDatabase DatabaseConnected { get; set; }
+        private const string PostDocumentName = "Post";
 
-            if (postResponses == null) {
+        public PostEventHandler()
+        {
+            MongoDBConfiguration MongoDatabase = new MongoDBConfiguration();
+            DatabaseConnected = MongoDatabase.GetMongoDBConnected();
+
+            PostCollection = DatabaseConnected.GetCollection<Post>(PostDocumentName);
+        }
+        public ResponseBase GetPostsWithPaging(int page, int size, string sort) {
+            List<PostResponse> postResponses = PostRespository
+             .GetPostByPageAndSizeAndSorted(page, size, sort)
+             .Select(bsonPost => BsonSerializer.Deserialize<PostResponse>(bsonPost))
+             .ToList();
+
+            if (postResponses.Count == 0) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "Empty post",
                 };
             }
+
             // Logic: page index endpoint
             string pagingEndpoint = "/api/v1/posts/current?";
             PagingResponse pagingResponse = 
                 new PagingResponse(pagingEndpoint, page, size, postResponses);
-
-            ResponseBase response = new ResponseBase() { 
+            ResponseBase response = new ResponseBase() {
                 Status = Status.Success,
                 Message = "Get post success",
                 Data = pagingResponse
@@ -87,7 +104,6 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 OwnerProfileURL = userMetadata.UserProfileUrl,
                 Content = Content,
                 Media = mediaURLList,
-                Likes = new List<ObjectId>(),
             };
 
             newPost.CommentsURL = "/api/v1/post/comments?pid=" + newPost.Id.ToString();
@@ -233,6 +249,86 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             };
 
         }
+
+        public async Task<ResponseBase> UpdateAPost(ObjectId postId, HttpFileCollection Media,
+            string Content)
+        {
+
+            FirebaseImage firebaseService = new FirebaseImage();
+
+            int MaxMediaInCollection = 10;
+            FilterDefinition<Post> postFilter =
+                    Builders<Post>.Filter.Eq("_id", postId);
+
+            Post post = PostCollection.Find(postFilter).FirstOrDefault();
+            if (post == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Can't find Post",
+                };
+            }
+            int sizeMediaPost = post.Media.Count();
+
+            if (Media != null && Media.Count > MaxMediaInCollection)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Number of file must smaller than 10 file",
+                };
+            }
+            
+            List<string> medianame = new List<string>();
+            for(int i = 0; i < sizeMediaPost; i++)
+            {
+                var mediaTemp = post.Media[i].Split('/').Last();
+                Debug.WriteLine(mediaTemp);
+                medianame.Add(mediaTemp);
+            }    
+
+            if (Media != null)
+            {
+                for (int i = 0; i < Media.Count; i++)
+                {
+                    string folder = "PostMedia";
+                    if (i < sizeMediaPost)
+                    {
+                        await firebaseService.UploadImageAsync(Media[i].InputStream, folder, medianame[i]).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        string mediaNameNew = Guid.NewGuid().ToString() + ".png";
+                        await firebaseService.UploadImageAsync(Media[i].InputStream, folder, mediaNameNew).ConfigureAwait(false);
+
+                        string imageDownloadLink2 = firebaseService.StorageDomain + "/" + folder + "/" + mediaNameNew;
+                        post.Media.Add(imageDownloadLink2);
+                    }
+                }
+            }
+            post.Content = Content;
+            Post updateResult =
+            await PostRespository.UpdateAPost(postId, post);
+
+            if (updateResult == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Update failure",
+                };
+            }
+
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Update success",
+                Data = updateResult
+            };
+
+        }
+
         public async Task<ResponseBase> GetCommentById(ObjectId commentId) {
             // TODO: Get commetn by id
             CommentDataTranfer commentDataTranfer = await CommentRepository.GetCommentById(commentId);

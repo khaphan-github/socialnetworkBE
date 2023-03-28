@@ -1,9 +1,11 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
-using MongoDB.Bson;
 
 namespace SocialNetworkBE.Repositorys.DataModels
 {
+    [BsonIgnoreExtraElements]
     public class Post
     {
         public ObjectId Id { get; set; }

@@ -5,6 +5,9 @@ using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
 using System.Threading.Tasks;
+using System.Web.ModelBinding;
+using ServiceStack.Messaging;
+using SocialNetworkBE.Payloads.Response;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -31,6 +34,8 @@ namespace SocialNetworkBE.Controllers {
             return await postEventHandler
                 .HandleUserCreateNewPost(Media, Content, userMetadata);
         }
+
+        
 
         [HttpDelete]
         [Route("")]
@@ -203,6 +208,43 @@ namespace SocialNetworkBE.Controllers {
                new UserMetadata().GetUserMetadataFromRequest(Request);
 
             return postEventHandler.UpdateCommentById(commentId, userMetadata, commentUpdate.Comment);
+        }
+
+        [HttpPut]
+        [Route("update")]
+        public async Task<ResponseBase> UpdateAPost(string postId)
+        {
+            bool isRightId = ObjectId.TryParse(postId, out var PostId);
+            HttpFileCollection Media = HttpContext.Current.Request.Files;
+
+            var Content = FormData.GetValueByKey("Content");
+            if (!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+            if (Content == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Content required"
+                };
+            }
+            if (Media == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Media required"
+                };
+            }
+
+            return await postEventHandler
+                .UpdateAPost(PostId, Media, Content);
         }
 
         [HttpGet]
