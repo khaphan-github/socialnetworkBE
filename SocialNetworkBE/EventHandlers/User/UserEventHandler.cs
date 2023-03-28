@@ -171,24 +171,6 @@ namespace SocialNetworkBE.EventHandlers.User
             };
         }
 
-        public ResponseBase GetFriendOfUserByUserId(ObjectId uid)
-        {
-            var listFriendGet = accountResponsitory.GetFriendsOfUserByUserId(uid,1 ,1);
-            if (listFriendGet == null)
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.Failure,
-                    Message = "Get user's friends failure"
-                };
-            }
-            return new ResponseBase()
-            {
-                Status = Status.Success,
-                Message = "Get user's friends success",
-                Data = listFriendGet,
-            };
-        }
 
         public ResponseBase AcceptInvitationFromOtherUser(ObjectId uid, ObjectId fid)
         {
@@ -232,6 +214,32 @@ namespace SocialNetworkBE.EventHandlers.User
             {
                 Status = Status.Failure,
                 Message = "Deny failure",
+            };
+        }
+
+        public async Task<ResponseBase> GetFriendOfUserByUserId(ObjectId userId, int page, int size)
+        {
+
+            List<FriendRespone> friendRespones = accountResponsitory.GetFriendsOfUserByUserId(userId, page, size);
+
+            if (friendRespones.Count == 0)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "There are not friend of this user",
+                };
+            }
+
+            string pagingEndpoint = "/api/v1/user/friends?";
+            PagingResponse pagingResponse =
+                new PagingResponse(pagingEndpoint, page, friendRespones.Count, friendRespones);
+
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Get list friend of this friend success",
+                Data = pagingResponse
             };
         }
     }

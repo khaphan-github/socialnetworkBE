@@ -370,7 +370,7 @@ namespace SocialNetworkBE.Repository {
             {
                 FriendRespone accountGetFriend = new FriendRespone();
                 FilterDefinition<Account> accountFriendFilter = Builders<Account>.Filter.Eq("_id", item);
-                Account accountFriendGet = AccountCollection.Find(accountFilter).FirstOrDefault();
+                Account accountFriendGet = AccountCollection.Find(accountFriendFilter).FirstOrDefault();
                 accountGetFriend.Id = item;
                 accountGetFriend.DisplayName = accountFriendGet.DisplayName;
                 accountGetFriend.Avatar = accountFriendGet.AvatarUrl;
