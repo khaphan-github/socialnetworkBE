@@ -7,8 +7,15 @@ using System.Linq;
 using SocialNetworkBE.Repository.Config;
 using ServiceStack;
 using System.Threading.Tasks;
+using MongoDB.Driver.Builders;
+using Amazon.Runtime.Documents;
+using System.Collections.ObjectModel;
 using MongoDB.Driver.Linq;
-using SocialNetworkBE.Repositorys.DataTranfers;
+using SocialNetworkBE.Payloads.Response;
+using MongoDB.Bson.Serialization;
+using Firebase.Database.Http;
+using System.Collections;
+using System.Web.Mvc;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
@@ -72,49 +79,46 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public Task<List<PostDataTranfer>> GetSortedAndProjectedPostsAsync(ObjectId userId, int pageNumber, int pageSize) {
+        public List<BsonDocument> GetPostByPageAndSizeAndSorted(int page, int size, string sortType) {
             try {
-                var pipeline = new BsonDocument[]
-            {
-                new BsonDocument("$sort", new BsonDocument("UpdateAt", -1)),
-                new BsonDocument("$skip", pageNumber * pageSize),
-                new BsonDocument("$limit", pageSize),
-                new BsonDocument("$project", new BsonDocument
-                {
-                    { "OwnerId", 1 },
-                    { "OwnerAvatarURL", 1 },
-                    { "OwnerDisplayName", 1 },
-                    { "OwnerProfileURL", 1 },
-                    { "UpdateAt", 1 },
-                    { "Scope", 1 },
-                    { "Content", 1 },
-                    { "Media", 1 },
-                    { "NumOfComment", 1 },
-                    { "CommentsURL", 1 },
-                    { "NumOfLike", 1 },
-                    { "LikesURL", 1 },
-                    { "IsLiked", new BsonDocument("$in", new BsonArray
-                        {
-                            userId,
-                            new BsonDocument("$ifNull", new BsonArray
-                            {
-                                "$Likes",
-                                new BsonArray()
-                            })
-                        })
-                    }
-                })
-            };
+                int paging = page * size;
+                var sort = sortType == "desc"
+                    ? Builders<BsonDocument>.Sort.Descending("UpdateAt")
+                    : Builders<BsonDocument>.Sort.Ascending("UpdateAt");
 
-                var pipelineDefinition = PipelineDefinition<Post, PostDataTranfer>.Create(pipeline);
-                return PostCollection.Aggregate(pipelineDefinition).ToListAsync();
+                IMongoCollection<BsonDocument> PostCollectionBsonDocument =
+                    DatabaseConnected.GetCollection<BsonDocument>(PostDocumentName);
+
+                FilterDefinition<BsonDocument> justUpdatePostFilter = Builders<BsonDocument>.Filter.Empty;
+
+                var projection = Builders<BsonDocument>.Projection
+                    .Include("OwnerId")
+                    .Include("OwnerAvatarURL")
+                    .Include("OwnerDisplayName")
+                    .Include("OwnerProfileURL")
+                    .Include("UpdateAt")
+                    .Include("Scope")
+                    .Include("Content")
+                    .Include("Media")
+                    .Include("NumOfComment")
+                    .Include("CommentsURL")
+                    .Include("NumOfLike")
+                    .Include("LikesURL");
+
+                var topLevelProjectionResults = PostCollectionBsonDocument
+                    .Find(justUpdatePostFilter)
+                    .Sort(sort)
+                    .Project(projection)
+                    .Skip(paging)
+                    .Limit(size)
+                    .ToList();
+
+                return topLevelProjectionResults;
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                return Task.FromResult<List<PostDataTranfer>>(null);
+                return new List<BsonDocument>();
             }
-
         }
-
 
         public async Task UpdateNumOfCommentOfPost(ObjectId postObjectId, int increaseValue) {
             try {
@@ -132,6 +136,20 @@ namespace SocialNetworkBE.Repository {
 
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
+        }
+        public async Task<Post> UpdateAPost(ObjectId postObjectId, Post PostUpdate)
+        {
+            try
+            {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
+                await PostCollection.ReplaceOneAsync(filter, PostUpdate, new UpdateOptions { IsUpsert = true });
+                return GetPostById(postObjectId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return null;
             }
         }
 

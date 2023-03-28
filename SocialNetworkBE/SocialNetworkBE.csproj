@@ -436,6 +436,8 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Payloads\Data\AccountRespone.cs" />
+    <Compile Include="Payloads\Data\AccountResponseForGet.cs" />
     <Compile Include="Payloads\Data\AuthResponse.cs" />
     <Compile Include="Payloads\Data\TokenResponse.cs" />
     <Compile Include="Payloads\Data\UserResponse.cs" />
