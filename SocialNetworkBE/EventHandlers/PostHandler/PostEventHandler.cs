@@ -21,7 +21,8 @@ using System.Web;
 using System.Web.UI.WebControls;
 
 namespace SocialNetworkBE.EventHandlers.PostHandler {
-    public class PostEventHandler {
+    public class PostEventHandler
+    {
 
         private readonly PostRespository PostRespository = new PostRespository();
         private readonly CommentRepository CommentRepository = new CommentRepository();
@@ -37,14 +38,16 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             PostCollection = DatabaseConnected.GetCollection<Post>(PostDocumentName);
         }
-        public ResponseBase GetPostsWithPaging(int page, int size, string sort) {
-            List<PostResponse> postResponses = PostRespository
-             .GetPostByPageAndSizeAndSorted(page, size, sort)
-             .Select(bsonPost => BsonSerializer.Deserialize<PostResponse>(bsonPost))
-             .ToList();
+        public async Task<ResponseBase> GetPostsWithPaging(UserMetadata userMetadata, int page, int size)
+        {
+            // TODO: Get like post
+            List<PostDataTranfer> postResponses =
+                await PostRespository.GetSortedAndProjectedPostsAsync(ObjectId.Parse(userMetadata.Id), page, size);
 
-            if (postResponses.Count == 0) {
-                return new ResponseBase() {
+            if (postResponses == null)
+            {
+                return new ResponseBase()
+                {
                     Status = Status.Failure,
                     Message = "Empty post",
                 };
@@ -52,16 +55,17 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             // Logic: page index endpoint
             string pagingEndpoint = "/api/v1/posts/current?";
-            PagingResponse pagingResponse = 
-                new PagingResponse(pagingEndpoint, page, size, postResponses);
-            ResponseBase response = new ResponseBase() {
-                Status = Status.Success,
-                Message = "Get post success",
-                Data = pagingResponse
-            };
+            PagingResponse pagingResponse =
+                new PagingResponse(pagingEndpoint, page, size, postResponses); ResponseBase response = new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Get post success",
+                    Data = pagingResponse
+                };
 
             return response;
         }
+    
 
         public async Task<ResponseBase> HandleUserCreateNewPost(
             HttpFileCollection Media,
