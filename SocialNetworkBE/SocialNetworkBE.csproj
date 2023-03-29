@@ -477,7 +477,6 @@
     <Compile Include="ServerConfiguration\ConstantConfig.cs" />
     <Compile Include="ServerConfiguration\ServerEnvironment.cs" />
     <Compile Include="Services\Hash\BCryptService.cs" />
-    <Compile Include="Services\Http\HttpClientService.cs" />
     <Compile Include="Services\JsonWebToken\JsonWebTokenService.cs" />
     <Compile Include="Services\JsonWebToken\TokenClaimsModel.cs" />
     <Compile Include="Services\Notification\PushNotificationService.cs" />
