@@ -9,12 +9,14 @@ using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.DataTranfers;
+using SocialNetworkBE.Repositorys.Interfaces;
 using SocialNetworkBE.Services.Firebase;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
@@ -65,7 +67,66 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             return response;
         }
-    
+
+        public async Task<ResponseBase> GetPostsOfFriendWithPaging(UserMetadata userMetadata, int page, int size)
+        {
+            // TODO: Get like post
+            bool isRightCommentId = ObjectId.TryParse(userMetadata.Id, out var userId);
+            List<ObjectId> listFriend = AccountRepostitory.ListFriendByUserId(userId);
+            List<PostDataTranfer> AllFriendPost = new List<PostDataTranfer>();
+            foreach(ObjectId i in listFriend)
+            {
+                AllFriendPost.AddRange(await PostRespository.GetSortedAndProjectedPostsOfFriendAsync(userId, i, page, size));
+            }
+            if (AllFriendPost == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Empty post",
+                };
+            }
+
+            // Logic: page index endpoint
+            string pagingEndpoint = "/api/v1/posts/current?";
+            PagingResponse pagingResponse =
+                new PagingResponse(pagingEndpoint, page, size, AllFriendPost); ResponseBase response = new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Get post success",
+                    Data = pagingResponse
+                };
+
+            return response;
+        }
+
+        public async Task<ResponseBase> GetPostsOfuserWithPaging(UserMetadata userMetadata, int page, int size)
+        {
+            // TODO: Get like post
+            List<PostDataTranfer> postResponses =
+                await PostRespository.GetSortedAndProjectedPostsOfUserAsync(ObjectId.Parse(userMetadata.Id), page, size);
+
+            if (postResponses == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Empty post",
+                };
+            }
+
+            // Logic: page index endpoint
+            string pagingEndpoint = "/api/v1/posts/current?";
+            PagingResponse pagingResponse =
+                new PagingResponse(pagingEndpoint, page, size, postResponses); ResponseBase response = new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Get post success",
+                    Data = pagingResponse
+                };
+
+            return response;
+        }
 
         public async Task<ResponseBase> HandleUserCreateNewPost(
             HttpFileCollection Media,
@@ -97,9 +158,9 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     mediaURLList.Add(imageDownloadLink);
                 }
             }
-
+            ObjectId id = ObjectId.GenerateNewId();
             Post newPost = new Post() {
-                Id = ObjectId.GenerateNewId(),
+                Id = id,
                 CreateDate = DateTime.Now,
                 UpdateAt = DateTime.Now,
                 OwnerAvatarURL = userMetadata.AvatarURL,
@@ -114,7 +175,8 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             newPost.LikesURL = "/api/v1/post/likes?pid=" + newPost.Id.ToString();
 
             Post savedPost = PostRespository.CreateNewPost(newPost);
-            if (savedPost == null) {
+            bool saveListUserPostOk =  AccountRepostitory.UpdateListPostWhenUserCreateNewPost(ObjectId.Parse(userMetadata.Id), id);
+            if (savedPost == null && saveListUserPostOk == false) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "Create post failure"
