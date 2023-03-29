@@ -65,6 +65,66 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             return response;
         }
+
+        public async Task<ResponseBase> GetPostsOfFriendWithPaging(UserMetadata userMetadata, int page, int size)
+        {
+            // TODO: Get like post
+            bool isRightCommentId = ObjectId.TryParse(userMetadata.Id, out var userId);
+            List<ObjectId> listFriend = AccountRepostitory.ListFriendByUserId(userId);
+            List<PostDataTranfer> AllFriendPost = new List<PostDataTranfer>();
+            foreach(ObjectId i in listFriend)
+            {
+                AllFriendPost.AddRange(await PostRespository.GetSortedAndProjectedPostsOfFriendAsync(userId, i, page, size));
+            }
+            if (AllFriendPost == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Empty post",
+                };
+            }
+
+            // Logic: page index endpoint
+            string pagingEndpoint = "/api/v1/posts/current?";
+            PagingResponse pagingResponse =
+                new PagingResponse(pagingEndpoint, page, size, AllFriendPost); ResponseBase response = new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Get post success",
+                    Data = pagingResponse
+                };
+
+            return response;
+        }
+
+        public async Task<ResponseBase> GetPostsOfuserWithPaging(UserMetadata userMetadata, int page, int size)
+        {
+            // TODO: Get like post
+            List<PostDataTranfer> postResponses =
+                await PostRespository.GetSortedAndProjectedPostsOfUserAsync(ObjectId.Parse(userMetadata.Id), page, size);
+
+            if (postResponses == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Empty post",
+                };
+            }
+
+            // Logic: page index endpoint
+            string pagingEndpoint = "/api/v1/posts/current?";
+            PagingResponse pagingResponse =
+                new PagingResponse(pagingEndpoint, page, size, postResponses); ResponseBase response = new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Get post success",
+                    Data = pagingResponse
+                };
+
+            return response;
+        }
     
 
         public async Task<ResponseBase> HandleUserCreateNewPost(
