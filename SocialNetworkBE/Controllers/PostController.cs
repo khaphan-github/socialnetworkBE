@@ -1,13 +1,13 @@
 ﻿using MongoDB.Bson;
 using SocialNetworkBE.EventHandlers.PostHandler;
 using SocialNetworkBE.Payload.Response;
-using System;
 using System.Web;
 using System.Web.Http;
 using SocialNetworkBE.Payloads.Request;
-using System.Security.Cryptography;
-using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web.ModelBinding;
+using ServiceStack.Messaging;
+using SocialNetworkBE.Payloads.Response;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -35,6 +35,8 @@ namespace SocialNetworkBE.Controllers {
                 .HandleUserCreateNewPost(Media, Content, userMetadata);
         }
 
+        
+
         [HttpDelete]
         [Route("")]
         public ResponseBase DetetePostById(string pid) {
@@ -52,47 +54,62 @@ namespace SocialNetworkBE.Controllers {
             return postEventHandler.DeletePostById(id, ObjectId.Parse(userMetadata.Id));
         }
 
-        [HttpPost]
+        //[HttpPost]
+        //[Route("current")]
+        //// Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
+        //public async Task<ResponseBase> GetPostListWithPaging(int page, int size) {
+        //    if (page <= 0) page = 0;
+        //    if (size <= 0) size = 1;
+        //    if (size > 20) size = 20;
+        //    UserMetadata userMetadata =
+        //       new UserMetadata().GetUserMetadataFromRequest(Request);
+        //    return await postEventHandler.GetPostsWithPaging(userMetadata, page, size);
+        //}
+
+        [HttpGet]
         [Route("current")]
         // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
-        public ResponseBase GetPostListWithPaging(int page, int size, string sort) {
+        public async Task<ResponseBase> GetPostFriendListWithPaging(int page, int size)
+        {
             if (page <= 0) page = 0;
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
-            return postEventHandler.GetPostsWithPaging(page, size, sort);
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+            return await postEventHandler.GetPostsOfFriendWithPaging(userMetadata, page, size);
         }
 
         [HttpGet]
-        [Route("comments")]
-        // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
-        public ResponseBase GetCommentsOfPostById(string pid, int page, int size) {
-
-            if (string.IsNullOrWhiteSpace(pid)) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "This request require pid, page , size"
-                };
-            }
-
-            bool isRightObjectId = ObjectId.TryParse(pid, out var id);
-            if (!isRightObjectId) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "ObjectId wrong format"
-                };
-            }
-
-            if (page < 0) page = 0;
-            if (size < 0) size = 1;
+        [Route("")]
+        // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
+        public async Task<ResponseBase> GetPostUserListWithPaging(int page, int size)
+        {
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
             if (size > 20) size = 20;
-
-            return postEventHandler.GetCommentOfPostByPostId(id, page, size);
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+            return await postEventHandler.GetPostsOfuserWithPaging(userMetadata, page, size);
         }
+
+        [Route("comment")]
+        // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
+        public async Task<ResponseBase> GetCommentsById(string id) {
+            bool isRightPostId = ObjectId.TryParse(id, out var commentId);
+            if (!isRightPostId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "pid wrong format object id"
+                };
+            }
+            return await postEventHandler.GetCommentById(commentId);
+        }
+
         [HttpGet]
         [Route("comments")]
         // Endpoint: /api/v1/post/comments/?pid={postid}&page=1&size=1 [POST]:
-        public ResponseBase GetCommentsOfPostByIdAndCommentId(string pid, string cid, int page, int size) {
-            if (string.IsNullOrWhiteSpace(pid) || string.IsNullOrWhiteSpace(cid)) {
+        public async Task<ResponseBase> GetCommentsOfPostById(string pid, string cid, int page, int size) {
+            if (string.IsNullOrWhiteSpace(pid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
                     Message = "This request require pid, cid, page, size"
@@ -106,21 +123,18 @@ namespace SocialNetworkBE.Controllers {
                     Message = "pid wrong format object id"
                 };
             }
-
-            bool isRightCommentParentId = ObjectId.TryParse(cid, out var commentId);
-            if (!isRightCommentParentId) {
-                return new ResponseBase() {
-                    Status = Status.WrongFormat,
-                    Message = "cid wrong format object id"
-                };
-            }
-
             if (page < 0) page = 0;
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
-            return postEventHandler.GetCommentOfPostByParentId(postId, commentId, page, size);
+            bool isRightCommentid = ObjectId.TryParse(cid, out var commentId);
+            if(!isRightCommentid) {
+                return await postEventHandler.GetCommentOfPostByPostId(postId, null, page, size);
+            }
+            return await postEventHandler.GetCommentOfPostByPostId(postId, commentId, page, size);
         }
+
+
 
         [HttpPost]
         [Route("comments")]
@@ -137,7 +151,7 @@ namespace SocialNetworkBE.Controllers {
             if (!isRightPostId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "post id wrong format object id"
+                    Message = "Post id wrong format object id"
                 };
             }
 
@@ -148,11 +162,11 @@ namespace SocialNetworkBE.Controllers {
                 return await postEventHandler.CommentAPostByPostId(postId, null, userMetadata, commentRequest.Comment);
             }
 
-            bool isRightCommentId = ObjectId.TryParse(commentRequest.PostId.ToString(), out var commentId);
+            bool isRightCommentId = ObjectId.TryParse(commentRequest.CommentId.ToString(), out var commentId);
             if (!isRightCommentId) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
-                    Message = "comment id wrong format object id"
+                    Message = "Comment id wrong format object id"
                 };
             }
 
@@ -163,7 +177,7 @@ namespace SocialNetworkBE.Controllers {
         [HttpDelete]
         [Route("comments")]
         // Endpoint: /api/v1/post/comments?pid={postid}&cid={commentid}  [DELETE]:
-        public async Task<ResponseBase> DeleteCommentOfPostByPostIdCommentIdAndCommentId(string pid,string cid) {
+        public async Task<ResponseBase> DeleteCommentOfPostByPostIdCommentIdAndCommentId(string pid, string cid) {
             if (string.IsNullOrWhiteSpace(cid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
@@ -222,10 +236,47 @@ namespace SocialNetworkBE.Controllers {
             return postEventHandler.UpdateCommentById(commentId, userMetadata, commentUpdate.Comment);
         }
 
+        [HttpPut]
+        [Route("update")]
+        public async Task<ResponseBase> UpdateAPost(string postId)
+        {
+            bool isRightId = ObjectId.TryParse(postId, out var PostId);
+            HttpFileCollection Media = HttpContext.Current.Request.Files;
+
+            var Content = FormData.GetValueByKey("Content");
+            if (!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+            if (Content == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Content required"
+                };
+            }
+            if (Media == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Media required"
+                };
+            }
+
+            return await postEventHandler
+                .UpdateAPost(PostId, Media, Content);
+        }
+
         [HttpGet]
         [Route("likes")]
         // Endpoint:/api/v1/post/likes?pid={postid}page=1&size=10&sort=desc [GET]:
-        public ResponseBase GetLikesOfPostById(string pid, int page, int size, string sort) {
+        public async Task<ResponseBase> GetLikesOfPostById(string pid, int page, int size) {
             if (string.IsNullOrWhiteSpace(pid)) {
                 return new ResponseBase() {
                     Status = Status.WrongFormat,
@@ -245,12 +296,12 @@ namespace SocialNetworkBE.Controllers {
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
-            return postEventHandler.GetLikesOfPostById(postId, page, size, sort);
+            return await postEventHandler.GetLikesOfPostById(postId, page, size);
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("likes")] // Endpoint:  /api/v1/post/likes?pid={postid} [POST]:
-        public ResponseBase LikeAPostByPostId(string pid) {
+        public async Task<ResponseBase> LikeAPostByPostId(string pid) {
             bool isRightCommentId = ObjectId.TryParse(pid, out var postId);
             if (!isRightCommentId) {
                 return new ResponseBase() {
@@ -260,13 +311,22 @@ namespace SocialNetworkBE.Controllers {
             }
             UserMetadata userMetadata = new UserMetadata().GetUserMetadataFromRequest(Request);
 
-            return postEventHandler.LikeAPostByPostId(postId, userMetadata);
+            return await postEventHandler.LikeAPostByPostId(postId, userMetadata);
         }
 
         [HttpDelete]
         [Route("likes")] // Endpoint:  /api/v1/post/likes?pid={postid}&lid={likeid} [DELETE]:
-        public ResponseBase UnLikePostByPostId(string pid, string lid) {
-            return new ResponseBase();
+        public async Task<ResponseBase> UnLikePostByPostId(string pid) {
+            bool isRightCommentId = ObjectId.TryParse(pid, out var postId);
+            if (!isRightCommentId) {
+                return new ResponseBase() {
+                    Status = Status.WrongFormat,
+                    Message = "post id wrong format object id"
+                };
+            }
+            UserMetadata userMetadata = new UserMetadata().GetUserMetadataFromRequest(Request);
+
+            return await postEventHandler.UnLikeAPostByPostId(postId, userMetadata);
         }
     }
 }

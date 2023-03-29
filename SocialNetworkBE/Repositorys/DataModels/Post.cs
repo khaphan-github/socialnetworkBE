@@ -1,9 +1,11 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
-using MongoDB.Bson;
 
 namespace SocialNetworkBE.Repositorys.DataModels
 {
+    [BsonIgnoreExtraElements]
     public class Post
     {
         public ObjectId Id { get; set; }
@@ -20,5 +22,6 @@ namespace SocialNetworkBE.Repositorys.DataModels
         public string CommentsURL { get; set; }
         public int NumOfLike { get; set; } = 0;
         public string LikesURL { get; set; }
+        public List<ObjectId> Likes { get; set; }
     }
 }

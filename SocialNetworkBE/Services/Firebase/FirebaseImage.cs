@@ -1,4 +1,4 @@
-﻿using Firebase.Auth;
+using Firebase.Auth;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -11,24 +11,29 @@ using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace SocialNetworkBE.Services.Firebase {
-    public class FirebaseImage {
+namespace SocialNetworkBE.Services.Firebase
+{
+    public class FirebaseImage
+    {
         private string APIKey { get; set; }
         private string UserEmail { get; set; }
         private string Password { get; set; }
         private string Bucket { get; set; }
         public string StorageDomain { get; set; }
         private FirebaseAuthLink FirebaseAuthLink { get; set; }
-        public FirebaseImage() {
+        public FirebaseImage()
+        {
             APIKey = ServerEnvironment.GetFirebaseApiKey();
             UserEmail = ServerEnvironment.GetFirebaseAuthEmail();
             Password = ServerEnvironment.GetFirebaseAuthPwd();
             Bucket = ServerEnvironment.GetFirebaseBucket();
             StorageDomain = ServerEnvironment.GetFirebaseStorageDomain();
         }
-        private async Task<FirebaseAuthLink> ExecuteWithPostContentAsync(string googleUrl, string postContent) {
+        private async Task<FirebaseAuthLink> ExecuteWithPostContentAsync(string googleUrl, string postContent)
+        {
             string responseData = "N/A";
-            try {
+            try
+            {
                 HttpClient client = new HttpClient();
 
                 HttpResponseMessage response =
@@ -42,24 +47,29 @@ namespace SocialNetworkBE.Services.Firebase {
 
                 FirebaseAuthLink firebaseAuthLink = JsonConvert.DeserializeObject<FirebaseAuthLink>(responseData);
                 return firebaseAuthLink;
-            } catch (Exception innerException) {
+            }
+            catch (Exception innerException)
+            {
                 throw new FirebaseAuthException(googleUrl, postContent, responseData, innerException);
             }
         }
 
-        public async Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password) {
+        public async Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password)
+        {
             string contentFormat = "{{\"email\":\"{0}\",\"password\":\"{1}\",\"returnSecureToken\":false}}";
             string postContent = string.Format(contentFormat, new object[2] { email, password });
 
             string googleApisEndpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key={0}";
-            
+
             return await ExecuteWithPostContentAsync(googleApisEndpoint, postContent)
                 .ConfigureAwait(continueOnCapturedContext: false);
         }
 
-        public async Task<string> UploadImageAsync(Stream fileStream, string folder, string mediaName) {
+        public async Task<string> UploadImageAsync(Stream fileStream, string folder, string mediaName)
+        {
 
-            if(FirebaseAuthLink == null) {
+            if (FirebaseAuthLink == null)
+            {
                 FirebaseAuthLink = await SignInWithEmailAndPasswordAsync(UserEmail, Password);
             }
 
@@ -67,7 +77,8 @@ namespace SocialNetworkBE.Services.Firebase {
 
             FirebaseStorageTask pushMediaTask = new FirebaseStorage(
                 Bucket,
-                 new FirebaseStorageOptions {
+                 new FirebaseStorageOptions
+                 {
                      AuthTokenAsyncFactory =
                         () => Task.FromResult(FirebaseAuthLink.FirebaseToken),
                      ThrowOnCancel = true,
@@ -80,7 +91,8 @@ namespace SocialNetworkBE.Services.Firebase {
         }
 
 
-        public Image Resize2Max50Kbytes(FileStream fileStream) {
+        public Image Resize2Max50Kbytes(FileStream fileStream)
+        {
             System.Diagnostics.Debug.WriteLine(fileStream.GetType());
 
             var memoryStream = new MemoryStream();
@@ -97,7 +109,8 @@ namespace SocialNetworkBE.Services.Firebase {
             Image img = Image.FromStream(inputMemoryStream);
             Image fullsizeImage = Image.FromStream(inputMemoryStream);
 
-            while (currentByteImageArray.Length > 40000) {
+            while (currentByteImageArray.Length > 40000)
+            {
                 Bitmap fullSizeBitmap = new Bitmap(fullsizeImage, new Size((int)(fullsizeImage.Width * scale), (int)(fullsizeImage.Height * scale)));
                 MemoryStream resultStream = new MemoryStream();
 

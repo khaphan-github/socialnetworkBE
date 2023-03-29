@@ -7,6 +7,16 @@ using System.Linq;
 using SocialNetworkBE.Repository.Config;
 using ServiceStack;
 using System.Threading.Tasks;
+using MongoDB.Driver.Builders;
+using Amazon.Runtime.Documents;
+using System.Collections.ObjectModel;
+using MongoDB.Driver.Linq;
+using SocialNetworkBE.Payloads.Response;
+using MongoDB.Bson.Serialization;
+using Firebase.Database.Http;
+using System.Collections;
+using System.Web.Mvc;
+using SocialNetworkBE.Repositorys.DataTranfers;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
@@ -70,44 +80,148 @@ namespace SocialNetworkBE.Repository {
             }
         }
 
-        public List<BsonDocument> GetPostByPageAndSizeAndSorted(int page, int size, string sortType) {
-            try {
-                int paging = page * size;
-                var sort = sortType == "desc"
-                    ? Builders<BsonDocument>.Sort.Descending("UpdateAt")
-                    : Builders<BsonDocument>.Sort.Ascending("UpdateAt");
+        public Task<List<PostDataTranfer>> GetSortedAndProjectedPostsAsync(ObjectId userId, int pageNumber, int pageSize)
+        {
+            try
+            {
+                var pipeline = new BsonDocument[]
+            {
+                new BsonDocument("$sort", new BsonDocument("UpdateAt", -1)),
+                new BsonDocument("$skip", pageNumber * pageSize),
+                new BsonDocument("$limit", pageSize),
+                new BsonDocument("$project", new BsonDocument
+                {
+                    { "OwnerId", 1 },
+                    { "OwnerAvatarURL", 1 },
+                    { "OwnerDisplayName", 1 },
+                    { "OwnerProfileURL", 1 },
+                    { "UpdateAt", 1 },
+                    { "Scope", 1 },
+                    { "Content", 1 },
+                    { "Media", 1 },
+                    { "NumOfComment", 1 },
+                    { "CommentsURL", 1 },
+                    { "NumOfLike", 1 },
+                    { "LikesURL", 1 },
+                    { "IsLiked", new BsonDocument("$in", new BsonArray
+                        {
+                            userId,
+                            new BsonDocument("$ifNull", new BsonArray
+                            {
+                                "$Likes",
+                                new BsonArray()
+                            })
+                        })
+                    }
+                })
+            };
 
-                IMongoCollection<BsonDocument> PostCollectionBsonDocument =
-                    DatabaseConnected.GetCollection<BsonDocument>(PostDocumentName);
-
-                FilterDefinition<BsonDocument> justUpdatePostFilter = Builders<BsonDocument>.Filter.Empty;
-
-                var projection = Builders<BsonDocument>.Projection
-                    .Include("OwnerId")
-                    .Include("OwnerAvatarURL")
-                    .Include("OwnerDisplayName")
-                    .Include("OwnerProfileURL")
-                    .Include("UpdateAt")
-                    .Include("Scope")
-                    .Include("Content")
-                    .Include("Media")
-                    .Include("NumOfComment")
-                    .Include("CommentsURL")
-                    .Include("NumOfLike")
-                    .Include("LikesURL");
-
-                var topLevelProjectionResults = PostCollectionBsonDocument
-                    .Find(justUpdatePostFilter)
-                    .Sort(sort)
-                    .Project(projection)
-                    .Skip(paging)
-                    .Limit(size)
-                    .ToList();
-
-                return topLevelProjectionResults;
+                var pipelineDefinition = PipelineDefinition<Post, PostDataTranfer>.Create(pipeline);
+                return PostCollection.Aggregate(pipelineDefinition).ToListAsync();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
-                return new List<BsonDocument>();
+                return Task.FromResult<List<PostDataTranfer>>(null);
+<<<<<<< HEAD
+            }
+        }
+
+        public Task<List<PostDataTranfer>> GetSortedAndProjectedPostsOfFriendAsync(ObjectId userId, ObjectId friendId,int pageNumber, int pageSize)
+        {
+            try
+            {
+                var pipeline = new BsonDocument[]
+            {
+                    new BsonDocument("$match",
+                    new BsonDocument("OwnerId",
+                    friendId)),
+                    new BsonDocument("$sort", new BsonDocument("UpdateAt", -1)),
+                    new BsonDocument("$skip", pageNumber * pageSize),
+                    new BsonDocument("$limit", pageSize),
+                new BsonDocument("$project", new BsonDocument
+                {
+                    { "OwnerId", 1 },
+                    { "OwnerAvatarURL", 1 },
+                    { "OwnerDisplayName", 1 },
+                    { "OwnerProfileURL", 1 },
+                    { "UpdateAt", 1 },
+                    { "Scope", 1 },
+                    { "Content", 1 },
+                    { "Media", 1 },
+                    { "NumOfComment", 1 },
+                    { "CommentsURL", 1 },
+                    { "NumOfLike", 1 },
+                    { "LikesURL", 1 },
+                    { "IsLiked", new BsonDocument("$in", new BsonArray
+                        {
+                            userId,
+                            new BsonDocument("$ifNull", new BsonArray
+                            {
+                                "$Likes",
+                                new BsonArray()
+                            })
+                        })
+                    }
+                })
+            };
+
+                var pipelineDefinition = PipelineDefinition<Post, PostDataTranfer>.Create(pipeline);
+                return PostCollection.Aggregate(pipelineDefinition).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return Task.FromResult<List<PostDataTranfer>>(null);
+            }
+        }
+
+        public Task<List<PostDataTranfer>> GetSortedAndProjectedPostsOfUserAsync(ObjectId userId, int pageNumber, int pageSize)
+        {
+            try
+            {
+                var pipeline = new BsonDocument[]
+            {
+                    new BsonDocument("$match",
+                    new BsonDocument("OwnerId",
+                    userId)),
+                    new BsonDocument("$sort", new BsonDocument("UpdateAt", -1)),
+                    new BsonDocument("$skip", pageNumber * pageSize),
+                    new BsonDocument("$limit", pageSize),
+                new BsonDocument("$project", new BsonDocument
+                {
+                    { "OwnerId", 1 },
+                    { "OwnerAvatarURL", 1 },
+                    { "OwnerDisplayName", 1 },
+                    { "OwnerProfileURL", 1 },
+                    { "UpdateAt", 1 },
+                    { "Scope", 1 },
+                    { "Content", 1 },
+                    { "Media", 1 },
+                    { "NumOfComment", 1 },
+                    { "CommentsURL", 1 },
+                    { "NumOfLike", 1 },
+                    { "LikesURL", 1 },
+                    { "IsLiked", new BsonDocument("$in", new BsonArray
+                        {
+                            userId,
+                            new BsonDocument("$ifNull", new BsonArray
+                            {
+                                "$Likes",
+                                new BsonArray()
+                            })
+                        })
+                    }
+                })
+            };
+
+                var pipelineDefinition = PipelineDefinition<Post, PostDataTranfer>.Create(pipeline);
+                return PostCollection.Aggregate(pipelineDefinition).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return Task.FromResult<List<PostDataTranfer>>(null);
+=======
+>>>>>>> 8b4e87395265e4a33ea3b32471cccc458c1a277c
             }
         }
 
@@ -119,8 +233,8 @@ namespace SocialNetworkBE.Repository {
                     .Inc(post => post.NumOfComment, increaseValue)
                     .Set(post => post.UpdateAt, DateTime.Now);
 
-                var options = new FindOneAndUpdateOptions<Post>() { 
-                    ReturnDocument = ReturnDocument.After 
+                var options = new FindOneAndUpdateOptions<Post>() {
+                    ReturnDocument = ReturnDocument.After
                 };
 
                 await PostCollection.FindOneAndUpdateAsync(filter, update, options);
@@ -129,13 +243,62 @@ namespace SocialNetworkBE.Repository {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
             }
         }
-
-        public Like MakeALikeOfPost(ObjectId postObjectId, Like userLike) {
-            throw new NotImplementedException();
+        public async Task<Post> UpdateAPost(ObjectId postObjectId, Post PostUpdate)
+        {
+            try
+            {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
+                await PostCollection.ReplaceOneAsync(filter, PostUpdate, new UpdateOptions { IsUpsert = true });
+                return GetPostById(postObjectId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return null;
+            }
         }
 
-        public bool RemoveAlikeOfPost(ObjectId postObjectId, Guid LikeGuid) {
-            throw new NotImplementedException();
+        public async Task MakeALikeOfPostAsync(ObjectId postObjectId, ObjectId userId) {
+            try {
+                var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
+
+                UpdateDefinition<Post> update = Builders<Post>.Update
+                       .Set(post => post.UpdateAt, DateTime.Now)
+                       .Push(post => post.Likes, userId)
+                       .Inc(post => post.NumOfLike, 1);
+
+                await PostCollection.UpdateOneAsync(filter, update);
+
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
+        }
+
+        public async Task RemoveAlikeOfPostAsync(ObjectId postObjectId, ObjectId userId) {
+            try {
+                var filter = Builders<Post>.Filter.Eq(post => post.Id, postObjectId);
+                var update = Builders<Post>.Update
+                    .Pull(post => post.Likes, userId)
+                    .Inc(post => post.NumOfLike, -1);
+
+                await PostCollection.UpdateOneAsync(filter, update);
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+            }
+        }
+
+        public BsonDocument GetUserMetadataLikedPost(ObjectId postObjectId, int page, int size) {
+            try {
+                int paging = page * size;
+
+                var filter = Builders<Post>.Filter.Eq(post => post.Id, postObjectId);
+                var projection = Builders<Post>.Projection.Include(post => post.Likes);
+
+                return PostCollection.Find(filter).Project(projection).Skip(paging).Limit(size).FirstOrDefault();
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return new BsonDocument();
+            }
         }
     }
 }

@@ -2,8 +2,12 @@
 using MongoDB.Driver;
 using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys.DataModels;
+using SocialNetworkBE.Repositorys.DataTranfers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Threading.Tasks;
+using System.Web.UI.WebControls;
 
 namespace SocialNetworkBE.Repositorys {
 
@@ -28,47 +32,93 @@ namespace SocialNetworkBE.Repositorys {
             }
         }
 
-        public List<Comment> GetCommentOfPostWithPaging(ObjectId postId, int page, int size) {
+        public Task<CommentDataTranfer> GetCommentById(ObjectId commentId) {
             try {
-                int paging = page * size;
+                var queryDocumentPipeline = PipelineDefinition<Comment, CommentDataTranfer>.Create(
+                    new BsonDocument("$match",
+                    new BsonDocument("_id", commentId)),
+                    new BsonDocument("$lookup",
+                    new BsonDocument
+                    {
+                    { "from", "Account" },
+                    { "localField", "OwnerId" },
+                    { "foreignField", "_id" },
+                    { "as", "Account_Mapping" }
+                    }),
+                    new BsonDocument("$set",
+                    new BsonDocument("Account_Mapping",
+                    new BsonDocument("$first", "$Account_Mapping"))),
+                    new BsonDocument("$set",
+                    new BsonDocument
+                    {
+                    { "OwnerDisplayName", "$Account_Mapping.DisplayName" },
+                    { "OwnerAvatarURL", "$Account_Mapping.AvatarUrl" },
+                    { "OwnerProfileURL", "$Account_Mapping.DisplayName" }
+                    }),
+                    new BsonDocument("$unset", "Account_Mapping"));
 
-                FilterDefinition<Comment> userOwnedPostFilter =
-                    Builders<Comment>.Filter.Eq("PostId", postId);
-
-                List<Comment> commentOfPosts = CommentCollection
-                    .Find(userOwnedPostFilter)
-                    .Skip(paging)
-                    .Limit(size)
-                    .ToList();
-
-                return commentOfPosts;
+                return CommentCollection.Aggregate(queryDocumentPipeline).FirstOrDefaultAsync();
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine(ex.Message);
-                return new List<Comment> { null };
+                return Task.FromResult<CommentDataTranfer>(null);
             }
         }
 
-        public List<Comment> GetChildrenCommentsByParentId(ObjectId postId, ObjectId parentId, int page, int size) {
+        public Task<List<CommentDataTranfer>> GetCommentOfPostWithPaging(ObjectId postId, ObjectId? parrentCommentId, int page, int size) {
             try {
                 int paging = page * size;
 
-                FilterDefinition<Comment> childrenCommentFilter =
-                    Builders<Comment>.Filter.Eq("PostId", postId) &
-                    Builders<Comment>.Filter.Eq("ParentId", parentId);
+                var queryDocumentPipeline = PipelineDefinition<Comment, CommentDataTranfer>.Create(
+                    new BsonDocument("$match", new BsonDocument {{ "PostId", postId },{ "ParentId", parrentCommentId } }),
 
-                List<Comment> commentOfPosts = CommentCollection
-                    .Find(childrenCommentFilter)
-                    .Skip(paging)
-                    .Limit(size)
-                    .ToList();
+                    new BsonDocument("$skip", paging),
+                    new BsonDocument("$limit", size),
 
-                return commentOfPosts;
+                    new BsonDocument("$lookup", new BsonDocument
+                    {
+                        { "from", "Account" },
+                        { "localField", "OwnerId" },
+                        { "foreignField", "_id" },
+                        { "as", "AccountMapping" }
+                    }),
+
+                    new BsonDocument("$set", new BsonDocument("AccountMapping", new BsonDocument("$first", "$AccountMapping"))),
+                    new BsonDocument("$set", new BsonDocument
+                    {
+                        { "OwnerDisplayName", "$AccountMapping.DisplayName" },
+                        { "OwnerAvatarURL", "$AccountMapping.AvatarUrl" },
+                        { "OwnerProfileURL", "$AccountMapping.UserProfileUrl" }
+                    }),
+
+                    new BsonDocument("$unset", "AccountMapping")
+                );
+
+                return CommentCollection.Aggregate(queryDocumentPipeline).ToListAsync();
+
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine(ex.Message);
-                return new List<Comment> { null };
+                return Task.FromResult<List<CommentDataTranfer>>(null);
             }
         }
 
+
+
+        // @param count: 1 is increase += 1, -1 to descrease -=1
+        public Task<UpdateResult> UpdateNumberOfChildrent(ObjectId commentId, int count) {
+            try {
+                FilterDefinition<Comment> commentFilter =
+                    Builders<Comment>.Filter.Eq("_id", commentId);
+
+                UpdateDefinition<Comment> contentUpdate = 
+                    Builders<Comment>.Update.Inc("CommentCount", count);
+
+                return CommentCollection.UpdateOneAsync(commentFilter, contentUpdate);
+
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+                return Task.FromResult<UpdateResult>(null);
+            }
+        }
         public UpdateResult UpdateCommentByComentId(ObjectId commentid, ObjectId ownerId, string content) {
             try {
                 FilterDefinition<Comment> commentFilter =
