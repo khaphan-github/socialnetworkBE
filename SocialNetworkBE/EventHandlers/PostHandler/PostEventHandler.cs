@@ -172,6 +172,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             newPost.CommentsURL = "/api/v1/post/comments?pid=" + newPost.Id.ToString();
             newPost.LikesURL = "/api/v1/post/likes?pid=" + newPost.Id.ToString();
+            newPost.Likes = new List<ObjectId>();
 
             Post savedPost = PostRespository.CreateNewPost(newPost);
             if (savedPost == null) {
