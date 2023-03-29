@@ -223,6 +223,12 @@ namespace SocialNetworkBE.Repository {
             return accountUpdate;
         }
 
+        public List<ObjectId> ListFriendByUserId(ObjectId userid)
+        {
+            FilterDefinition<Account> accountFilter = Builders<Account>.Filter.Eq("_id", userid);
+            List <ObjectId> friendList = AccountCollection.Find(accountFilter).FirstOrDefault().ListFriendsObjectId;
+            return friendList;
+        }
         public Account UpdateListInvitationOfFriendId_SendInvitationToOtherUser(ObjectId uid, ObjectId fid)
         {
             try
@@ -370,7 +376,7 @@ namespace SocialNetworkBE.Repository {
             {
                 FriendRespone accountGetFriend = new FriendRespone();
                 FilterDefinition<Account> accountFriendFilter = Builders<Account>.Filter.Eq("_id", item);
-                Account accountFriendGet = AccountCollection.Find(accountFilter).FirstOrDefault();
+                Account accountFriendGet = AccountCollection.Find(accountFriendFilter).FirstOrDefault();
                 accountGetFriend.Id = item;
                 accountGetFriend.DisplayName = accountFriendGet.DisplayName;
                 accountGetFriend.Avatar = accountFriendGet.AvatarUrl;
@@ -380,6 +386,7 @@ namespace SocialNetworkBE.Repository {
            
             return friends;
         }
+
 
         public Account AcceptInvitationFromOtherUser(ObjectId uid, ObjectId fid)
         {
@@ -463,6 +470,15 @@ namespace SocialNetworkBE.Repository {
             } catch (Exception) {
                 return new List<BsonDocument>();
             }
+        }
+
+        public bool UpdateListPostWhenUserCreateNewPost(ObjectId uid, ObjectId pid)
+        {
+            FilterDefinition<Account> accountFilter = Builders<Account>.Filter.Eq("_id", uid);
+            Account accountUpdate = AccountCollection.Find(accountFilter).FirstOrDefault();
+            accountUpdate.ListPostsObjectId.Add(pid);
+            AccountCollection.ReplaceOne(b => b.Id == uid, accountUpdate);
+            return true;
         }
     }
 }
