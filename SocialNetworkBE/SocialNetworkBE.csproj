@@ -425,7 +425,6 @@
   <ItemGroup>
     <Compile Include="App_Start\Auth\Authentication.cs" />
     <Compile Include="App_Start\Auth\AuthorizationAttribute.cs" />
-    <Compile Include="App_Start\Startup.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\ChatController.cs" />
@@ -483,17 +482,11 @@
     <Compile Include="Services\Notification\PushNotificationService.cs" />
     <Compile Include="Services\RedisCache\RedisCacheService.cs" />
     <Compile Include="Services\Firebase\FirebaseImage.cs" />
-    <Compile Include="Services\SignalR\SignalRService.cs" />
     <Compile Include="Validates\RequestValidation.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
     <Content Include="mongocrypt.dll" />
-    <None Include="Scripts\jquery-3.6.4.intellisense.js" />
-    <Content Include="Scripts\jquery-3.6.4.js" />
-    <Content Include="Scripts\jquery-3.6.4.min.js" />
-    <Content Include="Scripts\jquery-3.6.4.slim.js" />
-    <Content Include="Scripts\jquery-3.6.4.slim.min.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -512,8 +505,6 @@
     <Content Include="libmongocrypt.so" />
     <Content Include="libmongocrypt.dylib" />
     <None Include="packages.config" />
-    <Content Include="Scripts\jquery-3.6.4.slim.min.map" />
-    <Content Include="Scripts\jquery-3.6.4.min.map" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\AWSSDK.SecurityToken.3.7.101.34\analyzers\dotnet\cs\AWSSDK.SecurityToken.CodeAnalysis.dll" />

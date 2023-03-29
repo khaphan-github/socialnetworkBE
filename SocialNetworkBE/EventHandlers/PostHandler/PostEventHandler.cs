@@ -64,7 +64,6 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     Message = "Get post success",
                     Data = pagingResponse
                 };
-<<<<<<< HEAD
 
             return response;
         }
@@ -125,9 +124,6 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     Message = "Get post success",
                     Data = pagingResponse
                 };
-=======
->>>>>>> 8b4e87395265e4a33ea3b32471cccc458c1a277c
-
             return response;
         }
     
