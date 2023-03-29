@@ -121,6 +121,107 @@ namespace SocialNetworkBE.Repository {
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return Task.FromResult<List<PostDataTranfer>>(null);
+<<<<<<< HEAD
+            }
+        }
+
+        public Task<List<PostDataTranfer>> GetSortedAndProjectedPostsOfFriendAsync(ObjectId userId, ObjectId friendId,int pageNumber, int pageSize)
+        {
+            try
+            {
+                var pipeline = new BsonDocument[]
+            {
+                    new BsonDocument("$match",
+                    new BsonDocument("OwnerId",
+                    friendId)),
+                    new BsonDocument("$sort", new BsonDocument("UpdateAt", -1)),
+                    new BsonDocument("$skip", pageNumber * pageSize),
+                    new BsonDocument("$limit", pageSize),
+                new BsonDocument("$project", new BsonDocument
+                {
+                    { "OwnerId", 1 },
+                    { "OwnerAvatarURL", 1 },
+                    { "OwnerDisplayName", 1 },
+                    { "OwnerProfileURL", 1 },
+                    { "UpdateAt", 1 },
+                    { "Scope", 1 },
+                    { "Content", 1 },
+                    { "Media", 1 },
+                    { "NumOfComment", 1 },
+                    { "CommentsURL", 1 },
+                    { "NumOfLike", 1 },
+                    { "LikesURL", 1 },
+                    { "IsLiked", new BsonDocument("$in", new BsonArray
+                        {
+                            userId,
+                            new BsonDocument("$ifNull", new BsonArray
+                            {
+                                "$Likes",
+                                new BsonArray()
+                            })
+                        })
+                    }
+                })
+            };
+
+                var pipelineDefinition = PipelineDefinition<Post, PostDataTranfer>.Create(pipeline);
+                return PostCollection.Aggregate(pipelineDefinition).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return Task.FromResult<List<PostDataTranfer>>(null);
+            }
+        }
+
+        public Task<List<PostDataTranfer>> GetSortedAndProjectedPostsOfUserAsync(ObjectId userId, int pageNumber, int pageSize)
+        {
+            try
+            {
+                var pipeline = new BsonDocument[]
+            {
+                    new BsonDocument("$match",
+                    new BsonDocument("OwnerId",
+                    userId)),
+                    new BsonDocument("$sort", new BsonDocument("UpdateAt", -1)),
+                    new BsonDocument("$skip", pageNumber * pageSize),
+                    new BsonDocument("$limit", pageSize),
+                new BsonDocument("$project", new BsonDocument
+                {
+                    { "OwnerId", 1 },
+                    { "OwnerAvatarURL", 1 },
+                    { "OwnerDisplayName", 1 },
+                    { "OwnerProfileURL", 1 },
+                    { "UpdateAt", 1 },
+                    { "Scope", 1 },
+                    { "Content", 1 },
+                    { "Media", 1 },
+                    { "NumOfComment", 1 },
+                    { "CommentsURL", 1 },
+                    { "NumOfLike", 1 },
+                    { "LikesURL", 1 },
+                    { "IsLiked", new BsonDocument("$in", new BsonArray
+                        {
+                            userId,
+                            new BsonDocument("$ifNull", new BsonArray
+                            {
+                                "$Likes",
+                                new BsonArray()
+                            })
+                        })
+                    }
+                })
+            };
+
+                var pipelineDefinition = PipelineDefinition<Post, PostDataTranfer>.Create(pipeline);
+                return PostCollection.Aggregate(pipelineDefinition).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
+                return Task.FromResult<List<PostDataTranfer>>(null);
+=======
+>>>>>>> 8b4e87395265e4a33ea3b32471cccc458c1a277c
             }
         }
 

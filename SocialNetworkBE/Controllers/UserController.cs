@@ -2,6 +2,7 @@
 using LiteDB;
 using MongoDB.Bson;
 using ServiceStack.Web;
+using SocialNetworkBE.EventHandlers.PostHandler;
 using SocialNetworkBE.EventHandlers.User;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Request;
@@ -66,7 +67,8 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpGet]
         [Route(REFIX + "/friends")] // Endpoint: api/v1/user/friends?id=507f1f77bcf86cd799439011&page=1&size=15 [GET] RETURN LIST(ID, DISPLAYNAME, AVATAR, PROFILEURL)
-        public ResponseBase GetFriendOfUserByUserId(string uid) {
+        public async Task<ResponseBase> GetFriendOfUserByUserId(string uid, int page, int size)
+        {
             bool isRightId = ObjectId.TryParse(uid, out var userId);
             if (!isRightId)
             {
@@ -76,7 +78,12 @@ namespace SocialNetworkBE.Controllers {
                     Message = "Wrong format"
                 };
             }
-            return userEventHandler.GetFriendOfUserByUserId(userId);
+
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
+            if (size > 20) size = 20;
+
+            return await userEventHandler.GetFriendOfUserByUserId(userId, page, size);
         }
 
         [HttpGet]

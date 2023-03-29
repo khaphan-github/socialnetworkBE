@@ -54,16 +54,42 @@ namespace SocialNetworkBE.Controllers {
             return postEventHandler.DeletePostById(id, ObjectId.Parse(userMetadata.Id));
         }
 
-        [HttpPost]
+        //[HttpPost]
+        //[Route("current")]
+        //// Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
+        //public async Task<ResponseBase> GetPostListWithPaging(int page, int size) {
+        //    if (page <= 0) page = 0;
+        //    if (size <= 0) size = 1;
+        //    if (size > 20) size = 20;
+        //    UserMetadata userMetadata =
+        //       new UserMetadata().GetUserMetadataFromRequest(Request);
+        //    return await postEventHandler.GetPostsWithPaging(userMetadata, page, size);
+        //}
+
+        [HttpGet]
         [Route("current")]
         // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
-        public async Task<ResponseBase> GetPostListWithPaging(int page, int size) {
+        public async Task<ResponseBase> GetPostFriendListWithPaging(int page, int size)
+        {
             if (page <= 0) page = 0;
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
             UserMetadata userMetadata =
                new UserMetadata().GetUserMetadataFromRequest(Request);
-            return await postEventHandler.GetPostsWithPaging(userMetadata, page, size);
+            return await postEventHandler.GetPostsOfFriendWithPaging(userMetadata, page, size);
+        }
+
+        [HttpGet]
+        [Route("")]
+        // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
+        public async Task<ResponseBase> GetPostUserListWithPaging(int page, int size)
+        {
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
+            if (size > 20) size = 20;
+            UserMetadata userMetadata =
+               new UserMetadata().GetUserMetadataFromRequest(Request);
+            return await postEventHandler.GetPostsOfuserWithPaging(userMetadata, page, size);
         }
 
         [Route("comment")]
