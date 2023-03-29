@@ -128,13 +128,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InterationTesting\AuthEndpointTesting.cs" />
+    <Compile Include="InterationTesting\PostEndpointTesting.cs" />
     <Compile Include="UnitTesting\CommentRepostioryTest.cs" />
-    <Compile Include="UnitTesting\HttpClientServiceTest.cs" />
     <Compile Include="UnitTesting\RedisCacheTest.cs" />
     <Compile Include="UnitTesting\AccountRepositoryTest.cs" />
     <Compile Include="UnitTesting\BCryptServiceTest.cs" />
     <Compile Include="UnitTesting\EnvironmentTest.cs" />
     <Compile Include="UnitTesting\JsonWebTokenServiceTest.cs" />
+    <Compile Include="UnitTesting\PostRepositoryTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
