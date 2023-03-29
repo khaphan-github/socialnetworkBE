@@ -9,14 +9,12 @@ using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.DataTranfers;
-using SocialNetworkBE.Repositorys.Interfaces;
 using SocialNetworkBE.Services.Firebase;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
@@ -124,6 +122,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     Message = "Get post success",
                     Data = pagingResponse
                 };
+
             return response;
         }
     
@@ -158,9 +157,9 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     mediaURLList.Add(imageDownloadLink);
                 }
             }
-            ObjectId id = ObjectId.GenerateNewId();
+
             Post newPost = new Post() {
-                Id = id,
+                Id = ObjectId.GenerateNewId(),
                 CreateDate = DateTime.Now,
                 UpdateAt = DateTime.Now,
                 OwnerAvatarURL = userMetadata.AvatarURL,
@@ -175,8 +174,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             newPost.LikesURL = "/api/v1/post/likes?pid=" + newPost.Id.ToString();
 
             Post savedPost = PostRespository.CreateNewPost(newPost);
-            bool saveListUserPostOk =  AccountRepostitory.UpdateListPostWhenUserCreateNewPost(ObjectId.Parse(userMetadata.Id), id);
-            if (savedPost == null && saveListUserPostOk == false) {
+            if (savedPost == null) {
                 return new ResponseBase() {
                     Status = Status.Failure,
                     Message = "Create post failure"
