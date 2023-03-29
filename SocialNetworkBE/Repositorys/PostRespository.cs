@@ -121,6 +121,7 @@ namespace SocialNetworkBE.Repository {
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return Task.FromResult<List<PostDataTranfer>>(null);
+<<<<<<< HEAD
             }
         }
 
@@ -219,6 +220,8 @@ namespace SocialNetworkBE.Repository {
             {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return Task.FromResult<List<PostDataTranfer>>(null);
+=======
+>>>>>>> 8b4e87395265e4a33ea3b32471cccc458c1a277c
             }
         }
 
