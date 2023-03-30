@@ -71,6 +71,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             // TODO: Get like post
             bool isRightCommentId = ObjectId.TryParse(userMetadata.Id, out var userId);
             List<ObjectId> listFriend = AccountRepostitory.ListFriendByUserId(userId);
+            listFriend.Add( ObjectId.Parse(userMetadata.Id));
             List<PostDataTranfer> AllFriendPost = new List<PostDataTranfer>();
             foreach(ObjectId i in listFriend)
             {
