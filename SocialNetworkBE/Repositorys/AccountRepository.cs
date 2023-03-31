@@ -154,6 +154,7 @@ namespace SocialNetworkBE.Repository {
                 accountGet.ListObjectId_GiveUserInvitation = accountFind.ListObjectId_GiveUserInvitation;
                 accountGet.ListObjectId_UserSendInvite = accountFind.ListObjectId_UserSendInvite;
                 accountGet.ListPostsObjectId = accountFind.ListPostsObjectId;
+                accountGet.CreatedAt = accountFind.CreatedAt;
                 return accountGet;
             }
             catch (Exception ex)
