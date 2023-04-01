@@ -241,5 +241,31 @@ namespace SocialNetworkBE.EventHandlers.User
                 Data = pagingResponse
             };
         }
+
+        public async Task<ResponseBase> GetAllInvitationById(ObjectId userId, int page, int size)
+        {
+
+            List<AccountRespone> accountRespones = accountResponsitory.getAllinvitation(userId);
+
+            if (accountRespones.Count == 0)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "There are not invitations of this user",
+                };
+            }
+
+            string pagingEndpoint = "/api/v1/user/invitations?";
+            PagingResponse pagingResponse =
+                new PagingResponse(pagingEndpoint, page, accountRespones.Count, accountRespones);
+
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Get all invitations of this friend success",
+                Data = pagingResponse
+            };
+        }
     }
 }

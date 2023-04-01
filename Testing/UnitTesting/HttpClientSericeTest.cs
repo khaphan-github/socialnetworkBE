@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MongoDB.Bson;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Services.Notification;
 using System;
@@ -28,21 +29,41 @@ namespace Testing.UnitTesting
             Assert.IsTrue(result);
         }
 
+
         [TestMethod]
 
-        public async Task PushMessage_ReturnsTrue()
+        public async Task PushMessageInvitation_ReturnsTrue()
         {
+            string userId = "6423e4184c08244aca2724fb";
+            string userReceive = "64229848df27353d469ff935";
+            _pushNotificationService = new PushNotificationService(userId, "");
+            bool result = await _pushNotificationService.PushMessage_WhenReceiveInvitation(userReceive);
+            Assert.IsTrue(result);
+        }
 
-            Notify notify = new Notify()
-            {
-                CreatedDate = DateTime.Now,
-                Message = "Test message from .net",
-            };
 
-            _pushNotificationService = new PushNotificationService("1233", notify);
+        [TestMethod]
 
-            bool result = await _pushNotificationService.PushMessage();
-            // Assert
+        public async Task PushMessageComment_ReturnsTrue()
+        {
+            string userId = "6423e4184c08244aca2724fb";
+            string userReceive = "64229848df27353d469ff935";
+            string commentId = "640cafe67b17bd7ec5d21916";
+            string postId = "64248fd5cd70ff58f1b05616";
+            _pushNotificationService = new PushNotificationService(userId, "");
+            bool result = await _pushNotificationService.PushMessage_Whencomment(userReceive, commentId, postId);
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+
+        public async Task PushMessageLike_ReturnsTrue()
+        {
+            string userId = "6423e4184c08244aca2724fb";
+            string userReceive = "64229848df27353d469ff935";
+            string postId = "64248fd5cd70ff58f1b05616";
+            _pushNotificationService = new PushNotificationService(userId, "");
+            bool result = await _pushNotificationService.PushMessage_WhenLike(userReceive, postId);
             Assert.IsTrue(result);
         }
     }

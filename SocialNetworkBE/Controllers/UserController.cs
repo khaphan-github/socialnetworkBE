@@ -91,6 +91,28 @@ namespace SocialNetworkBE.Controllers
             return await userEventHandler.GetFriendOfUserByUserId(userId, page, size);
         }
 
+
+        [HttpGet]
+        [Route(REFIX + "/invitations")] 
+        public async Task<ResponseBase> GetAllInvitationsByUserId(string uid, int page, int size)
+        {
+            bool isRightId = ObjectId.TryParse(uid, out var userId);
+            if (!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
+            if (size > 20) size = 20;
+
+            return await userEventHandler.GetAllInvitationById(userId, page, size);
+        }
+
         [HttpGet]
         [Route(REFIX + "/posts")] // Endpoint: /api/v1/user/posts?uid=507f1f77bcf86cd799439011&page=1&size=7 [GET]
         public ResponseBase GetPostByUserId(string uid, Int32 page, Int32 size)
