@@ -22,5 +22,6 @@ namespace SocialNetworkBE.Payloads.Data
         public List<ObjectId> ListPostsObjectId { get; set; }
         public List<ObjectId> ListObjectId_UserSendInvite { get; set; }
         public List<ObjectId> ListObjectId_GiveUserInvitation { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
