@@ -8,10 +8,9 @@ namespace SocialNetworkBE.Payloads.Request
 {
     public class AccountRequest
     {
-        public string Id { get; set; }
-        [Unique]
         public string Username { get; set; }
         public string Password { get; set; }
+        public string HashSalt { get; set; }
         public string Email { get; set; }
         public string DisplayName { set; get; }
         public string AvatarUrl { set; get; }

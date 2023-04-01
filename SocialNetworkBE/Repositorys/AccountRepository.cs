@@ -443,15 +443,9 @@ namespace SocialNetworkBE.Repository {
             accountUpdate.DisplayName = accountRequest.DisplayName;
             accountUpdate.AvatarUrl = accountRequest.AvatarUrl;
             accountUpdate.Username = accountRequest.Username;
-            BCryptService bCryptService = new BCryptService();
-            string password = accountUpdate.Password = accountRequest.Password;
-            string randomSalt = bCryptService.GetRandomSalt();
-            string secretKey = ServerEnvironment.GetServerSecretKey();
-            string passwordHash =
-                bCryptService
-                .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
             accountUpdate.Email = accountRequest.Email;
-            accountUpdate.HashSalt = passwordHash;
+            accountUpdate.HashSalt = accountRequest.HashSalt;
+            accountUpdate.Password = accountRequest.Password;
             AccountCollection.ReplaceOne(b => b.Id == accId, accountUpdate);
             return accountUpdate;
         }
