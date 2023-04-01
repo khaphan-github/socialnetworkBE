@@ -14,7 +14,7 @@ namespace SocialNetworkBE.Services.Notification {
         public string UserId { get; set; }
         public object Message { get; set; } // Object then stringtify
 
-        public readonly string NotifiServiceEndpoint = "http://localhost:3005/api/v1/service/notify";
+        public readonly string NotifiServiceEndpoint = "http://localhost:3001/api/v1/service/notify";
         public HttpClientService HttpService { get; set; }
         public PushNotificationService(string userId, object message)
         {

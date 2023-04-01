@@ -30,7 +30,6 @@ namespace SocialNetworkBE.EventHandlers.User
         public async Task<ResponseBase> UpdateAccount(AccountRequest account, ObjectId accId, HttpPostedFile Media)
         {
             FirebaseImage firebaseService = new FirebaseImage();
-            List<string> mediaURLList = new List<string>();
 
             if (Media == null)
             {
