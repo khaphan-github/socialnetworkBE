@@ -30,17 +30,8 @@ namespace SocialNetworkBE.EventHandlers.User
         public async Task<ResponseBase> UpdateAccount(AccountRequest account, ObjectId accId, HttpPostedFile Media)
         {
             FirebaseImage firebaseService = new FirebaseImage();
-
-            if (Media == null)
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.WrongFormat,
-                    Message = "File not allow null",
-                };
-            }
-
-            if (Media != null)
+            Debug.WriteLine(Media);
+            if (Media != null && Media.ContentLength > 0)
             {
                     string mediaName = Guid.NewGuid().ToString() + ".png";
 

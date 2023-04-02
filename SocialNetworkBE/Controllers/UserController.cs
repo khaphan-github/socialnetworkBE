@@ -150,7 +150,8 @@ namespace SocialNetworkBE.Controllers
             }
             else
             {
-                accountRequest.Password = pwd;
+                accountRequest.Password = null;
+                accountRequest.HashSalt = null;
             }
 
             var email = FormData.GetValueByKey("Email");

@@ -442,12 +442,16 @@ namespace SocialNetworkBE.Repository {
             FilterDefinition<Account> accountFilter = Builders<Account>.Filter.Eq("_id", accId);
             Account accountUpdate = AccountCollection.Find(accountFilter).FirstOrDefault();
             accountUpdate.DisplayName = accountRequest.DisplayName;
-            accountUpdate.AvatarUrl = accountRequest.AvatarUrl;
+            
             accountUpdate.Username = accountRequest.Username;
             accountUpdate.Email = accountRequest.Email;
             if(accountRequest.Password != null)
             { accountUpdate.Password = accountRequest.Password;
                 accountUpdate.HashSalt = accountRequest.HashSalt;
+            }
+            if(accountRequest.AvatarUrl != null)
+            {
+                accountUpdate.AvatarUrl = accountRequest.AvatarUrl;
             }
             AccountCollection.ReplaceOne(b => b.Id == accId, accountUpdate);
             return accountUpdate;
