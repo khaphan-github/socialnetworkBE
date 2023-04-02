@@ -445,8 +445,10 @@ namespace SocialNetworkBE.Repository {
             accountUpdate.AvatarUrl = accountRequest.AvatarUrl;
             accountUpdate.Username = accountRequest.Username;
             accountUpdate.Email = accountRequest.Email;
-            accountUpdate.HashSalt = accountRequest.HashSalt;
-            accountUpdate.Password = accountRequest.Password;
+            if(accountRequest.Password != null)
+            { accountUpdate.Password = accountRequest.Password;
+                accountUpdate.HashSalt = accountRequest.HashSalt;
+            }
             AccountCollection.ReplaceOne(b => b.Id == accId, accountUpdate);
             return accountUpdate;
         }

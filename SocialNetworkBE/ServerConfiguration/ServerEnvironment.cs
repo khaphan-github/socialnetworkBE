@@ -40,16 +40,19 @@ namespace SocialNetworkBE.ServerConfiguration {
         public static string GetFirebaseAuthEmail()
         {
             string key = "FirebaseAuthEmail";
+            System.Diagnostics.Debug.WriteLine(ConfigurationManager.AppSettings[key]);
             return ConfigurationManager.AppSettings[key];
         }
         public static string GetFirebaseAuthPwd()
         {
             string key = "FirebaseAuthPwd";
+            System.Diagnostics.Debug.WriteLine(ConfigurationManager.AppSettings[key]);
             return ConfigurationManager.AppSettings[key];
         }
 
         public static string GetFirebaseStorageDomain() {
             string key = "FirebaseStorageDomain";
+            System.Diagnostics.Debug.WriteLine(ConfigurationManager.AppSettings[key]);
             return ConfigurationManager.AppSettings[key];
         }
         public static string GetClientCORSDomain() {
