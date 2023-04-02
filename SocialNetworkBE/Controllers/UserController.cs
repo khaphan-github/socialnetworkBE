@@ -11,6 +11,7 @@ using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Hash;
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
@@ -124,14 +125,32 @@ namespace SocialNetworkBE.Controllers
         [Route(REFIX + "/profile")] // Endpoint: /api/v1/user/profile?uid=507f1f77bcf86cd799439011
         public async Task<ResponseBase> UpdateUserProfileAsync(string uid)
         {
+            AccountRequest accountRequest = new AccountRequest();
             var pwd = FormData.GetValueByKey("Password");
-            if (pwd == null)
+            if (pwd != null)
             {
-                return new ResponseBase()
+                if (!accountResponsitory.ValidatePassword(pwd, out string ErrorMessage))
                 {
-                    Status = Status.WrongFormat,
-                    Message = "Password required"
-                };
+                    return new ResponseBase()
+                    {
+                        Status = Status.Failure,
+                        Message = ErrorMessage
+                    };
+                }
+                BCryptService bCryptService = new BCryptService();
+
+                string randomSalt = bCryptService.GetRandomSalt();
+                string secretKey = ServerEnvironment.GetServerSecretKey();
+                string password = pwd;
+                string passwordHash =
+                    bCryptService
+                    .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
+                accountRequest.Password = passwordHash;
+                accountRequest.HashSalt = randomSalt;
+            }
+            else
+            {
+                accountRequest.Password = pwd;
             }
 
             var email = FormData.GetValueByKey("Email");
@@ -173,51 +192,16 @@ namespace SocialNetworkBE.Controllers
                     Message = "wrong format"
                 };
             }
-            HttpFileCollection media = HttpContext.Current.Request.Files;
-            var AvatarUrl = media[0];
-
-            AccountRequest accountRequest = new AccountRequest();
             accountRequest.DisplayName = DisplayName;
             accountRequest.Email = email;
             accountRequest.Username = userName;
-            if (accountResponsitory.CheckUsernameExist(userName))
+            HttpFileCollection media = HttpContext.Current.Request.Files;
+            if (media != null)
             {
-                return new ResponseBase()
-                {
-                    Status = Status.Failure,
-                    Message = "Username is exist"
-                };
+                return await userEventHandler.UpdateAccount(accountRequest, userId, media[0]);
             }
-            else if (accountResponsitory.CheckEmailExist(email))
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.Failure,
-                    Message = "Email is exist"
-                };
-            }
+            return await userEventHandler.UpdateAccount(accountRequest, userId, null);
 
-            else if (!accountResponsitory.ValidatePassword(pwd, out string ErrorMessage))
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.Failure,
-                    Message = ErrorMessage
-                };
-            }
-
-            BCryptService bCryptService = new BCryptService();
-
-            string randomSalt = bCryptService.GetRandomSalt();
-            string secretKey = ServerEnvironment.GetServerSecretKey();
-            string password = pwd;
-            string passwordHash =
-                bCryptService
-                .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
-            accountRequest.Password = password;
-            accountRequest.HashSalt = randomSalt;
-
-            return await userEventHandler.UpdateAccount(accountRequest, userId, AvatarUrl);
         }
 
         [HttpPost]
