@@ -460,6 +460,9 @@
     <Compile Include="Repositorys\CommentRepository.cs" />
     <Compile Include="Repositorys\Configs\MongoDBConfiguration.cs" />
     <Compile Include="EventHandlers\Authenticate\AuthService.cs" />
+    <Compile Include="Repositorys\DataModels\CommentNotify.cs" />
+    <Compile Include="Repositorys\DataModels\InviteFriendNotify.cs" />
+    <Compile Include="Repositorys\DataModels\LikeNotify.cs" />
     <Compile Include="Repositorys\DataModels\Notify.cs" />
     <Compile Include="Repositorys\DataModels\RoomChat.cs" />
     <Compile Include="Repositorys\DataTranfers\CommentDataTranfer.cs" />

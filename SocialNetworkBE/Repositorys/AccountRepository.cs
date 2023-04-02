@@ -426,7 +426,8 @@ namespace SocialNetworkBE.Repository {
                     accountUpdate.NumberOfFriend = accountUpdate.ListFriendsObjectId.Count;
                 }
                 else
-                {
+                {                
+
                     accountUpdate.ListObjectId_UserSendInvite.Remove(uid);
                     accountUpdate.ListFriendsObjectId.Add(uid);
                     accountUpdate.NumberOfFriend = accountUpdate.ListFriendsObjectId.Count;
@@ -444,8 +445,10 @@ namespace SocialNetworkBE.Repository {
             accountUpdate.AvatarUrl = accountRequest.AvatarUrl;
             accountUpdate.Username = accountRequest.Username;
             accountUpdate.Email = accountRequest.Email;
-            accountUpdate.HashSalt = accountRequest.HashSalt;
-            accountUpdate.Password = accountRequest.Password;
+            if(accountRequest.Password != null)
+            { accountUpdate.Password = accountRequest.Password;
+                accountUpdate.HashSalt = accountRequest.HashSalt;
+            }
             AccountCollection.ReplaceOne(b => b.Id == accId, accountUpdate);
             return accountUpdate;
         }
@@ -474,6 +477,44 @@ namespace SocialNetworkBE.Repository {
             accountUpdate.ListPostsObjectId.Add(pid);
             AccountCollection.ReplaceOne(b => b.Id == uid, accountUpdate);
             return true;
+        }
+
+        public AccountRespone AccountForSomeAttribute(string uid)
+        {
+            FilterDefinition<Account> accountFilter = Builders<Account>.Filter.Eq("_id", ObjectId.Parse(uid));
+            Account accountFilterToGet = AccountCollection.Find(accountFilter).FirstOrDefault();
+            AccountRespone accountRespone = new AccountRespone() {
+                AvatarUrl = accountFilterToGet.AvatarUrl,
+                DisplayName = accountFilterToGet.DisplayName,
+                Email = accountFilterToGet.Email,
+                Id = accountFilterToGet.Id,
+                UserProfileUrl = accountFilterToGet.UserProfileUrl,
+                Username = accountFilterToGet.Username
+            };
+            return accountRespone;
+        }
+
+        public List<AccountRespone> getAllinvitation(ObjectId uid)
+        {
+            FilterDefinition<Account> accountFilter = Builders<Account>.Filter.Eq("_id", uid);
+            List<ObjectId> listInvitation = AccountCollection.Find(accountFilter).FirstOrDefault().ListObjectId_GiveUserInvitation;
+            List<AccountRespone> result = new List<AccountRespone>();
+            foreach(ObjectId accountId in listInvitation)
+            {
+                FilterDefinition<Account> accountFilterInvitation = Builders<Account>.Filter.Eq("_id", accountId);
+                Account accountGet = AccountCollection.Find(accountFilterInvitation).FirstOrDefault();
+                AccountRespone accountRespone = new AccountRespone()
+                {
+                    AvatarUrl = accountGet.AvatarUrl,
+                    DisplayName = accountGet.DisplayName,
+                    Email = accountGet.Email,
+                    Id = accountGet.Id,
+                    UserProfileUrl = accountGet.UserProfileUrl,
+                    Username = accountGet.Username
+                };
+                result.Add(accountRespone); 
+            }
+            return result;
         }
     }
 }

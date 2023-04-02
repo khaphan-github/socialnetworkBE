@@ -99,11 +99,11 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             return response;
         }
 
-        public async Task<ResponseBase> GetPostsOfuserWithPaging(UserMetadata userMetadata, int page, int size)
+        public async Task<ResponseBase> GetPostsOfuserWithPaging(ObjectId userID, int page, int size)
         {
             // TODO: Get like post
             List<PostDataTranfer> postResponses =
-                await PostRespository.GetSortedAndProjectedPostsOfUserAsync(ObjectId.Parse(userMetadata.Id), page, size);
+                await PostRespository.GetSortedAndProjectedPostsOfUserAsync(userID, page, size);
 
             if (postResponses == null)
             {
@@ -479,6 +479,25 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     Message = "Like Failure",
                 };
             }
+        }
+
+        public ResponseBase GetPostById(ObjectId pid)
+        {
+            Post postGet= PostRespository.GetPostById(pid);
+            if (postGet == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Failure,
+                    Message = "Get post failure"
+                };
+            }
+            return new ResponseBase()
+            {
+                Status = Status.Success,
+                Message = "Get post success",
+                Data = postGet,
+            };
         }
 
         public async Task<ResponseBase> UnLikeAPostByPostId(ObjectId postId, UserMetadata userMetadata) {

@@ -11,6 +11,7 @@ using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Hash;
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
@@ -91,6 +92,28 @@ namespace SocialNetworkBE.Controllers
             return await userEventHandler.GetFriendOfUserByUserId(userId, page, size);
         }
 
+
+        [HttpGet]
+        [Route(REFIX + "/invitations")] 
+        public async Task<ResponseBase> GetAllInvitationsByUserId(string uid, int page, int size)
+        {
+            bool isRightId = ObjectId.TryParse(uid, out var userId);
+            if (!isRightId)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Wrong format"
+                };
+            }
+
+            if (page <= 0) page = 0;
+            if (size <= 0) size = 1;
+            if (size > 20) size = 20;
+
+            return await userEventHandler.GetAllInvitationById(userId, page, size);
+        }
+
         [HttpGet]
         [Route(REFIX + "/posts")] // Endpoint: /api/v1/user/posts?uid=507f1f77bcf86cd799439011&page=1&size=7 [GET]
         public ResponseBase GetPostByUserId(string uid, Int32 page, Int32 size)
@@ -102,14 +125,32 @@ namespace SocialNetworkBE.Controllers
         [Route(REFIX + "/profile")] // Endpoint: /api/v1/user/profile?uid=507f1f77bcf86cd799439011
         public async Task<ResponseBase> UpdateUserProfileAsync(string uid)
         {
+            AccountRequest accountRequest = new AccountRequest();
             var pwd = FormData.GetValueByKey("Password");
-            if (pwd == null)
+            if (pwd != null)
             {
-                return new ResponseBase()
+                if (!accountResponsitory.ValidatePassword(pwd, out string ErrorMessage))
                 {
-                    Status = Status.WrongFormat,
-                    Message = "Password required"
-                };
+                    return new ResponseBase()
+                    {
+                        Status = Status.Failure,
+                        Message = ErrorMessage
+                    };
+                }
+                BCryptService bCryptService = new BCryptService();
+
+                string randomSalt = bCryptService.GetRandomSalt();
+                string secretKey = ServerEnvironment.GetServerSecretKey();
+                string password = pwd;
+                string passwordHash =
+                    bCryptService
+                    .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
+                accountRequest.Password = passwordHash;
+                accountRequest.HashSalt = randomSalt;
+            }
+            else
+            {
+                accountRequest.Password = pwd;
             }
 
             var email = FormData.GetValueByKey("Email");
@@ -151,51 +192,16 @@ namespace SocialNetworkBE.Controllers
                     Message = "wrong format"
                 };
             }
-            HttpFileCollection media = HttpContext.Current.Request.Files;
-            var AvatarUrl = media[0];
-
-            AccountRequest accountRequest = new AccountRequest();
             accountRequest.DisplayName = DisplayName;
             accountRequest.Email = email;
             accountRequest.Username = userName;
-            if (accountResponsitory.CheckUsernameExist(userName))
+            HttpFileCollection media = HttpContext.Current.Request.Files;
+            if (media != null)
             {
-                return new ResponseBase()
-                {
-                    Status = Status.Failure,
-                    Message = "Username is exist"
-                };
+                return await userEventHandler.UpdateAccount(accountRequest, userId, media[0]);
             }
-            else if (accountResponsitory.CheckEmailExist(email))
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.Failure,
-                    Message = "Email is exist"
-                };
-            }
+            return await userEventHandler.UpdateAccount(accountRequest, userId, null);
 
-            else if (!accountResponsitory.ValidatePassword(pwd, out string ErrorMessage))
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.Failure,
-                    Message = ErrorMessage
-                };
-            }
-
-            BCryptService bCryptService = new BCryptService();
-
-            string randomSalt = bCryptService.GetRandomSalt();
-            string secretKey = ServerEnvironment.GetServerSecretKey();
-            string password = pwd;
-            string passwordHash =
-                bCryptService
-                .HashStringBySHA512(bCryptService.GetHashCode(randomSalt, password, secretKey));
-            accountRequest.Password = password;
-            accountRequest.HashSalt = randomSalt;
-
-            return await userEventHandler.UpdateAccount(accountRequest, userId, AvatarUrl);
         }
 
         [HttpPost]
