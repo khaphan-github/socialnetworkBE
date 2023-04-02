@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using Firebase.Auth;
+using MongoDB.Bson;
 using ServiceStack;
 using SocialNetworkBE.Payload.Request;
 using SocialNetworkBE.Payload.Response;
@@ -9,6 +10,7 @@ using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Hash;
 using SocialNetworkBE.Services.JsonWebToken;
+using SocialNetworkBE.Services.Notification;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -88,7 +90,6 @@ namespace SocialNetworkBE.Services.Authenticate {
                     Message = "Authorized",
                     Data = authResponse
                 };
-
             return response;
         }
 

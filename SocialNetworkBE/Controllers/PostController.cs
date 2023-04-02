@@ -97,7 +97,7 @@ namespace SocialNetworkBE.Controllers {
         }
 
         [HttpGet]
-        [Route("")]
+        [Route("user")]
         // Endpoint: /api/v1/posts?page=1&size=10 [POST]: 
         public async Task<ResponseBase> GetPostUserListWithPaging(string userId,int page, int size)
         {
