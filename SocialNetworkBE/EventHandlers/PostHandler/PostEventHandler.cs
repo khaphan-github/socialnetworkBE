@@ -160,9 +160,9 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     mediaURLList.Add(imageDownloadLink);
                 }
             }
-
+            ObjectId id = ObjectId.GenerateNewId();
             Post newPost = new Post() {
-                Id = ObjectId.GenerateNewId(),
+                Id = id,
                 CreateDate = DateTime.Now,
                 UpdateAt = DateTime.Now,
                 OwnerAvatarURL = userMetadata.AvatarURL,
@@ -178,6 +178,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
             newPost.Likes = new List<ObjectId>();
 
             Post savedPost = PostRespository.CreateNewPost(newPost);
+            AccountRepostitory.UpdateListPostWhenUserCreateNewPost(ObjectId.Parse(userMetadata.Id), id);
             if (savedPost == null) {
                 return new ResponseBase() {
                     Status = Status.Failure,
