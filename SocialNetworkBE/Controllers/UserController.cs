@@ -44,7 +44,7 @@ namespace SocialNetworkBE.Controllers
                 account.UserProfileUrl
             });
 
-            if(top5Result != null)
+            if(top5Result.Count() != 0)
             {
                 return new ResponseBase()
                 {
