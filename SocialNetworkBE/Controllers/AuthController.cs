@@ -1,15 +1,21 @@
-﻿using SocialNetworkBE.Payload.Request;
+﻿using ServiceStack;
+using SocialNetworkBE.Payload.Request;
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Request;
+using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Authenticate;
+using SocialNetworkBE.Services.Notification;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
+using RouteAttribute = System.Web.Http.RouteAttribute;
 
 namespace SocialNetworkBE.Controllers {
     public class AuthController : ApiController {
 
         private const string REFIX = "api/v1/auth";
         private readonly AuthService authService = new AuthService();
+        private PushNotificationService _pushNotificationService;
 
         [HttpPost]
         [Route(REFIX + "/")]
@@ -104,8 +110,10 @@ namespace SocialNetworkBE.Controllers {
                     Status = Status.WrongFormat,
                 };
             }
+            
 
-            return await authService.HandleRefreshTokenAsync(tokenRequest);
+            return authService.HandleRefreshTokenAsync(tokenRequest);
         }
+        
     }
 }

@@ -103,7 +103,7 @@ namespace SocialNetworkBE.Services.Authenticate {
             1. Only refresh when access token exprise and Refresh token is valid
             2. Check hash code in token - is a key pairs if hash code is match
          */
-        public async Task<ResponseBase> HandleRefreshTokenAsync(Token tokenRequest) {
+        public ResponseBase HandleRefreshTokenAsync(Token tokenRequest) {
             // Validate token
             ClaimsIdentity validAccessToken = 
                 jsonWebTokenService.GetClaimsIdentityFromToken(tokenRequest.AccessToken);
@@ -155,8 +155,7 @@ namespace SocialNetworkBE.Services.Authenticate {
 
                 string accessToken = jsonWebTokenService
                     .CreateTokenFromClaims(validRefreshToken, jsonWebTokenService.accessTokenExpriseTime);
-
-                await _pushNotificationService.SendAccessTokenToNotifiService();
+                
                 return new ResponseBase() {
                     Status = Status.Success,
                     Message = "Authorized",
