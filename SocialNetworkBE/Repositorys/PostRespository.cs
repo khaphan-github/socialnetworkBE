@@ -18,6 +18,7 @@ using System.Collections;
 using System.Web.Mvc;
 using SocialNetworkBE.Repositorys.DataTranfers;
 using SocialNetworkBE.Services.Notification;
+using SocialNetworkBE.Payloads.Data;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
@@ -130,6 +131,8 @@ namespace SocialNetworkBE.Repository {
         {
             try
             {
+                AccountResponsitory accountResponsitory = new AccountResponsitory();
+                AccountRespone accountRespone = accountResponsitory.AccountForSomeAttribute(userId.ToString());
                 var pipeline = new BsonDocument[]
             {
                     new BsonDocument("$match",
@@ -162,7 +165,13 @@ namespace SocialNetworkBE.Repository {
                             })
                         })
                     }
-                })
+                }),
+                new BsonDocument("$set", new BsonDocument
+                    {
+                        { "OwnerDisplayName", accountRespone.DisplayName },
+                        { "OwnerAvatarURL", accountRespone.AvatarUrl },
+                        { "OwnerProfileURL", accountRespone.UserProfileUrl },
+                    }),
             };
 
                 var pipelineDefinition = PipelineDefinition<Post, PostDataTranfer>.Create(pipeline);
@@ -179,6 +188,8 @@ namespace SocialNetworkBE.Repository {
         {
             try
             {
+                AccountResponsitory accountResponsitory = new AccountResponsitory();
+                AccountRespone accountRespone = accountResponsitory.AccountForSomeAttribute(userId.ToString());
                 var pipeline = new BsonDocument[]
                 {
                     new BsonDocument("$match", new BsonDocument("OwnerId", userId)),
@@ -197,8 +208,8 @@ namespace SocialNetworkBE.Repository {
                     {
                         { "OwnerId", 1 },
                         { "OwnerAvatarURL", 1 },
-                        { "OwnerDisplayName", "$Account_Mapping.DisplayName" },
-                        { "OwnerProfileURL", "$Account_Mapping.ProfileUrl" },
+                        { "OwnerDisplayName", 1},
+                        { "OwnerProfileURL", 1 },
                         { "UpdateAt", 1 },
                         { "Scope", 1 },
                         { "Content", 1 },
@@ -220,9 +231,9 @@ namespace SocialNetworkBE.Repository {
                     }),
                     new BsonDocument("$set", new BsonDocument
                     {
-                        { "OwnerDisplayName", "$Account_Mapping.DisplayName" },
-                        { "OwnerAvatarURL", "$Account_Mapping.AvatarUrl" },
-                        { "OwnerProfileURL", "$Account_Mapping.ProfileUrl" },
+                        { "OwnerDisplayName", accountRespone.DisplayName },
+                        { "OwnerAvatarURL", accountRespone.AvatarUrl },
+                        { "OwnerProfileURL", accountRespone.UserProfileUrl },
                     }),
                     new BsonDocument("$unset", "Account_Mapping")
                 };
@@ -324,5 +335,8 @@ namespace SocialNetworkBE.Repository {
             Post postTemp = PostCollection.Find(filter).FirstOrDefault();
             return postTemp.OwnerId;
         }
+
+
+       
     }
 }
