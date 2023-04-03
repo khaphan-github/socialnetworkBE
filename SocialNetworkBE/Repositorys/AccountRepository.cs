@@ -1,3 +1,4 @@
+using Firebase.Auth;
 using LiteDB;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -11,6 +12,7 @@ using SocialNetworkBE.Repositorys.Interfaces;
 using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Hash;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -519,6 +521,14 @@ namespace SocialNetworkBE.Repository {
                 result.Add(accountRespone); 
             }
             return result;
+        }
+
+        public async Task<List<Account>> SearchUsers(string searchText)
+        {
+            var regexPattern = new BsonRegularExpression($".*{searchText}.*", "i");
+            var filter = Builders<Account>.Filter.Regex(x => x.DisplayName, regexPattern);
+            var results = await AccountCollection.Find(filter).ToListAsync();
+            return results;
         }
     }
 }

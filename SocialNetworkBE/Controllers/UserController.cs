@@ -1,6 +1,8 @@
 ﻿using Amazon.Runtime.Internal;
 using LiteDB;
 using MongoDB.Bson;
+using MongoDB.Driver.Builders;
+using Salesforce.Common.Models.Json;
 using ServiceStack.Web;
 using SocialNetworkBE.EventHandlers.PostHandler;
 using SocialNetworkBE.EventHandlers.User;
@@ -12,10 +14,12 @@ using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Hash;
 using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
+using System.Web.Razor.Tokenizer.Symbols;
 using ObjectId = MongoDB.Bson.ObjectId;
 
 namespace SocialNetworkBE.Controllers
@@ -25,6 +29,39 @@ namespace SocialNetworkBE.Controllers
         private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
         private readonly UserEventHandler userEventHandler = new UserEventHandler();
         private const string REFIX = "api/v1/user";
+
+        [HttpGet]
+        [Route(REFIX + "/search")]
+        public async Task<ResponseBase> Search(string searchString)
+        {
+            var result = await accountResponsitory.SearchUsers(searchString);
+
+            var top5Result = result.Take(5).Select(account => new {
+                account.Id,
+                account.DisplayName,
+                account.Username,
+                account.AvatarUrl,
+                account.UserProfileUrl
+            });
+
+            if(top5Result != null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.Success,
+                    Message = "Search success",
+                    Data = top5Result.ToList()
+                };
+            }
+            return new ResponseBase()
+            {
+                Status = Status.Failure,
+                Message = "No elements suit with this string",
+                Data = top5Result.ToList()
+            };
+        }
+
+
 
         [HttpGet]
         [Route(REFIX + "/")]
