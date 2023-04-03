@@ -3,6 +3,7 @@ using MongoDB.Driver;
 using SocialNetworkBE.Repository.Config;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.DataTranfers;
+using SocialNetworkBE.Services.Notification;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -13,6 +14,8 @@ namespace SocialNetworkBE.Repositorys {
 
     public class CommentRepository {
         private IMongoCollection<Comment> CommentCollection { get; set; }
+        private PushNotificationService _pushNotificationService;
+
         private IMongoDatabase DatabaseConnected { get; set; }
         private const string PostDocumentName = "Comment";
 

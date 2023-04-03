@@ -10,6 +10,7 @@ using SocialNetworkBE.Repositorys;
 using SocialNetworkBE.Repositorys.DataModels;
 using SocialNetworkBE.Repositorys.DataTranfers;
 using SocialNetworkBE.Services.Firebase;
+using SocialNetworkBE.Services.Notification;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -23,6 +24,7 @@ using System.Web.UI.WebControls;
 namespace SocialNetworkBE.EventHandlers.PostHandler {
     public class PostEventHandler
     {
+        private PushNotificationService _pushNotificationService;
 
         private readonly PostRespository PostRespository = new PostRespository();
         private readonly CommentRepository CommentRepository = new CommentRepository();
@@ -280,6 +282,8 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
 
             Comment commentCreated = CommentRepository.CreateCommentAPost(commentToCreate);
 
+            _pushNotificationService = new PushNotificationService(userMetadata.Id.ToString(), "");
+            await _pushNotificationService.PushMessage_Whencomment(PostRespository.findOwnerPostById(postId).ToString(),commentCreated.Id.ToString(), postId.ToString());
             await PostRespository.UpdateNumOfCommentOfPost(postId, 1).ConfigureAwait(false);
 
             if (commentCreated == null) {
@@ -354,7 +358,7 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 medianame.Add(mediaTemp);
             }    
 
-            if (Media != null)
+            if (Media != null && Media[0].ContentLength > 0)
             {
                 for (int i = 0; i < Media.Count; i++)
                 {
@@ -373,7 +377,11 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                     }
                 }
             }
-            post.Content = Content;
+            if(Content != null)
+            {
+                post.Content = Content;
+            }
+            
             Post updateResult =
             await PostRespository.UpdateAPost(postId, post);
 
@@ -467,7 +475,10 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
         public async Task<ResponseBase> LikeAPostByPostId(ObjectId postId, UserMetadata userMetadata) {
             try {
                 await PostRespository.MakeALikeOfPostAsync(postId, ObjectId.Parse(userMetadata.Id));
-
+                var filter = Builders<Post>.Filter.Eq("_id", postId);
+                Post postFind = PostCollection.Find(filter).FirstOrDefault();
+                _pushNotificationService = new PushNotificationService(userMetadata.Id.ToString(), "");
+                await _pushNotificationService.PushMessage_WhenLike(postFind.OwnerId.ToString(), postId.ToString());
                 return new ResponseBase() {
                     Status = Status.Success,
                     Message = "Like Success",

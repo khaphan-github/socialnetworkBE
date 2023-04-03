@@ -9,6 +9,8 @@ using System.Web.ModelBinding;
 using ServiceStack.Messaging;
 using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.EventHandlers.User;
+using Firebase.Auth;
+using static ServiceStack.Diagnostics.Events;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
@@ -256,7 +258,7 @@ namespace SocialNetworkBE.Controllers {
         public async Task<ResponseBase> UpdateAPost(string postId)
         {
             bool isRightId = ObjectId.TryParse(postId, out var PostId);
-            HttpFileCollection Media = HttpContext.Current.Request.Files;
+            
 
             var Content = FormData.GetValueByKey("Content");
             if (!isRightId)
@@ -267,25 +269,14 @@ namespace SocialNetworkBE.Controllers {
                     Message = "Wrong format"
                 };
             }
-            if (Content == null)
+            HttpFileCollection media = HttpContext.Current.Request.Files;
+            if (media != null)
             {
-                return new ResponseBase()
-                {
-                    Status = Status.WrongFormat,
-                    Message = "Content required"
-                };
+                return await postEventHandler
+                .UpdateAPost(PostId, media, Content);
             }
-            if (Media == null)
-            {
-                return new ResponseBase()
-                {
-                    Status = Status.WrongFormat,
-                    Message = "Media required"
-                };
-            }
-
             return await postEventHandler
-                .UpdateAPost(PostId, Media, Content);
+                .UpdateAPost(PostId, null, Content) ;
         }
 
         [HttpGet]

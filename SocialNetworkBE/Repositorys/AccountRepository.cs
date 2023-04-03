@@ -449,7 +449,7 @@ namespace SocialNetworkBE.Repository {
             { accountUpdate.Password = accountRequest.Password;
                 accountUpdate.HashSalt = accountRequest.HashSalt;
             }
-            if(accountRequest.AvatarUrl != null)
+            if(accountRequest.AvatarUrl == null)
             {
                 accountUpdate.AvatarUrl = accountRequest.AvatarUrl;
             }

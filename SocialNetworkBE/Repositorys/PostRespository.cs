@@ -17,10 +17,12 @@ using Firebase.Database.Http;
 using System.Collections;
 using System.Web.Mvc;
 using SocialNetworkBE.Repositorys.DataTranfers;
+using SocialNetworkBE.Services.Notification;
 
 namespace SocialNetworkBE.Repository {
     public class PostRespository {
         private IMongoCollection<Post> PostCollection { get; set; }
+        private PushNotificationService _pushNotificationService;
         private IMongoDatabase DatabaseConnected { get; set; }
         private const string PostDocumentName = "Post";
 
@@ -259,8 +261,9 @@ namespace SocialNetworkBE.Repository {
 
         public async Task MakeALikeOfPostAsync(ObjectId postObjectId, ObjectId userId) {
             try {
+                
                 var filter = Builders<Post>.Filter.Eq("_id", postObjectId);
-
+                
                 UpdateDefinition<Post> update = Builders<Post>.Update
                        .Set(post => post.UpdateAt, DateTime.Now)
                        .Push(post => post.Likes, userId)
@@ -298,6 +301,13 @@ namespace SocialNetworkBE.Repository {
                 System.Diagnostics.Debug.WriteLine("[ERROR]: " + ex.Message);
                 return new BsonDocument();
             }
+        }
+
+        public ObjectId findOwnerPostById(ObjectId postid)
+        {
+            var filter = Builders<Post>.Filter.Eq(post => post.Id, postid);
+            Post postTemp = PostCollection.Find(filter).FirstOrDefault();
+            return postTemp.OwnerId;
         }
     }
 }

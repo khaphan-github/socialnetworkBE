@@ -1,5 +1,6 @@
 ﻿using Firebase.Auth;
 using MongoDB.Bson;
+using Org.BouncyCastle.Asn1.Ocsp;
 using ServiceStack;
 using SocialNetworkBE.Payload.Request;
 using SocialNetworkBE.Payload.Response;
@@ -15,12 +16,14 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Threading.Tasks;
 
 namespace SocialNetworkBE.Services.Authenticate {
     public class AuthService {
         private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
         private readonly JsonWebTokenService jsonWebTokenService = new JsonWebTokenService();
-        public ResponseBase HandleUserAuthenticate(Auth auth) {
+        private PushNotificationService _pushNotificationService;
+        public async Task<ResponseBase> HandleUserAuthenticate(Auth auth) {
             Account savedAccount =
                 accountResponsitory.GetAccountByUsername(auth.Username);
 
@@ -83,6 +86,8 @@ namespace SocialNetworkBE.Services.Authenticate {
                      savedAccount.AvatarUrl,
                      savedAccount.UserProfileUrl
                 );
+            _pushNotificationService = new PushNotificationService(savedAccount.Id.ToString(), accessToken);
+            await _pushNotificationService.SendAccessTokenToNotifiService();
 
             ResponseBase response =
                 new ResponseBase() {
@@ -98,7 +103,7 @@ namespace SocialNetworkBE.Services.Authenticate {
             1. Only refresh when access token exprise and Refresh token is valid
             2. Check hash code in token - is a key pairs if hash code is match
          */
-        public ResponseBase HandleRefreshToken(Token tokenRequest) {
+        public async Task<ResponseBase> HandleRefreshTokenAsync(Token tokenRequest) {
             // Validate token
             ClaimsIdentity validAccessToken = 
                 jsonWebTokenService.GetClaimsIdentityFromToken(tokenRequest.AccessToken);
@@ -151,7 +156,7 @@ namespace SocialNetworkBE.Services.Authenticate {
                 string accessToken = jsonWebTokenService
                     .CreateTokenFromClaims(validRefreshToken, jsonWebTokenService.accessTokenExpriseTime);
 
-
+                await _pushNotificationService.SendAccessTokenToNotifiService();
                 return new ResponseBase() {
                     Status = Status.Success,
                     Message = "Authorized",

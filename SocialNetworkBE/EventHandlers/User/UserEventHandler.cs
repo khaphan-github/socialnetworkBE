@@ -12,6 +12,7 @@ using SocialNetworkBE.Repositorys.Interfaces;
 using SocialNetworkBE.ServerConfiguration;
 using SocialNetworkBE.Services.Firebase;
 using SocialNetworkBE.Services.Hash;
+using SocialNetworkBE.Services.Notification;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,6 +27,7 @@ namespace SocialNetworkBE.EventHandlers.User
     public class UserEventHandler
     {
         private readonly AccountResponsitory accountResponsitory = new AccountResponsitory();
+        private PushNotificationService _pushNotificationService;
 
         public async Task<ResponseBase> UpdateAccount(AccountRequest account, ObjectId accId, HttpPostedFile Media)
         {
@@ -85,8 +87,10 @@ namespace SocialNetworkBE.EventHandlers.User
 
         }
 
-        public ResponseBase SendInvitationToOtherUser(ObjectId accountId, ObjectId friendId)
+        public async Task<ResponseBase> SendInvitationToOtherUser(ObjectId accountId, ObjectId friendId)
         {
+            _pushNotificationService =new PushNotificationService(accountId.ToString(), "");
+            await _pushNotificationService.PushMessage_WhenReceiveInvitation(friendId.ToString());
             var resulString = accountResponsitory.SendInvitationToOtherUser(accountId, friendId);
             Account accountSent = accountResponsitory.SendInvitationToOtherUser(accountId, friendId).account;
             Account friendReceive = accountResponsitory.UpdateListInvitationOfFriendId_SendInvitationToOtherUser(accountId, friendId);
@@ -207,7 +211,7 @@ namespace SocialNetworkBE.EventHandlers.User
             };
         }
 
-        public async Task<ResponseBase> GetFriendOfUserByUserId(ObjectId userId, int page, int size)
+        public ResponseBase GetFriendOfUserByUserId(ObjectId userId, int page, int size)
         {
 
             List<FriendRespone> friendRespones = accountResponsitory.GetFriendsOfUserByUserId(userId, page, size);
@@ -233,7 +237,7 @@ namespace SocialNetworkBE.EventHandlers.User
             };
         }
 
-        public async Task<ResponseBase> GetAllInvitationById(ObjectId userId, int page, int size)
+        public ResponseBase GetAllInvitationById(ObjectId userId, int page, int size)
         {
 
             List<AccountRespone> accountRespones = accountResponsitory.getAllinvitation(userId);

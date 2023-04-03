@@ -2,6 +2,7 @@
 using SocialNetworkBE.Payload.Response;
 using SocialNetworkBE.Payloads.Request;
 using SocialNetworkBE.Services.Authenticate;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace SocialNetworkBE.Controllers {
@@ -12,7 +13,7 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpPost]
         [Route(REFIX + "/")]
-        public ResponseBase SignIn([FromBody] Auth authRequest) {
+        public async Task<ResponseBase> SignIn([FromBody] Auth authRequest) {
 
             bool isEmptyParams = 
                 string.IsNullOrWhiteSpace(authRequest.Username) || 
@@ -35,7 +36,7 @@ namespace SocialNetworkBE.Controllers {
                 };
             }
 
-            return authService.HandleUserAuthenticate(authRequest);
+            return await authService.HandleUserAuthenticate(authRequest);
         }
 
         [HttpPost]
@@ -92,7 +93,7 @@ namespace SocialNetworkBE.Controllers {
 
         [HttpPost]
         [Route(REFIX + "/token")]
-        public ResponseBase RefreshToken([FromBody] Token tokenRequest) {
+        public async Task<ResponseBase> RefreshToken([FromBody] Token tokenRequest) {
             bool isEmptyParams = 
                 string.IsNullOrWhiteSpace(tokenRequest.AccessToken) || 
                 string.IsNullOrWhiteSpace(tokenRequest.RefreshToken);
@@ -104,7 +105,7 @@ namespace SocialNetworkBE.Controllers {
                 };
             }
 
-            return authService.HandleRefreshToken(tokenRequest);
+            return await authService.HandleRefreshTokenAsync(tokenRequest);
         }
     }
 }

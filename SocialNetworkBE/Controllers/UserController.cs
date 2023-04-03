@@ -73,7 +73,7 @@ namespace SocialNetworkBE.Controllers
 
         [HttpGet]
         [Route(REFIX + "/friends")] // Endpoint: api/v1/user/friends?id=507f1f77bcf86cd799439011&page=1&size=15 [GET] RETURN LIST(ID, DISPLAYNAME, AVATAR, PROFILEURL)
-        public async Task<ResponseBase> GetFriendOfUserByUserId(string uid, int page, int size)
+        public ResponseBase GetFriendOfUserByUserId(string uid, int page, int size)
         {
             bool isRightId = ObjectId.TryParse(uid, out var userId);
             if (!isRightId)
@@ -89,13 +89,13 @@ namespace SocialNetworkBE.Controllers
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
-            return await userEventHandler.GetFriendOfUserByUserId(userId, page, size);
+            return userEventHandler.GetFriendOfUserByUserId(userId, page, size);
         }
 
 
         [HttpGet]
         [Route(REFIX + "/invitations")] 
-        public async Task<ResponseBase> GetAllInvitationsByUserId(string uid, int page, int size)
+        public ResponseBase GetAllInvitationsByUserId(string uid, int page, int size)
         {
             bool isRightId = ObjectId.TryParse(uid, out var userId);
             if (!isRightId)
@@ -111,7 +111,7 @@ namespace SocialNetworkBE.Controllers
             if (size <= 0) size = 1;
             if (size > 20) size = 20;
 
-            return await userEventHandler.GetAllInvitationById(userId, page, size);
+            return userEventHandler.GetAllInvitationById(userId, page, size);
         }
 
         [HttpGet]
@@ -207,7 +207,7 @@ namespace SocialNetworkBE.Controllers
 
         [HttpPost]
         [Route(REFIX + "/friends/invite")] // Endpoint: /api/v1/user/friends/invite?uid={uid}&fid={fid} [POST]
-        public ResponseBase SendInvitationToOtherUser(string uid, string fid)
+        public async Task<ResponseBase> SendInvitationToOtherUser(string uid, string fid)
         {
             bool isRightUserObjectId = ObjectId.TryParse(uid, out var userId);
             bool isRightfriendObjectId = ObjectId.TryParse(fid, out var friendId);
@@ -219,7 +219,7 @@ namespace SocialNetworkBE.Controllers
                     Message = "wrong format"
                 };
             }
-            return userEventHandler.SendInvitationToOtherUser(userId, friendId);
+            return await userEventHandler.SendInvitationToOtherUser(userId, friendId);
         }
 
         [HttpPost]
