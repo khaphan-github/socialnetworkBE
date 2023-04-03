@@ -11,12 +11,16 @@ using SocialNetworkBE.Payloads.Response;
 using SocialNetworkBE.EventHandlers.User;
 using Firebase.Auth;
 using static ServiceStack.Diagnostics.Events;
+using SocialNetworkBE.Repository;
+using SocialNetworkBE.Services.Notification;
 
 namespace SocialNetworkBE.Controllers {
     [RoutePrefix("api/v1/posts")]
     public class PostController : ApiController {
 
         private readonly PostEventHandler postEventHandler = new PostEventHandler();
+        private PushNotificationService _pushNotificationService;
+        private PostRespository PostRespository;
         [HttpGet]
         [Route("")] 
         public ResponseBase GetPostById(string pid)
@@ -186,7 +190,6 @@ namespace SocialNetworkBE.Controllers {
                     Message = "Comment id wrong format object id"
                 };
             }
-
             return await postEventHandler
                 .CommentAPostByPostId(postId, commentId, userMetadata, commentRequest.Comment);
         }

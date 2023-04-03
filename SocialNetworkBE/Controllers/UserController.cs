@@ -34,6 +34,14 @@ namespace SocialNetworkBE.Controllers
         [Route(REFIX + "/search")]
         public async Task<ResponseBase> Search(string searchString)
         {
+            if(searchString == null)
+            {
+                return new ResponseBase()
+                {
+                    Status = Status.WrongFormat,
+                    Message = "Search string is required"
+                };
+            }    
             var result = await accountResponsitory.SearchUsers(searchString);
 
             var top5Result = result.Take(5).Select(account => new {

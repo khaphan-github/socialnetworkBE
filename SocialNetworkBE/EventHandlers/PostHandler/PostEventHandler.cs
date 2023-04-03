@@ -279,12 +279,15 @@ namespace SocialNetworkBE.EventHandlers.PostHandler {
                 await CommentRepository
                     .UpdateNumberOfChildrent(parentObjectId, 1)
                     .ConfigureAwait(false);
+                _pushNotificationService = new PushNotificationService(userMetadata.Id.ToString(), "");
+                await _pushNotificationService.PushMessage_Whencomment(PostRespository.findOwnerPostById(postId).ToString(), commentId.ToString(), postId.ToString());
             }
-
+            else
+            {
+                _pushNotificationService = new PushNotificationService(userMetadata.Id.ToString(), "");
+                await _pushNotificationService.PushMessage_Whencomment(PostRespository.findOwnerPostById(postId).ToString(), commentToCreate.Id.ToString(), postId.ToString());
+            }
             Comment commentCreated = CommentRepository.CreateCommentAPost(commentToCreate);
-
-            _pushNotificationService = new PushNotificationService(userMetadata.Id.ToString(), "");
-            await _pushNotificationService.PushMessage_Whencomment(PostRespository.findOwnerPostById(postId).ToString(),commentCreated.Id.ToString(), postId.ToString());
             await PostRespository.UpdateNumOfCommentOfPost(postId, 1).ConfigureAwait(false);
 
             if (commentCreated == null) {
